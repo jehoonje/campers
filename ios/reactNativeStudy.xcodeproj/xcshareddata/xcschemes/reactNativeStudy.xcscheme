@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "reactNativeStudy.app"
-               BlueprintName = "reactNativeStudy"
-               ReferencedContainer = "container:reactNativeStudy.xcodeproj">
+               BuildableName = "campers.app"
+               BlueprintName = "campers"
+               ReferencedContainer = "container:campers.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "reactNativeStudyTests.xctest"
-               BlueprintName = "reactNativeStudyTests"
-               ReferencedContainer = "container:reactNativeStudy.xcodeproj">
+               BuildableName = "campersTests.xctest"
+               BlueprintName = "campersTests"
+               ReferencedContainer = "container:campers.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "reactNativeStudy.app"
-            BlueprintName = "reactNativeStudy"
-            ReferencedContainer = "container:reactNativeStudy.xcodeproj">
+            BuildableName = "campers.app"
+            BlueprintName = "campers"
+            ReferencedContainer = "container:campers.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "reactNativeStudy.app"
-            BlueprintName = "reactNativeStudy"
-            ReferencedContainer = "container:reactNativeStudy.xcodeproj">
+            BuildableName = "campers.app"
+            BlueprintName = "campers"
+            ReferencedContainer = "container:campers.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

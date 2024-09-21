@@ -1,5 +1,5 @@
 {
-  "name": "reactNativeStudy",
+  "name": "campers",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -12,9 +12,18 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.0.0",
     "@react-native/gradle-plugin": "^0.75.3",
+    "@react-navigation/drawer": "^6.7.2",
+    "@react-navigation/native": "^6.1.18",
+    "@react-navigation/stack": "^6.4.1",
     "@reduxjs/toolkit": "^2.2.7",
     "react": "18.2.0",
     "react-native": "^0.75.3",
+    "react-native-gesture-handler": "^2.19.0",
+    "react-native-reanimated": "^3.15.3",
+    "react-native-safe-area-context": "^4.11.0",
+    "react-native-screens": "^3.34.0",
+    "react-native-vector-icons": "^10.2.0",
+    "react-native-webview": "^13.12.2",
     "react-redux": "^9.1.2"
   },
   "devDependencies": {

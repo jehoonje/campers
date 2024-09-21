@@ -2,7 +2,6 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-
 react {
     autolinkLibrariesWithApp()
 }
@@ -10,14 +9,17 @@ react {
 def enableProguardInReleaseBuilds = true
 def jscFlavor = 'org.webkit:android-jsc:+'
 
+// Hermes 사용 설정 플래그 추가
+def enableHermes = project.ext.has("enableHermes") ? project.ext.get("enableHermes") : false
+
 android {
-    ndkVersion rootProject.ext.ndkVersion
+    ndkVersion "23.1.7779620"
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdkVersion 34
 
-    namespace "com.reactnativestudy"
+    namespace "com.campers"
     defaultConfig {
-        applicationId "com.reactnativestudy"
+        applicationId "com.campers"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -30,7 +32,7 @@ android {
                 languageVersion = JavaLanguageVersion.of(17)
             }
         }
-        
+
         // Kotlin JVM 타겟 설정 (Java 17 사용)
         kotlinOptions {
             jvmTarget = "17"
@@ -58,11 +60,14 @@ android {
     }
 }
 
+// react-native-vector-icons 폰트 추가
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
+
 dependencies {
     implementation("com.facebook.react:react-android")
 
     // Hermes 또는 JSC 선택에 따른 의존성 설정
-    if (hermesEnabled.toBoolean()) {
+    if (enableHermes) {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor

@@ -1,65 +1,81 @@
-import React, { useEffect, useState } from 'react';
+// AppContent.js
+import React from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
-  TextInput,
-  FlatList,
-  Alert,
+  SafeAreaView,
   TouchableOpacity,
+  StyleSheet,
 } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchTodos, addTodoAsync } from './redux/todoSlice';
-import TodoItem from './components/TodoItem';
-import styles from './styles/AppContentStyles'; // 모듈 스타일 임포트
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {DrawerActions, useNavigation} from '@react-navigation/native';
 
 const AppContent = () => {
-  const dispatch = useDispatch();
-  const todos = useSelector((state) => state.todos.items);
-  const status = useSelector((state) => state.todos.status);
-  const [newTask, setNewTask] = useState('');
+  const navigation = useNavigation();
 
-  useEffect(() => {
-    if (status === 'idle') {
-      dispatch(fetchTodos());
-    }
-  }, [status, dispatch]);
+  // 왼쪽 드로어 열기 (부모 네비게이션)
+  const openLeftDrawer = () => {
+    navigation.getParent()?.dispatch(DrawerActions.openDrawer());
+  };
 
-  const handleAddTodo = () => {
-    if (newTask.trim() === '') {
-      Alert.alert('Validation', 'Please enter a valid task');
-      return;
-    }
-    const newTodo = {
-      task: newTask,
-    };
-    dispatch(addTodoAsync(newTodo));
-    setNewTask('');
+  // 오른쪽 드로어 열기 (현재 네비게이션)
+  const openRightDrawer = () => {
+    navigation.dispatch(DrawerActions.openDrawer());
   };
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-      <View style={styles.container}>
-        <Text style={styles.title}>DREAM BIG, START SMALL, ACT NOW.</Text>
-        <TextInput
-          style={styles.input}
-          value={newTask}
-          onChangeText={setNewTask}
-          placeholder="Enter a new task"
-          placeholderTextColor="#aaa"
-          onSubmitEditing={handleAddTodo}
-        />
-        <TouchableOpacity style={styles.button} onPress={handleAddTodo}>
-          <Text style={styles.buttonText}>Add Todo</Text>
+      <View style={styles.header}>
+        {/* 왼쪽 드로어 아이콘 */}
+        <TouchableOpacity onPress={openLeftDrawer}>
+          <Ionicons name="menu" size={24} style={styles.icon} />
         </TouchableOpacity>
-        <FlatList
-          data={todos}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <TodoItem todo={item} />}
-        />
+
+        {/* 중앙 타이틀 */}
+        <Text style={styles.headerTitle}>CAMPERS</Text>
+
+        {/* 오른쪽 드로어 아이콘 */}
+        <TouchableOpacity onPress={openRightDrawer}>
+          <Ionicons name="ellipsis-horizontal" size={24} style={styles.icon} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.container}>
+        {/* 메인 콘텐츠 */}
+        <Text>Main content goes here.</Text>
       </View>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    height: 60, // 헤더 높이 고정
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    backgroundColor: '#f8f8f8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    zIndex: 1, // 헤더가 드로어보다 위에 있도록 설정
+  },
+  icon: {
+    color: '#000',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default AppContent;
