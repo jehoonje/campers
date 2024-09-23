@@ -1,9 +1,13 @@
 import React from 'react';
-import { Text } from 'react-native';
+import {Text} from 'react-native';
+import MapScreen from './MapScreen';
 
 const MainContent = () => {
   return (
-    <Text>Main content goes here.</Text>
+    <>
+      <MapScreen />
+      <Text>Main content goes here.</Text>
+    </>
   );
 };
 

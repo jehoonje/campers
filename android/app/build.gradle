@@ -65,6 +65,8 @@ apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"
 
 dependencies {
     implementation("com.facebook.react:react-android")
+    implementation("com.google.android.gms:play-services-maps:18.0.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 
     // Hermes 또는 JSC 선택에 따른 의존성 설정
     if (enableHermes) {
