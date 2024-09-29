@@ -6,71 +6,103 @@ import {
   Image,
   TouchableOpacity,
   ActivityIndicator,
-  LayoutChangeEvent,
+  PermissionsAndroid,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import axios from 'axios';
+import Geolocation from '@react-native-community/geolocation';
 
 const MapScreen = () => {
-  // 마커 데이터를 저장하는 상태
+  // 기존 상태
   const [markers, setMarkers] = useState([]);
-  // 선택된 마커를 저장하는 상태
   const [selectedMarker, setSelectedMarker] = useState(null);
-  // 지도가 준비되었는지 여부를 추적하는 상태
   const [isMapReady, setIsMapReady] = useState(false);
-  // MapView의 부모 컨테이너 레이아웃 정보를 저장하는 상태
   const [mapViewContainerLayout, setMapViewContainerLayout] = useState(null);
-  // MapView 참조
   const mapRef = useRef(null);
 
-  // 컴포넌트가 마운트될 때 마커 데이터를 가져오는 useEffect
+  // 유저의 현재 위치를 저장하는 상태 추가
+  const [userLocation, setUserLocation] = useState(null);
+
+  // 마커 데이터 가져오기
   useEffect(() => {
     const fetchMarkers = async () => {
       try {
-        // API에서 캠프장 데이터를 가져옴
         const response = await axios.get('http://10.0.2.2:8080/api/campsites');
         setMarkers(response.data);
       } catch (error) {
         console.error('마커를 가져오는 중 오류 발생:', error);
       }
     };
-
     fetchMarkers();
   }, []);
 
-  // 지도가 준비되고, 레이아웃이 완료되었으며, 마커 데이터가 로드되었을 때 fitToCoordinates 호출
+  // 위치 권한 요청 및 유저의 현재 위치 가져오기
+  useEffect(() => {
+    const requestLocationPermission = async () => {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: '위치 권한 요청',
+            message: '앱에서 지도를 사용하기 위해 위치 권한이 필요합니다.',
+            buttonNeutral: '나중에 묻기',
+            buttonNegative: '취소',
+            buttonPositive: '허용',
+          },
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          Geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              setUserLocation({ latitude, longitude });
+            },
+            (error) => {
+              console.error('현재 위치를 가져오는 중 오류 발생:', error);
+            },
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
+          );
+        } else {
+          console.log('위치 권한이 거부되었습니다.');
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    };
+    requestLocationPermission();
+  }, []);
+
+  // 지도의 뷰포트 조정
   useEffect(() => {
     if (
       isMapReady &&
       mapViewContainerLayout &&
       markers.length > 0 &&
-      mapRef.current
+      mapRef.current &&
+      userLocation
     ) {
-      // 모든 마커의 좌표를 배열로 생성
-      const coordinates = markers.map((marker) => ({
+      const markerCoordinates = markers.map((marker) => ({
         latitude: marker.latitude,
         longitude: marker.longitude,
       }));
-
-      // 지도의 뷰포트를 모든 마커가 보이도록 조정
-      mapRef.current.fitToCoordinates(coordinates, {
-        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 }, // 패딩 설정
-        animated: true, // 애니메이션 효과 적용
+      const allCoordinates = [
+        ...markerCoordinates,
+        { latitude: userLocation.latitude, longitude: userLocation.longitude },
+      ];
+      mapRef.current.fitToCoordinates(allCoordinates, {
+        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+        animated: true,
       });
     }
-  }, [isMapReady, mapViewContainerLayout, markers]);
+  }, [isMapReady, mapViewContainerLayout, markers, userLocation]);
 
-  // 마커를 선택했을 때 호출되는 함수
   const handleMarkerPress = (marker) => {
     setSelectedMarker(marker);
   };
 
-  // 지도가 준비되었을 때 호출되는 함수
   const handleMapReady = () => {
     setIsMapReady(true);
   };
 
-  // MapView의 부모 컨테이너 레이아웃이 변경될 때 호출되는 함수
   const handleMapLayout = (event) => {
     const layout = event.nativeEvent.layout;
     setMapViewContainerLayout(layout);
@@ -78,33 +110,29 @@ const MapScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* MapView의 부모 컨테이너 */}
       <View style={styles.mapContainer} onLayout={handleMapLayout}>
-        {/* 레이아웃이 완료되기 전에는 로딩 인디케이터를 표시 */}
-        {!mapViewContainerLayout && (
+        {(!mapViewContainerLayout || !userLocation) && (
           <ActivityIndicator
             style={styles.loading}
             size="large"
             color="#0000ff"
           />
         )}
-        {/* 레이아웃이 완료된 후에 MapView를 렌더링 */}
-        {mapViewContainerLayout && (
+        {mapViewContainerLayout && userLocation && (
           <MapView
-            ref={mapRef} // MapView 참조 설정
+            ref={mapRef}
             style={{
-              width: mapViewContainerLayout.width, // 부모 컨테이너의 너비
-              height: mapViewContainerLayout.height, // 부모 컨테이너의 높이
+              width: mapViewContainerLayout.width,
+              height: mapViewContainerLayout.height,
             }}
-            onMapReady={handleMapReady} // 지도 준비 완료 시 호출
+            onMapReady={handleMapReady}
             initialRegion={{
-              latitude: 37.78825, // 초기 위도
-              longitude: -122.4324, // 초기 경도
-              latitudeDelta: 0.0922, // 위도 델타
-              longitudeDelta: 0.0421, // 경도 델타
+              latitude: userLocation.latitude,
+              longitude: userLocation.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
             }}
           >
-            {/* 마커 렌더링 */}
             {markers.map((marker) => (
               <Marker
                 key={marker.id}
@@ -113,14 +141,22 @@ const MapScreen = () => {
                   longitude: marker.longitude,
                 }}
                 title={marker.name}
-                onPress={() => handleMarkerPress(marker)} // 마커 선택 시 호출
+                onPress={() => handleMarkerPress(marker)}
               />
             ))}
+            {/* 유저의 현재 위치 마커 */}
+            <Marker
+              coordinate={{
+                latitude: userLocation.latitude,
+                longitude: userLocation.longitude,
+              }}
+              title="현재 위치"
+              pinColor="blue" // 유저 위치 마커의 색상을 구분하기 위해 설정
+            />
           </MapView>
         )}
       </View>
 
-      {/* 선택된 마커의 정보 표시 */}
       {selectedMarker && (
         <View style={styles.markerInfo}>
           <Text style={styles.markerTitle}>{selectedMarker.name}</Text>
@@ -137,45 +173,44 @@ const MapScreen = () => {
   );
 };
 
-// 스타일 시트 정의
 const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: '100%',
-    flex: 1, // 전체 화면을 차지
+    flex: 1,
   },
   mapContainer: {
     width: '100%',
     height: '100%',
   },
   markerInfo: {
-    position: 'absolute', // 절대 위치 지정
-    bottom: 50, // 화면 하단에서 50px 위
-    left: 20, // 왼쪽에서 20px
-    right: 20, // 오른쪽에서 20px
-    backgroundColor: 'white', // 배경색 흰색
-    padding: 15, // 내부 여백 15px
-    borderRadius: 10, // 테두리 둥글게
-    shadowColor: '#000', // 그림자 색상
-    shadowOpacity: 0.3, // 그림자 불투명도
-    shadowRadius: 5, // 그림자 반경
-    elevation: 5, // 안드로이드 그림자 깊이
+    position: 'absolute',
+    bottom: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
   },
   markerTitle: {
-    fontSize: 16, // 폰트 크기 16
-    fontWeight: 'bold', // 굵은 글씨
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   markerImage: {
-    width: '100%', // 너비 100%
-    height: 200, // 높이 200px
-    marginTop: 10, // 위쪽 여백 10px
+    width: '100%',
+    height: 200,
+    marginTop: 10,
   },
   loading: {
-    position: 'absolute', // 절대 위치 지정
-    top: '50%', // 화면 상단에서 50%
-    left: '50%', // 화면 왼쪽에서 50%
-    marginLeft: -25, // 인디케이터 너비의 절반만큼 왼쪽으로 이동
-    marginTop: -25, // 인디케이터 높이의 절반만큼 위로 이동
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginLeft: -25,
+    marginTop: -25,
   },
 });
 
