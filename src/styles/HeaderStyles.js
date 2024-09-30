@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    zIndex: 9999,
   },
   icon: {
     color: '#000',
