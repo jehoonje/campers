@@ -9,6 +9,9 @@ import {
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome icons
+import Fontisto from 'react-native-vector-icons/Fontisto'; // Import Fontisto icons
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'; // Import Fontisto icons
+
 
 const { height } = Dimensions.get('window');
 
@@ -39,19 +42,22 @@ const RightDrawerContent = ({ isOpen, onClose }) => {
 
   // 버튼 이름과 아이콘 이름 리스트
   const buttonData = [
-    { name: '즐겨찾기', icon: 'star' },
-    { name: '모두 보기', icon: 'eye' },
-    { name: '모든 캠핑장 보기', icon: 'map' },
-    { name: '액티비티', icon: 'bicycle' },
-    { name: '캠핑카 주차장', icon: 'car' },
-    { name: '전기차 충전소', icon: 'bolt' },
-    { name: '주유소', icon: 'gas-pump' },
-    { name: '현금 인출기', icon: 'money' },
-    { name: '도로 공사중', icon: 'road' },
-    { name: '공중 화장실', icon: 'bath' },
-    { name: '와이파이', icon: 'wifi' },
-    { name: '휴지통', icon: 'trash' },
-    { name: '약수터', icon: 'tint' },
+    { name: '즐겨찾기', icon: 'star', lib: 'FontAwesome' },
+    { name: '모두 보기', icon: 'eye', lib: 'FontAwesome' },
+    { name: '모든 캠핑장 보기', icon: 'map', lib: 'FontAwesome' },
+    { name: '일반 캠핑', icon: 'tent', lib: 'Fontisto' }, // Fontisto 아이콘 사용
+    { name: '노지 캠핑', icon: 'tree', lib: 'FontAwesome' },
+    { name: '글램핑', icon: 'home', lib: 'FontAwesome5' },
+    { name: '캠핑카 주차장', icon: 'bus', lib: 'FontAwesome' },
+    { name: '액티비티', icon: 'bicycle', lib: 'FontAwesome' },
+    { name: '전기차 충전소', icon: 'bolt', lib: 'FontAwesome' },
+    { name: '주유소', icon: 'gas-pump', lib: 'FontAwesome5' },
+    { name: '현금 인출기', icon: 'money', lib: 'FontAwesome' },
+    { name: '도로 공사중', icon: 'warning', lib: 'FontAwesome' },
+    { name: '공중 화장실', icon: 'restroom', lib: 'FontAwesome5' },
+    { name: '와이파이', icon: 'wifi', lib: 'FontAwesome' },
+    { name: '휴지통', icon: 'trash', lib: 'FontAwesome' },
+    { name: '약수터', icon: 'tint', lib: 'FontAwesome' },
   ];
 
   return (
@@ -79,7 +85,13 @@ const RightDrawerContent = ({ isOpen, onClose }) => {
               }}
             >
               <View style={styles.iconContainer}>
-                <Icon name={item.icon} size={20} color="#333" />
+              {item.lib === 'FontAwesome' ? (
+                  <Icon name={item.icon} size={20} color="#333" />
+                ) : item.lib === 'Fontisto' ? (
+                  <Fontisto name={item.icon} size={20} color="#333" /> // Fontisto 아이콘 사용
+                ) : (
+                  <FontAwesome5 name={item.icon} size={20} color="#333" /> // FontAwesome5 아이콘 사용
+                )}
               </View>
               <Text style={styles.buttonText}>{item.name}</Text>
             </TouchableOpacity>
