@@ -1,42 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  ActivityIndicator,
-  PermissionsAndroid,
-} from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, PermissionsAndroid, ActivityIndicator } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
+import { WebView } from 'react-native-webview';
 
 const MapScreen = () => {
-  // 기존 상태
-  const [markers, setMarkers] = useState([]);
-  const [selectedMarker, setSelectedMarker] = useState(null);
-  const [isMapReady, setIsMapReady] = useState(false);
-  const [mapViewContainerLayout, setMapViewContainerLayout] = useState(null);
-  const mapRef = useRef(null);
-
-  // 유저의 현재 위치를 저장하는 상태 추가
   const [userLocation, setUserLocation] = useState(null);
 
-  // 마커 데이터 가져오기
-  useEffect(() => {
-    const fetchMarkers = async () => {
-      try {
-        const response = await axios.get('http://10.0.2.2:8080/api/campsites');
-        setMarkers(response.data);
-      } catch (error) {
-        console.error('마커를 가져오는 중 오류 발생:', error);
-      }
-    };
-    fetchMarkers();
-  }, []);
-
-  // 위치 권한 요청 및 유저의 현재 위치 가져오기
   useEffect(() => {
     const requestLocationPermission = async () => {
       try {
@@ -71,146 +40,85 @@ const MapScreen = () => {
     requestLocationPermission();
   }, []);
 
-  // 지도의 뷰포트 조정
-  useEffect(() => {
-    if (
-      isMapReady &&
-      mapViewContainerLayout &&
-      markers.length > 0 &&
-      mapRef.current &&
-      userLocation
-    ) {
-      const markerCoordinates = markers.map((marker) => ({
-        latitude: marker.latitude,
-        longitude: marker.longitude,
-      }));
-      const allCoordinates = [
-        ...markerCoordinates,
-        { latitude: userLocation.latitude, longitude: userLocation.longitude },
-      ];
-      mapRef.current.fitToCoordinates(allCoordinates, {
-        edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-        animated: true,
-      });
-    }
-  }, [isMapReady, mapViewContainerLayout, markers, userLocation]);
+  // 사용자의 위치를 가져오기 전까지 로딩 화면을 보여줌
+  if (!userLocation) {
+    return <ActivityIndicator size="large" color="#0000ff" style={styles.loading} />;
+  }
 
-  const handleMarkerPress = (marker) => {
-    setSelectedMarker(marker);
-  };
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+      <style>
+        html, body { margin: 0; padding: 0; height: 100%; }
+        #map { height: 100%; width: 100%; }
+        .leaflet-bar { background-color: white; border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); padding: 5px; }
+        .leaflet-bar a { background-color: #fff; border-bottom: 1px solid #ccc; text-align: center; width: 30px; height: 30px; line-height: 30px; display: block; color: #000; font-size: 20px; }
+        .leaflet-bar a:hover { background-color: #f4f4f4; }
+        .leaflet-bar svg { width: 80%; height: 80%; padding: 10%; }
+      </style>
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+      <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    </head>
+    <body>
+      <div id="map"></div>
+      <script>
+        // 지도 초기화: zoomControl 비활성화, 유저의 현재 위치로 초기 설정
+        var map = L.map('map', { zoomControl: false }).setView([${userLocation.latitude}, ${userLocation.longitude}], 13);
+        
+        // CARTO 'Voyager' 스타일 타일 추가
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        }).addTo(map);
 
-  const handleMapReady = () => {
-    setIsMapReady(true);
-  };
+        // 현재 위치 마커
+        var userMarker = L.marker([${userLocation.latitude}, ${userLocation.longitude}]).addTo(map);
+        userMarker.bindPopup('현재 위치').openPopup();
 
-  const handleMapLayout = (event) => {
-    const layout = event.nativeEvent.layout;
-    setMapViewContainerLayout(layout);
-  };
+        // 하단에만 확대 축소 버튼 추가
+        L.control.zoom({
+          position: 'bottomright'
+        }).addTo(map);
+
+        // 현재 위치로 이동하는 커스텀 버튼 추가
+        var locateButton = L.control({position: 'bottomleft'});
+        locateButton.onAdd = function(map) {
+          var div = L.DomUtil.create('div', 'leaflet-bar');
+          div.innerHTML = '<a href="#" title="현재 위치로 이동"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-crosshair"><circle cx="12" cy="12" r="10"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></a>';
+          div.onclick = function() {
+            map.setView([${userLocation.latitude}, ${userLocation.longitude}], 13);
+          };
+          return div;
+        };
+        locateButton.addTo(map);
+      </script>
+    </body>
+    </html>
+  `;
 
   return (
     <View style={styles.container}>
-      <View style={styles.mapContainer} onLayout={handleMapLayout}>
-        {(!mapViewContainerLayout || !userLocation) && (
-          <ActivityIndicator
-            style={styles.loading}
-            size="large"
-            color="#0000ff"
-          />
-        )}
-        {mapViewContainerLayout && userLocation && (
-          <MapView
-            ref={mapRef}
-            style={{
-              width: mapViewContainerLayout.width,
-              height: mapViewContainerLayout.height,
-            }}
-            onMapReady={handleMapReady}
-            initialRegion={{
-              latitude: userLocation.latitude,
-              longitude: userLocation.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-          >
-            {markers.map((marker) => (
-              <Marker
-                key={marker.id}
-                coordinate={{
-                  latitude: marker.latitude,
-                  longitude: marker.longitude,
-                }}
-                title={marker.name}
-                onPress={() => handleMarkerPress(marker)}
-              />
-            ))}
-            {/* 유저의 현재 위치 마커 */}
-            <Marker
-              coordinate={{
-                latitude: userLocation.latitude,
-                longitude: userLocation.longitude,
-              }}
-              title="현재 위치"
-              pinColor="blue" // 유저 위치 마커의 색상을 구분하기 위해 설정
-            />
-          </MapView>
-        )}
-      </View>
-
-      {selectedMarker && (
-        <View style={styles.markerInfo}>
-          <Text style={styles.markerTitle}>{selectedMarker.name}</Text>
-          <Text>{selectedMarker.description}</Text>
-          <TouchableOpacity onPress={() => alert('상세 페이지로 이동')}>
-            <Image
-              source={{ uri: selectedMarker.imageUrl }}
-              style={styles.markerImage}
-            />
-          </TouchableOpacity>
-        </View>
-      )}
+      <WebView
+        originWhitelist={['*']}
+        source={{ html: htmlContent }}
+        style={{ flex: 1 }}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    height: '100%',
     flex: 1,
-  },
-  mapContainer: {
-    width: '100%',
-    height: '100%',
-  },
-  markerInfo: {
-    position: 'absolute',
-    bottom: 50,
-    left: 20,
-    right: 20,
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  markerTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  markerImage: {
-    width: '100%',
-    height: 200,
-    marginTop: 10,
   },
   loading: {
     position: 'absolute',
     top: '50%',
     left: '50%',
-    marginLeft: -25,
     marginTop: -25,
+    marginLeft: -25,
   },
 });
 
