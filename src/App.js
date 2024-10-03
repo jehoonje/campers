@@ -1,58 +1,44 @@
-// App.js
+// src/App.js
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack'; // Stack Navigator 추가
 import AppContent from './AppContent';
 import LeftDrawerContent from './components/LeftDrawerContent';
-import RightDrawerContent from './components/RightDrawerContent';
 
 const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator(); // Stack Navigator 생성
+
+const MainStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen 
+      name="AppContent" 
+      component={AppContent} 
+      options={{ headerShown: false }} // AppContent 내부에서 헤더를 관리
+    />
+    {/* 필요에 따라 다른 스크린을 추가할 수 있습니다 */}
+  </Stack.Navigator>
+);
 
 const App = () => {
   return (
     <NavigationContainer>
-      {/* 왼쪽 드로어를 위한 Drawer.Navigator */}
       <Drawer.Navigator
         initialRouteName="Main"
         screenOptions={{
           headerShown: false, // 헤더는 AppContent에서 관리
-          drawerType: 'front', // 기본 드로어 타입
+          drawerType: 'front',
           drawerStyle: {
-            marginTop: 60, // 헤더 높이만큼 여백 추가
-            width: 250, // 드로어 너비 설정
+            marginTop: 60, // 헤더 높이에 맞춤
+            width: 250,
           },
-          overlayColor: 'transparent', // 드로어 오버레이 색상 설정
+          overlayColor: 'transparent',
         }}
         drawerContent={(props) => <LeftDrawerContent {...props} />}
       >
-        {/* 메인 컨텐츠와 오른쪽 드로어를 위한 스택 네비게이터 */}
         <Drawer.Screen name="Main" component={MainStack} />
       </Drawer.Navigator>
     </NavigationContainer>
-  );
-};
-
-// 오른쪽 드로어를 위한 별도의 Drawer.Navigator
-const RightDrawer = createDrawerNavigator();
-
-const MainStack = () => {
-  return (
-    <RightDrawer.Navigator
-      initialRouteName="AppContent"
-      screenOptions={{
-        headerShown: false, // 헤더는 AppContent에서 관리
-        drawerType: 'front',
-        drawerPosition: 'right', // 오른쪽 드로어 설정
-        drawerStyle: {
-          marginTop: 60, // 헤더 높이만큼 여백 추가
-          width: 250, // 드로어 너비 설정
-        },
-        overlayColor: 'transparent', // 드로어 오버레이 색상 설정
-      }}
-      drawerContent={(props) => <RightDrawerContent {...props} />}
-    >
-      <RightDrawer.Screen name="AppContent" component={AppContent} />
-    </RightDrawer.Navigator>
   );
 };
 
