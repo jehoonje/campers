@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet, PermissionsAndroid, ActivityIndicator } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 import { WebView } from 'react-native-webview';
+import restStopsData from '../data/reststops.json';
 
-const MapScreen = () => {
+const MapScreen = ({ showRestStops }) => {
   const [userLocation, setUserLocation] = useState(null);
+  const webviewRef = useRef(null);
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -40,11 +42,20 @@ const MapScreen = () => {
     requestLocationPermission();
   }, []);
 
-  // 사용자의 위치를 가져오기 전까지 로딩 화면을 보여줌
+  useEffect(() => {
+    // showRestStops 상태가 변경될 때 WebView에 메시지 전송
+    if (webviewRef.current) {
+      webviewRef.current.postMessage(
+        JSON.stringify({ type: 'toggleRestStops', show: showRestStops })
+      );
+    }
+  }, [showRestStops]);
+
   if (!userLocation) {
     return <ActivityIndicator size="large" color="#0000ff" style={styles.loading} />;
   }
 
+  // htmlContent는 첫 렌더링 시에만 사용되며, 이후 상태 변경 시 재렌더링되지 않음
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -59,19 +70,24 @@ const MapScreen = () => {
         .leaflet-bar svg { width: 80%; height: 80%; padding: 10%; }
       </style>
       <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+      <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+      <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
       <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+      <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     </head>
     <body>
       <div id="map"></div>
       <script>
-        // 지도 초기화: zoomControl 비활성화, 유저의 현재 위치로 초기 설정
+        // 지도가 처음 렌더링될 때만 현재 위치로 이동
         var map = L.map('map', { zoomControl: false }).setView([${userLocation.latitude}, ${userLocation.longitude}], 13);
-        
-        // CARTO 'Voyager' 스타일 타일 추가
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+
+        // OSM 타일 추가 및 파스텔톤 효과 적용
+        var tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom:19,
         }).addTo(map);
+
+        // CSS 필터를 적용하여 파스텔톤 효과 적용
+        tileLayer.getContainer().style.filter = 'saturate(0.7) brightness(1.0) hue-rotate(700deg)';
 
         // 현재 위치 마커
         var userMarker = L.marker([${userLocation.latitude}, ${userLocation.longitude}]).addTo(map);
@@ -93,6 +109,41 @@ const MapScreen = () => {
           return div;
         };
         locateButton.addTo(map);
+
+        // 마커 클러스터 그룹 생성
+        var markers = L.markerClusterGroup();
+        var restStopMarkers = [];
+
+        // 휴게소 데이터
+        var restStops = ${JSON.stringify(restStopsData)};
+
+        // 휴게소 마커를 업데이트하는 함수
+        function updateRestStopMarkers(show) {
+          if (show) {
+            restStops.forEach(function(stop) {
+              var marker = L.marker([parseFloat(stop.위도), parseFloat(stop.경도)]).addTo(markers);
+              marker.bindPopup(stop.휴게소명);
+              restStopMarkers.push(marker);
+            });
+            map.addLayer(markers);
+          } else {
+            restStopMarkers.forEach(function(marker) {
+              map.removeLayer(marker);
+            });
+            restStopMarkers = [];
+          }
+        }
+
+        // 초기 상태에 따른 휴게소 마커 설정
+        updateRestStopMarkers(${showRestStops});
+
+        // React Native로부터 메시지 수신
+        document.addEventListener('message', function(event) {
+          var message = JSON.parse(event.data);
+          if (message.type === 'toggleRestStops') {
+            updateRestStopMarkers(message.show);
+          }
+        });
       </script>
     </body>
     </html>
@@ -102,8 +153,10 @@ const MapScreen = () => {
     <View style={styles.container}>
       <WebView
         originWhitelist={['*']}
-        source={{ html: htmlContent }}
+        source={{ html: htmlContent }} 
         style={{ flex: 1 }}
+        javaScriptEnabled={true}
+        ref={webviewRef} 
       />
     </View>
   );

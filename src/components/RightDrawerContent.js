@@ -8,14 +8,13 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome icons
-import Fontisto from 'react-native-vector-icons/Fontisto'; // Import Fontisto icons
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5'; // Import Fontisto icons
-
+import Icon from 'react-native-vector-icons/FontAwesome';
+import Fontisto from 'react-native-vector-icons/Fontisto';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 const { height } = Dimensions.get('window');
 
-const RightDrawerContent = ({ isOpen, onClose }) => {
+const RightDrawerContent = ({ isOpen, onClose, toggleRestStops }) => {
   const drawerHeight = height - 60; // 헤더 아래부터 화면 하단까지
   const [slideAnim] = useState(new Animated.Value(-drawerHeight)); // 처음에는 화면 위에 숨겨져 있음
   const [visible, setVisible] = useState(false); // 드로어의 가시성 상태
@@ -45,7 +44,7 @@ const RightDrawerContent = ({ isOpen, onClose }) => {
     { name: '즐겨찾기', icon: 'star', lib: 'FontAwesome' },
     { name: '모두 보기', icon: 'eye', lib: 'FontAwesome' },
     { name: '모든 캠핑장 보기', icon: 'map', lib: 'FontAwesome' },
-    { name: '일반 캠핑', icon: 'tent', lib: 'Fontisto' }, // Fontisto 아이콘 사용
+    { name: '일반 캠핑', icon: 'tent', lib: 'Fontisto' },
     { name: '노지 캠핑', icon: 'tree', lib: 'FontAwesome' },
     { name: '글램핑', icon: 'home', lib: 'FontAwesome5' },
     { name: '캠핑카 주차장', icon: 'bus', lib: 'FontAwesome' },
@@ -57,12 +56,12 @@ const RightDrawerContent = ({ isOpen, onClose }) => {
     { name: '공중 화장실', icon: 'restroom', lib: 'FontAwesome5' },
     { name: '와이파이', icon: 'wifi', lib: 'FontAwesome' },
     { name: '휴지통', icon: 'trash', lib: 'FontAwesome' },
+    { name: '휴게소', icon: 'coffee', lib: 'FontAwesome' }, // 휴게소 버튼 수정
     { name: '약수터', icon: 'tint', lib: 'FontAwesome' },
   ];
 
   return (
     <View style={styles.overlay}>
-      {/* 드로어 외부를 누르면 닫히도록 하는 투명한 뷰 */}
       <TouchableOpacity style={styles.overlayTouchable} onPress={onClose} />
 
       <Animated.View
@@ -71,26 +70,27 @@ const RightDrawerContent = ({ isOpen, onClose }) => {
           { transform: [{ translateY: slideAnim }] },
         ]}
       >
-        {/* 드로어 내용 */}
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
           {buttonData.map((item, index) => (
             <TouchableOpacity
               key={index}
               style={[
                 styles.button,
-                index === 0 && styles.firstButton, // 첫 번째 버튼에만 추가 스타일 적용
+                index === 0 && styles.firstButton,
               ]}
               onPress={() => {
-                // 버튼 눌렀을 때의 동작 처리
+                if (item.name === '휴게소') {
+                  toggleRestStops(); // 휴게소 버튼 클릭 시 마커 토글
+                }
               }}
             >
               <View style={styles.iconContainer}>
-              {item.lib === 'FontAwesome' ? (
+                {item.lib === 'FontAwesome' ? (
                   <Icon name={item.icon} size={20} color="#333" />
                 ) : item.lib === 'Fontisto' ? (
-                  <Fontisto name={item.icon} size={20} color="#333" /> // Fontisto 아이콘 사용
+                  <Fontisto name={item.icon} size={20} color="#333" />
                 ) : (
-                  <FontAwesome5 name={item.icon} size={20} color="#333" /> // FontAwesome5 아이콘 사용
+                  <FontAwesome5 name={item.icon} size={20} color="#333" />
                 )}
               </View>
               <Text style={styles.buttonText}>{item.name}</Text>
@@ -115,15 +115,15 @@ const styles = StyleSheet.create({
   drawerContainer: {
     position: 'absolute',
     width: '70%',
-    top: 60, // 헤더 아래에서 시작
+    top: 60,
     right: 0,
-    bottom: 0, // 화면 하단까지
+    bottom: 0,
     backgroundColor: '#f8f8f8',
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5,
-    zIndex: 2, // 다른 콘텐츠 위에 표시되도록
+    zIndex: 2,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -135,24 +135,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#ffffff',
     justifyContent: 'flex-start',
-    // 그림자 효과 (선택 사항)
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
   firstButton: {
-    marginVertical: 10, // 첫 번째 버튼에만 위아래 마진 추가
+    marginVertical: 10,
   },
   iconContainer: {
-    width: 30, // 아이콘 공간 고정
+    width: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonText: {
     fontSize: 16,
     color: '#333',
-    marginLeft: 10, // 아이콘과 텍스트 사이 간격
+    marginLeft: 10,
   },
 });
 
