@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { useDispatch } from 'react-redux';
-import { deleteTodoAsync } from '../redux/todoSlice';
+import { deleteTodoAsync } from '../store/todoSlice';
 
 const TodoItem = ({ todo }) => {
   const dispatch = useDispatch();

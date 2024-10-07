@@ -5,12 +5,27 @@ import { WebView } from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
 import chargingStationsData from '../../data/chargingStations.json';
 import useLocation from '../../hooks/useLocation';
+import { fetchSpringWaterData } from '../../store/springWaterData';
 
-const MapView = forwardRef(({ showRestStops, showChargingStations }, ref) => {
+const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWater }, ref) => {
   const { userLocation, error } = useLocation();
   const [htmlContent, setHtmlContent] = useState(null);
   const [mapReady, setMapReady] = useState(false);
   const webviewRef = useRef(null);
+  const [springWaterData, setSpringWaterData] = useState([]); // 약수터 데이터 상태 추가
+  const [springWaterLoading, setSpringWaterLoading] = useState(true);
+
+  // 약수터 데이터를 받아오는 함수
+  useEffect(() => {
+  const loadSpringWaterData = async () => {
+    const data = await fetchSpringWaterData(); // API 호출
+    setSpringWaterData(data); // 데이터 상태 업데이트
+    setSpringWaterLoading(false); // 로딩 완료
+  };
+
+  loadSpringWaterData();
+}, []);
+
   
   // 초기 토글 메시지 전송을 한 번만 수행하도록 플래그 설정
   const initialToggleSent = useRef(false);
@@ -51,18 +66,32 @@ const MapView = forwardRef(({ showRestStops, showChargingStations }, ref) => {
           <script>
             (function() {
               var map;
-              var restStopMarkers = L.markerClusterGroup();
-              var chargingStationMarkers = L.markerClusterGroup();
+              var restStopMarkers = L.markerClusterGroup({
+                chunkedLoading: true, // 청크 로딩 활성화
+                chunkDelay: 50,
+              });
+              var chargingStationMarkers = L.markerClusterGroup({
+                chunkedLoading: true,
+                chunkDelay: 50,
+              });
+              var springWaterMarkers = L.markerClusterGroup({
+                chunkedLoading: true,
+                chunkDelay: 50,
+              });
               var restStops = ${JSON.stringify(restStopsData)};
               var chargingStations = ${JSON.stringify(chargingStationsData)};
               var userLocation = [${userLocation.latitude}, ${userLocation.longitude}];
               
-              // 마커 중복 추가 방지를 위한 플래그
               var restStopsAdded = false;
               var chargingStationsAdded = false;
+              var springWaterAdded = false;
+              var springWaterData = []; // springWaterData 변수를 상위 스코프에 선언
 
               function initializeMap() {
-                map = L.map('map', { zoomControl: false }).setView(userLocation, 13);
+                map = L.map('map', {
+                  renderer: L.canvas(), // 캔버스 렌더링 사용
+                  zoomControl: false
+                }).setView(userLocation, 13);
 
                 var tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                   maxZoom:19,
@@ -92,63 +121,115 @@ const MapView = forwardRef(({ showRestStops, showChargingStations }, ref) => {
                 };
                 locateButton.addTo(map);
 
-                // 지도 이동/확대/축소 시 React Native로 상태 전달
+                // 지도가 이동하거나 확대/축소될 때마다 가시 영역 내의 마커 업데이트
                 map.on('moveend', function() {
-                  var center = map.getCenter();
-                  var zoom = map.getZoom();
-                  window.ReactNativeWebView.postMessage(JSON.stringify({
-                    type: 'mapStatus',
-                    center: { latitude: center.lat, longitude: center.lng },
-                    zoom: zoom
-                  }));
+                  updateVisibleMarkers();
                 });
 
                 // 지도 초기화 완료 메시지 전송
                 window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mapReady' }));
               }
 
+              function updateVisibleMarkers() {
+                var bounds = map.getBounds();
+
+                if (restStopsAdded) {
+                  restStopMarkers.clearLayers();
+                  restStops.forEach(function(stop) {
+                    var lat = parseFloat(stop.위도);
+                    var lng = parseFloat(stop.경도);
+                    if (bounds.contains([lat, lng])) {
+                      var marker = L.marker([lat, lng]);
+                      marker.bindPopup(
+                        (stop.휴게소명 || '이름 정보 없음') + '<br>' +
+                        (stop.도로종류 || '도로 종류 정보 없음') + '<br>' +
+                        (stop.휴게소종류 || '종류 정보 없음')
+                      );
+                      restStopMarkers.addLayer(marker);
+                    }
+                  });
+                  if (!map.hasLayer(restStopMarkers)) {
+                    map.addLayer(restStopMarkers);
+                  }
+                }
+
+                if (chargingStationsAdded) {
+                  chargingStationMarkers.clearLayers();
+                  chargingStations.forEach(function(station) {
+                    var lat = parseFloat(station.위도);
+                    var lng = parseFloat(station.경도);
+                    if (bounds.contains([lat, lng])) {
+                      var marker = L.marker([lat, lng]);
+                      marker.bindPopup(
+                        (station.충전소명 || '충전소 이름 없음') + '<br>' +
+                        (station.주소 || '주소 정보 없음') + '<br>' +
+                        (station.충전기타입 || '타입 정보 없음')
+                      );
+                      chargingStationMarkers.addLayer(marker);
+                    }
+                  });
+                  if (!map.hasLayer(chargingStationMarkers)) {
+                    map.addLayer(chargingStationMarkers);
+                  }
+                }
+
+                if (springWaterAdded) {
+                  springWaterMarkers.clearLayers();
+                  springWaterData.forEach(function(spring) {
+                    var lat = parseFloat(spring.lat); // 위도
+                    var lon = parseFloat(spring.lon); // 경도
+                    if (bounds.contains([lat, lon])) {
+                      var marker = L.marker([lat, lon]);
+                      marker.bindPopup(spring.name || '약수터 이름 없음');
+                      springWaterMarkers.addLayer(marker);
+                    }
+                  });
+                  if (!map.hasLayer(springWaterMarkers)) {
+                    map.addLayer(springWaterMarkers);
+                  }
+                }
+              }
+
               function addRestStopMarkers() {
                 if (restStopsAdded) return; // 이미 추가된 경우 중단
-                restStops.forEach(function(stop) {
-                  var marker = L.marker([parseFloat(stop.위도), parseFloat(stop.경도)]);
-                  // 데이터 키 사용 및 기본값 제공
-                  marker.bindPopup(
-                    (stop.휴게소명 || '이름 정보 없음') + '<br>' +
-                    (stop.도로종류 || '도로 종류 정보 없음') + '<br>' +
-                    (stop.휴게소종류 || '종류 정보 없음')
-                  );
-                  restStopMarkers.addLayer(marker);
-                });
-                map.addLayer(restStopMarkers);
-                restStopsAdded = true; // 추가 완료
+                restStopsAdded = true; // 플래그 설정
+                updateVisibleMarkers(); // 가시 영역 내의 마커 추가
               }
 
               function removeRestStopMarkers() {
                 if (!restStopsAdded) return; // 추가되지 않은 경우 중단
                 map.removeLayer(restStopMarkers);
-                restStopsAdded = false; // 제거 완료
+                restStopMarkers.clearLayers();
+                restStopsAdded = false;
               }
 
               function addChargingStationMarkers() {
                 if (chargingStationsAdded) return; // 이미 추가된 경우 중단
-                chargingStations.forEach(function(station) {
-                  var marker = L.marker([parseFloat(station.위도), parseFloat(station.경도)]);
-                  // 데이터 키 사용 및 기본값 제공
-                  marker.bindPopup(
-                    (station.충전소명 || '충전소 이름 없음') + '<br>' +
-                    (station.주소 || '주소 정보 없음') + '<br>' +
-                    (station.충전기타입 || '타입 정보 없음')
-                  );
-                  chargingStationMarkers.addLayer(marker);
-                });
-                map.addLayer(chargingStationMarkers);
-                chargingStationsAdded = true; // 추가 완료
+                chargingStationsAdded = true; // 플래그 설정
+                updateVisibleMarkers(); // 가시 영역 내의 마커 추가
               }
 
               function removeChargingStationMarkers() {
                 if (!chargingStationsAdded) return; // 추가되지 않은 경우 중단
                 map.removeLayer(chargingStationMarkers);
-                chargingStationsAdded = false; // 제거 완료
+                chargingStationMarkers.clearLayers();
+                chargingStationsAdded = false;
+              }
+
+              function addSpringWaterMarkers(data) {
+                if (springWaterAdded) return; // 이미 추가된 경우 중단
+                springWaterAdded = true;
+                springWaterData = data; // 데이터를 전역 변수에 할당
+                updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+              }
+
+
+              // 약수터 마커 제거 함수
+              function removeSpringWaterMarkers() {
+                if (!springWaterAdded) return; // 추가되지 않은 경우 중단
+                map.removeLayer(springWaterMarkers);
+                springWaterMarkers.clearLayers();
+                springWaterAdded = false;
               }
 
               // React Native로부터 메시지 수신
@@ -161,6 +242,12 @@ const MapView = forwardRef(({ showRestStops, showChargingStations }, ref) => {
                     } else {
                       removeRestStopMarkers();
                     }
+                  } else if (message.type === 'toggleSpringWater') {
+                    if (message.show) {
+                      addSpringWaterMarkers(message.springWaterData); // 약수터 마커 추가
+                    } else {
+                      removeSpringWaterMarkers(); // 약수터 마커 제거
+                    }
                   } else if (message.type === 'toggleChargingStations') {
                     if (message.show) {
                       addChargingStationMarkers();
@@ -171,7 +258,7 @@ const MapView = forwardRef(({ showRestStops, showChargingStations }, ref) => {
                     map.setView(userLocation, 13);
                   }
                 } catch (error) {
-                  console.error('Error parsing message from React Native:', error);
+                  console.error('React Native로부터 메시지 파싱 오류:', error);
                 }
               });
 
@@ -200,6 +287,15 @@ const MapView = forwardRef(({ showRestStops, showChargingStations }, ref) => {
           webviewRef.current.postMessage(
             JSON.stringify({ type: 'toggleChargingStations', show: showChargingStations })
           );
+          if (!springWaterLoading) {
+            webviewRef.current.postMessage(
+              JSON.stringify({
+                type: 'toggleSpringWater',
+                show: showSpringWater,
+                springWaterData: springWaterData, // 약수터 데이터 전송
+              })
+            );
+          }
           initialToggleSent.current = true; // 토글 메시지 전송 완료
         }
       } else if (data.type === 'mapStatus') {
@@ -208,16 +304,8 @@ const MapView = forwardRef(({ showRestStops, showChargingStations }, ref) => {
     } catch (error) {
       console.error('Error parsing message from WebView:', error);
     }
-  }, [showRestStops, showChargingStations]);
+  }, [showRestStops, showChargingStations, showSpringWater, springWaterData]);
 
-  // 지도 초기화 완료 후 리셋 기능 노출
-  useImperativeHandle(ref, () => ({
-    resetMap: () => {
-      if (webviewRef.current) {
-        webviewRef.current.postMessage(JSON.stringify({ type: 'resetMap' }));
-      }
-    },
-  }));
 
   // 토글 상태가 변경될 때 메시지 전송
   useEffect(() => {
@@ -235,6 +323,19 @@ const MapView = forwardRef(({ showRestStops, showChargingStations }, ref) => {
       );
     }
   }, [showChargingStations, mapReady]);
+
+  useEffect(() => {
+    if (mapReady && webviewRef.current && !springWaterLoading) {
+      webviewRef.current.postMessage(
+        JSON.stringify({
+          type: 'toggleSpringWater',
+          show: showSpringWater,
+          springWaterData: springWaterData, // 약수터 데이터 전송
+        })
+      );
+    }
+  }, [showSpringWater, mapReady, springWaterData, springWaterLoading]);
+  
 
   if (error) {
     return (

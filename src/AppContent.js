@@ -10,6 +10,7 @@ const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [showRestStops, setShowRestStops] = useState(true);
   const [showChargingStations, setShowChargingStations] = useState(true);
+  const [showSpringWater, setShowSpringWater] = useState(true); // 약수터 마커 상태 추가
 
   const mainContentRef = useRef(null); // MainContent의 ref
 
@@ -31,6 +32,11 @@ const AppContent = () => {
   const toggleChargingStationsFunc = () => {
     setShowChargingStations(prev => !prev);
     console.log("충전소 마커 토글:", !showChargingStations);
+  };
+
+  const toggleSpringWaterFunc = () => { // 약수터 토글 함수
+    setShowSpringWater(prev => !prev);
+    console.log("약수터 마커 토글:", !showSpringWater);
   };
 
   // 왼쪽 드로어의 상태를 감지
@@ -63,12 +69,14 @@ const AppContent = () => {
 
       {/* 메인 콘텐츠 */}
       <View style={{ flex: 1 }}>
-        <MainContent 
+        <MainContent
           ref={mainContentRef}
-          showRestStops={showRestStops} 
-          showChargingStations={showChargingStations} 
+          showRestStops={showRestStops}
+          showChargingStations={showChargingStations}
+          showSpringWater={showSpringWater} // 약수터 마커 상태 전달
           toggleRestStops={toggleRestStopsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
+          toggleSpringWater={toggleSpringWaterFunc} // 약수터 토글 함수 전달
         />
       </View>
 
@@ -78,6 +86,7 @@ const AppContent = () => {
         onClose={closeRightDrawer}
         toggleRestStops={toggleRestStopsFunc}
         toggleChargingStations={toggleChargingStationsFunc}
+        toggleSpringWater={toggleSpringWaterFunc} // 약수터 토글 함수 전달
       />
     </SafeAreaView>
   );
