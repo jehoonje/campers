@@ -10,19 +10,22 @@ const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [showRestStops, setShowRestStops] = useState(true);
   const [showChargingStations, setShowChargingStations] = useState(true);
-  const [showSpringWater, setShowSpringWater] = useState(true); // 약수터 마커 상태 추가
+  const [showCampgrounds, setShowCampgrounds] = useState(true);
 
   const mainContentRef = useRef(null); // MainContent의 ref
 
   const toggleRightDrawer = () => {
-    console.log("toggleRightDrawer 호출됨");
     setIsRightDrawerOpen(prev => !prev);
   };
 
   const closeRightDrawer = () => {
-    console.log("closeRightDrawer 호출됨");
     setIsRightDrawerOpen(false);
   };
+
+  const toggleCampgroundsFunc = () => {
+    setShowCampgrounds(prev => !prev);
+    console.log("캠핑 마커 토글:", !showCampgrounds);
+  }
 
   const toggleRestStopsFunc = () => {
     setShowRestStops(prev => !prev);
@@ -34,10 +37,6 @@ const AppContent = () => {
     console.log("충전소 마커 토글:", !showChargingStations);
   };
 
-  const toggleSpringWaterFunc = () => { // 약수터 토글 함수
-    setShowSpringWater(prev => !prev);
-    console.log("약수터 마커 토글:", !showSpringWater);
-  };
 
   // 왼쪽 드로어의 상태를 감지
   const drawerStatus = useDrawerStatus();
@@ -73,10 +72,10 @@ const AppContent = () => {
           ref={mainContentRef}
           showRestStops={showRestStops}
           showChargingStations={showChargingStations}
-          showSpringWater={showSpringWater} // 약수터 마커 상태 전달
+          showCampgrounds={showCampgrounds}
           toggleRestStops={toggleRestStopsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
-          toggleSpringWater={toggleSpringWaterFunc} // 약수터 토글 함수 전달
+          toggleCampgrounds={toggleCampgroundsFunc}
         />
       </View>
 
@@ -86,7 +85,7 @@ const AppContent = () => {
         onClose={closeRightDrawer}
         toggleRestStops={toggleRestStopsFunc}
         toggleChargingStations={toggleChargingStationsFunc}
-        toggleSpringWater={toggleSpringWaterFunc} // 약수터 토글 함수 전달
+        toggleCampgrounds={toggleCampgroundsFunc}
       />
     </SafeAreaView>
   );

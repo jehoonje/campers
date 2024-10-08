@@ -1,32 +1,25 @@
 // src/components/MapView/MapView.js
-import React, { useEffect, useState, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
+import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
+import {WebView} from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
 import chargingStationsData from '../../data/chargingStations.json';
+import campgroundsData from '../../data/campground.json';
 import useLocation from '../../hooks/useLocation';
-import { fetchSpringWaterData } from '../../store/springWaterData';
 
-const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWater }, ref) => {
-  const { userLocation, error } = useLocation();
+const MapView = forwardRef(({showRestStops, showChargingStations, showCampgrounds}, ref) => {
+  const {userLocation, error} = useLocation();
   const [htmlContent, setHtmlContent] = useState(null);
   const [mapReady, setMapReady] = useState(false);
   const webviewRef = useRef(null);
-  const [springWaterData, setSpringWaterData] = useState([]); // 약수터 데이터 상태 추가
-  const [springWaterLoading, setSpringWaterLoading] = useState(true);
 
-  // 약수터 데이터를 받아오는 함수
-  useEffect(() => {
-  const loadSpringWaterData = async () => {
-    const data = await fetchSpringWaterData(); // API 호출
-    setSpringWaterData(data); // 데이터 상태 업데이트
-    setSpringWaterLoading(false); // 로딩 완료
-  };
-
-  loadSpringWaterData();
-}, []);
-
-  
   // 초기 토글 메시지 전송을 한 번만 수행하도록 플래그 설정
   const initialToggleSent = useRef(false);
 
@@ -34,7 +27,7 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
   useImperativeHandle(ref, () => ({
     resetMap: () => {
       if (webviewRef.current) {
-        webviewRef.current.postMessage(JSON.stringify({ type: 'resetMap' }));
+        webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
       }
     },
   }));
@@ -74,18 +67,20 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
                 chunkedLoading: true,
                 chunkDelay: 50,
               });
-              var springWaterMarkers = L.markerClusterGroup({
+              var campgroundMarkers = L.markerClusterGroup({
                 chunkedLoading: true,
                 chunkDelay: 50,
               });
               var restStops = ${JSON.stringify(restStopsData)};
               var chargingStations = ${JSON.stringify(chargingStationsData)};
-              var userLocation = [${userLocation.latitude}, ${userLocation.longitude}];
+              var campgrounds = ${JSON.stringify(campgroundsData)};
+              var userLocation = [${userLocation.latitude}, ${
+        userLocation.longitude
+      }];
               
               var restStopsAdded = false;
               var chargingStationsAdded = false;
-              var springWaterAdded = false;
-              var springWaterData = []; // springWaterData 변수를 상위 스코프에 선언
+              var campgroundsAdded = false;
 
               function initializeMap() {
                 map = L.map('map', {
@@ -133,6 +128,8 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
               function updateVisibleMarkers() {
                 var bounds = map.getBounds();
 
+                
+
                 if (restStopsAdded) {
                   restStopMarkers.clearLayers();
                   restStops.forEach(function(stop) {
@@ -173,21 +170,37 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
                   }
                 }
 
-                if (springWaterAdded) {
-                  springWaterMarkers.clearLayers();
-                  springWaterData.forEach(function(spring) {
-                    var lat = parseFloat(spring.lat); // 위도
-                    var lon = parseFloat(spring.lon); // 경도
-                    if (bounds.contains([lat, lon])) {
-                      var marker = L.marker([lat, lon]);
-                      marker.bindPopup(spring.name || '약수터 이름 없음');
-                      springWaterMarkers.addLayer(marker);
+                if (campgroundsAdded) {
+                  campgroundMarkers.clearLayers();
+                  campgrounds.forEach(function(campground) {
+                    var lat = parseFloat(campground.location.lat); // Updated
+                    var lng = parseFloat(campground.location.lng); // Updated
+                    console.log('Adding marker at:', lat, lng); // Debugging log
+                    if (bounds.contains([lat, lng])) {
+                      var marker = L.marker([lat, lng]);
+                      marker.bindPopup((campground.name || '야영장 이름 없음') + '<br>');
+                      campgroundMarkers.addLayer(marker);
                     }
                   });
-                  if (!map.hasLayer(springWaterMarkers)) {
-                    map.addLayer(springWaterMarkers);
+                  if (!map.hasLayer(campgroundMarkers)) {
+                    map.addLayer(campgroundMarkers);
                   }
                 }
+              }
+
+
+
+              function addCampgroundMarkers() {
+                if (campgroundsAdded) return; // 이미 추가된 경우 중단
+                campgroundsAdded = true; // 플래그 설정
+                updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+              }
+
+              function removeCampgroundMarkers() {
+                if (!campgroundsAdded) return; // 추가되지 않은 경우 중단
+                map.removeLayer(campgroundMarkers);
+                campgroundMarkers.clearLayers();
+                campgroundsAdded = false;
               }
 
               function addRestStopMarkers() {
@@ -216,22 +229,6 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
                 chargingStationsAdded = false;
               }
 
-              function addSpringWaterMarkers(data) {
-                if (springWaterAdded) return; // 이미 추가된 경우 중단
-                springWaterAdded = true;
-                springWaterData = data; // 데이터를 전역 변수에 할당
-                updateVisibleMarkers(); // 가시 영역 내의 마커 추가
-              }
-
-
-              // 약수터 마커 제거 함수
-              function removeSpringWaterMarkers() {
-                if (!springWaterAdded) return; // 추가되지 않은 경우 중단
-                map.removeLayer(springWaterMarkers);
-                springWaterMarkers.clearLayers();
-                springWaterAdded = false;
-              }
-
               // React Native로부터 메시지 수신
               document.addEventListener('message', function(event) {
                 try {
@@ -242,17 +239,17 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
                     } else {
                       removeRestStopMarkers();
                     }
-                  } else if (message.type === 'toggleSpringWater') {
-                    if (message.show) {
-                      addSpringWaterMarkers(message.springWaterData); // 약수터 마커 추가
-                    } else {
-                      removeSpringWaterMarkers(); // 약수터 마커 제거
-                    }
                   } else if (message.type === 'toggleChargingStations') {
                     if (message.show) {
                       addChargingStationMarkers();
                     } else {
                       removeChargingStationMarkers();
+                    }
+                  } else if (message.type === 'toggleCampgrounds') {
+                    if (message.show) {
+                      addCampgroundMarkers();
+                    } else {
+                      removeCampgroundMarkers();
                     }
                   } else if (message.type === 'resetMap') {
                     map.setView(userLocation, 13);
@@ -274,44 +271,76 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
   }, [userLocation, htmlContent]);
 
   // WebView 메시지 핸들러
-  const onMessage = useCallback((event) => {
-    try {
-      const data = JSON.parse(event.nativeEvent.data);
-      if (data.type === 'mapReady') {
-        if (!initialToggleSent.current) { // 초기 토글 메시지를 한 번만 전송
-          setMapReady(true);
-          // 초기 토글 상태 전송
-          webviewRef.current.postMessage(
-            JSON.stringify({ type: 'toggleRestStops', show: showRestStops })
-          );
-          webviewRef.current.postMessage(
-            JSON.stringify({ type: 'toggleChargingStations', show: showChargingStations })
-          );
-          if (!springWaterLoading) {
+  const onMessage = useCallback(
+    event => {
+      try {
+        const data = JSON.parse(event.nativeEvent.data);
+        if (data.type === 'mapReady') {
+          if (!initialToggleSent.current) {
+            // 초기 토글 메시지를 한 번만 전송
+            setMapReady(true);
+            // 초기 토글 상태 전송
             webviewRef.current.postMessage(
               JSON.stringify({
-                type: 'toggleSpringWater',
-                show: showSpringWater,
-                springWaterData: springWaterData, // 약수터 데이터 전송
-              })
+                type: 'toggleCampgrounds',
+                show: showCampgrounds,
+              }),
             );
+            webviewRef.current.postMessage(
+              JSON.stringify({
+                type: 'toggleRestStops',
+                show: showRestStops
+              }),
+            );
+            webviewRef.current.postMessage(
+              JSON.stringify({
+                type: 'toggleChargingStations',
+                show: showChargingStations,
+              }),
+            );
+            initialToggleSent.current = true; // 토글 메시지 전송 완료
           }
-          initialToggleSent.current = true; // 토글 메시지 전송 완료
+        } else if (data.type === 'mapStatus') {
+          // 지도 상태 업데이트 처리 (선택 사항)
         }
-      } else if (data.type === 'mapStatus') {
-        // 지도 상태 업데이트 처리 (선택 사항)
+      } catch (error) {
+        console.error('Error parsing message from WebView:', error);
       }
-    } catch (error) {
-      console.error('Error parsing message from WebView:', error);
-    }
-  }, [showRestStops, showChargingStations, showSpringWater, springWaterData]);
+    },
+    [showCampgrounds, showRestStops, showChargingStations ],
+  );
 
+  // 지도 초기화 완료 후 리셋 기능 노출
+  useImperativeHandle(ref, () => ({
+    resetMap: () => {
+      if (webviewRef.current) {
+        webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
+      }
+    },
+  }));
 
   // 토글 상태가 변경될 때 메시지 전송
+
+  useEffect(() => {
+    if (mapReady && webviewRef.current) {
+      console.log('Sending toggleCampgrounds message:', showCampgrounds);
+      webviewRef.current.postMessage(
+        JSON.stringify({
+          type: 'toggleCampgrounds', 
+          show: showCampgrounds
+        }),
+      );
+    }
+  }, [showCampgrounds, mapReady]);
+  
+
   useEffect(() => {
     if (mapReady && webviewRef.current) {
       webviewRef.current.postMessage(
-        JSON.stringify({ type: 'toggleRestStops', show: showRestStops })
+        JSON.stringify({
+          type: 'toggleRestStops', 
+          show: showRestStops
+        }),
       );
     }
   }, [showRestStops, mapReady]);
@@ -319,23 +348,13 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
   useEffect(() => {
     if (mapReady && webviewRef.current) {
       webviewRef.current.postMessage(
-        JSON.stringify({ type: 'toggleChargingStations', show: showChargingStations })
+        JSON.stringify({
+          type: 'toggleChargingStations',
+          show: showChargingStations,
+        }),
       );
     }
   }, [showChargingStations, mapReady]);
-
-  useEffect(() => {
-    if (mapReady && webviewRef.current && !springWaterLoading) {
-      webviewRef.current.postMessage(
-        JSON.stringify({
-          type: 'toggleSpringWater',
-          show: showSpringWater,
-          springWaterData: springWaterData, // 약수터 데이터 전송
-        })
-      );
-    }
-  }, [showSpringWater, mapReady, springWaterData, springWaterLoading]);
-  
 
   if (error) {
     return (
@@ -350,18 +369,28 @@ const MapView = forwardRef(({ showRestStops, showChargingStations, showSpringWat
       {htmlContent ? (
         <WebView
           originWhitelist={['*']}
-          source={{ html: htmlContent }}
-          style={{ flex: 1 }}
+          source={{html: htmlContent}}
+          style={{flex: 1}}
           javaScriptEnabled={true}
           ref={webviewRef}
           onMessage={onMessage}
           javaScriptCanOpenWindowsAutomatically={false}
           domStorageEnabled={true}
           startInLoadingState={true}
-          renderLoading={() => <ActivityIndicator size="large" color="#0000ff" style={styles.loading} />}
+          renderLoading={() => (
+            <ActivityIndicator
+              size="large"
+              color="#0000ff"
+              style={styles.loading}
+            />
+          )}
         />
       ) : (
-        <ActivityIndicator size="large" color="#0000ff" style={styles.loading} />
+        <ActivityIndicator
+          size="large"
+          color="#0000ff"
+          style={styles.loading}
+        />
       )}
     </View>
   );

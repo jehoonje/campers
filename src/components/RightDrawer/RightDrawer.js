@@ -15,7 +15,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 const { height } = Dimensions.get('window');
 
-const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations, toggleSpringWater }) => {
+const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations, toggleCampgrounds }) => {
   const slideAnim = useRef(new Animated.Value(-height)).current; // 초기 위치: 화면 위쪽
 
   useEffect(() => {
@@ -53,7 +53,6 @@ const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations,
     { name: '와이파이', icon: 'wifi', lib: 'FontAwesome' },
     { name: '휴지통', icon: 'trash', lib: 'FontAwesome' },
     { name: '휴게소', icon: 'coffee', lib: 'FontAwesome' },
-    { name: '약수터', icon: 'tint', lib: 'FontAwesome' },
   ];
 
   return (
@@ -79,8 +78,8 @@ const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations,
                   toggleRestStops(); // 휴게소 버튼 클릭 시 마커 토글
                 } else if (item.name === '전기차 충전소') {
                   toggleChargingStations(); // 충전소 버튼 클릭 시 마커 토글
-                } else if (item.name === '약수터') { // 약수터 버튼 클릭 시 처리
-                  toggleSpringWater();
+                } else if (item.name === '노지 캠핑') {
+                  toggleCampgrounds(); // 캠핑 버튼 클릭시 마커 토글
                 }
                 onClose(); // 버튼 클릭 시 드로어 닫기
               }}

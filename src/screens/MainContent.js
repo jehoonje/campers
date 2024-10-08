@@ -3,7 +3,13 @@ import React, { forwardRef, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MapViewComponent from '../components/MapView/MapView';
 
-const MainContent = forwardRef(({ showRestStops, showChargingStations, showSpringWater, toggleRestStops, toggleChargingStations, toggleSpringWater }, ref) => {
+const MainContent = forwardRef(({ showRestStops, 
+                                  showChargingStations, 
+                                  showCampgrounds,
+                                  toggleRestStops, 
+                                  toggleChargingStations,
+                                  toggleCampgrounds 
+                                }, ref) => {
   const mapViewRef = useRef(null);
 
   // 부모 컴포넌트에서 호출할 수 있는 함수를 노출
@@ -22,7 +28,7 @@ const MainContent = forwardRef(({ showRestStops, showChargingStations, showSprin
           ref={mapViewRef}
           showRestStops={showRestStops} 
           showChargingStations={showChargingStations} 
-          showSpringWater={showSpringWater}
+          showCampgrounds={showCampgrounds}
         />
       </View>
       <View style={styles.textContainer}>
@@ -47,3 +53,4 @@ const styles = StyleSheet.create({
 });
 
 export default MainContent;
+ 
