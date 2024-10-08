@@ -10,32 +10,189 @@ import React, {
 import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
 import {WebView} from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
+import axios from 'axios';
 import chargingStationsData from '../../data/chargingStations.json';
 import campgroundsData from '../../data/campground.json';
 import useLocation from '../../hooks/useLocation';
 
-const MapView = forwardRef(({showRestStops, showChargingStations, showCampgrounds}, ref) => {
-  const {userLocation, error} = useLocation();
-  const [htmlContent, setHtmlContent] = useState(null);
-  const [mapReady, setMapReady] = useState(false);
-  const webviewRef = useRef(null);
+//1hn%2BgLY7OOgfyP87C0jNZaIzN31HriUkwkZh7nfUzSLnsHtZlPP4nJwHbq%2FD30TINtoXvx0VNwOC255%2BFQA%2FKA%3D%3D
 
-  // 초기 토글 메시지 전송을 한 번만 수행하도록 플래그 설정
-  const initialToggleSent = useRef(false);
+const MapView = forwardRef(
+  ({showRestStops, showChargingStations, showCampgrounds}, ref) => {
+    const {userLocation, error} = useLocation();
+    const [htmlContent, setHtmlContent] = useState(null);
+    const [mapReady, setMapReady] = useState(false);
+    const webviewRef = useRef(null);
+    const [updatedCampgroundsData, setUpdatedCampgroundsData] = useState([]);
 
-  // 부모 컴포넌트에서 resetMap 함수를 호출할 수 있도록 노출
-  useImperativeHandle(ref, () => ({
-    resetMap: () => {
-      if (webviewRef.current) {
-        webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
-      }
-    },
-  }));
+    useEffect(() => {
+      const fetchCampgroundImages = async () => {
+        const updatedData = await Promise.all(
+          campgroundsData.map(async campground => {
+            try {
+              // 캠핑장 이름의 앞 2글자 사용
+              const keyword = campground.name.substring(0, 2);
 
-  // 사용자 위치가 설정되면 HTML 콘텐츠 초기화
-  useEffect(() => {
-    if (userLocation && !htmlContent) {
-      const initialHtml = `
+              console.log(
+                `Fetching data for campground: ${campground.name} with keyword: ${keyword}`,
+              );
+
+              // 검색 키워드로 캠핑장 정보 검색
+              const searchResponse = await axios.get(
+                'http://apis.data.go.kr/B551011/KorService1/searchKeyword1',
+                {
+                  params: {
+                    serviceKey:
+                      '1hn+gLY7OOgfyP87C0jNZaIzN31HriUkwkZh7nfUzSLnsHtZlPP4nJwHbq/D30TINtoXvx0VNwOC255+FQA/KA==', // 디코딩된 서비스 키
+                    numOfRows: 1,
+                    pageNo: 1,
+                    MobileOS: 'ETC',
+                    MobileApp: 'YourAppName',
+                    keyword: keyword,
+                    contentTypeId: 12, // 자연 관광지
+                    _type: 'json', // JSON으로 요청
+                  },
+                  responseType: 'json', // JSON 응답을 기대
+                },
+              );
+
+              console.log(
+                `Search Response for ${campground.name}:`,
+                JSON.stringify(searchResponse.data, null, 2),
+              );
+
+              // 응답 구조에 맞게 데이터 추출
+              if (
+                searchResponse.data &&
+                searchResponse.data.response &&
+                searchResponse.data.response.body &&
+                searchResponse.data.response.body.items &&
+                searchResponse.data.response.body.items.item
+              ) {
+                const items = Array.isArray(
+                  searchResponse.data.response.body.items.item,
+                )
+                  ? searchResponse.data.response.body.items.item
+                  : [searchResponse.data.response.body.items.item];
+
+                if (items.length > 0) {
+                  const contentId = items[0].contentid;
+
+                  console.log(
+                    `Found contentId for ${campground.name}: ${contentId}`,
+                  );
+
+                  // 상세 정보에서 이미지 가져오기
+                  const detailResponse = await axios.get(
+                    'http://apis.data.go.kr/B551011/KorService1/detailCommon1',
+                    {
+                      params: {
+                        serviceKey:
+                          '1hn+gLY7OOgfyP87C0jNZaIzN31HriUkwkZh7nfUzSLnsHtZlPP4nJwHbq/D30TINtoXvx0VNwOC255+FQA/KA==', // 디코딩된 서비스 키
+                        MobileOS: 'ETC',
+                        MobileApp: 'YourAppName',
+                        contentId: contentId,
+                        defaultYN: 'Y',
+                        firstImageYN: 'Y',
+                        _type: 'json', // JSON으로 요청
+                      },
+                      responseType: 'json', // JSON 응답을 기대
+                    },
+                  );
+
+                  console.log(
+                    `Detail Response for ${campground.name}:`,
+                    JSON.stringify(detailResponse.data, null, 2),
+                  );
+
+                  if (
+                    detailResponse.data &&
+                    detailResponse.data.response &&
+                    detailResponse.data.response.body &&
+                    detailResponse.data.response.body.items &&
+                    detailResponse.data.response.body.items.item
+                  ) {
+                    const detailItems = Array.isArray(
+                      detailResponse.data.response.body.items.item,
+                    )
+                      ? detailResponse.data.response.body.items.item
+                      : [detailResponse.data.response.body.items.item];
+
+                    if (detailItems.length > 0 && detailItems[0].firstimage) {
+                      campground.imageURL = detailItems[0].firstimage; // 첫 번째 이미지 URL
+                      console.log(
+                        `Image URL for ${campground.name}: ${campground.imageURL}`,
+                      );
+                    } else {
+                      campground.imageURL = null;
+                      console.warn(`No image found for ${campground.name}`);
+                    }
+                  } else {
+                    console.error(
+                      `상세 정보 응답 오류 for ${campground.name}:`,
+                      detailResponse.data,
+                    );
+                    campground.imageURL = null;
+                  }
+                } else {
+                  console.error(
+                    `검색 결과 없음 for ${campground.name}:`,
+                    searchResponse.data.response.body,
+                  );
+                  campground.imageURL = null;
+                }
+              } else {
+                console.error(
+                  `검색 응답 오류 for ${campground.name}:`,
+                  searchResponse.data,
+                );
+                campground.imageURL = null;
+              }
+
+              // 좌표 로그 추가
+              console.log(`Coordinates for ${campground.name}: lat=${campground.location.lat}, lng=${campground.location.lng}`);
+
+              // API 호출 간 지연 시간 추가 (예: 100ms)
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+              console.error(
+                `이미지 가져오기 오류 for ${campground.name}:`,
+                error,
+              );
+              campground.imageURL = null;
+            }
+            return campground;
+          }),
+        );
+
+        // 이미지가 있는 캠핑장만 필터링
+        const filteredData = updatedData.filter(
+          campground =>
+            campground.imageURL && campground.imageURL.trim() !== '',
+        );
+        setUpdatedCampgroundsData(filteredData);
+        console.log(`Filtered campgrounds count: ${filteredData.length}`);
+      };
+
+      fetchCampgroundImages();
+    }, []);
+
+    // 초기 토글 메시지 전송을 한 번만 수행하도록 플래그 설정
+    const initialToggleSent = useRef(false);
+
+    // 부모 컴포넌트에서 resetMap 함수를 호출할 수 있도록 노출
+    useImperativeHandle(ref, () => ({
+      resetMap: () => {
+        if (webviewRef.current) {
+          webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
+        }
+      },
+    }));
+
+    // 사용자 위치가 설정되면 HTML 콘텐츠 초기화
+    useEffect(() => {
+      if (userLocation && updatedCampgroundsData.length > 0 && !htmlContent) {
+        const initialHtml = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -73,10 +230,10 @@ const MapView = forwardRef(({showRestStops, showChargingStations, showCampground
               });
               var restStops = ${JSON.stringify(restStopsData)};
               var chargingStations = ${JSON.stringify(chargingStationsData)};
-              var campgrounds = ${JSON.stringify(campgroundsData)};
+              var campgrounds = ${JSON.stringify(updatedCampgroundsData)};
               var userLocation = [${userLocation.latitude}, ${
-        userLocation.longitude
-      }];
+          userLocation.longitude
+        }];
               
               var restStopsAdded = false;
               var chargingStationsAdded = false;
@@ -173,18 +330,25 @@ const MapView = forwardRef(({showRestStops, showChargingStations, showCampground
                 if (campgroundsAdded) {
                   campgroundMarkers.clearLayers();
                   campgrounds.forEach(function(campground) {
-                    var lat = parseFloat(campground.location.lat); // Updated
-                    var lng = parseFloat(campground.location.lng); // Updated
-                    console.log('Adding marker at:', lat, lng); // Debugging log
+                    var lat = parseFloat(campground.location.lat); // 로컬 JSON 파일의 좌표 사용
+                    var lng = parseFloat(campground.location.lng);
+                    console.log('Adding marker at:', lat, lng); // 디버깅 로그
                     if (bounds.contains([lat, lng])) {
                       var marker = L.marker([lat, lng]);
-                      marker.bindPopup((campground.name || '야영장 이름 없음') + '<br>');
+                      var popupContent = '<b>' + (campground.name || '야영장 이름 없음') + '</b><br>';
+                      if (campground.imageURL) {
+                        popupContent += '<img src="' + campground.imageURL + '" alt="이미지" style="width:100px;height:auto;"><br>';
+                      }
+                      marker.bindPopup(popupContent);
                       campgroundMarkers.addLayer(marker);
                     }
                   });
                   if (!map.hasLayer(campgroundMarkers)) {
                     map.addLayer(campgroundMarkers);
                   }
+
+                  // 캠핑장 마커 개수 전송
+                  window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markersAdded', count: campgrounds.length }));
                 }
               }
 
@@ -202,6 +366,7 @@ const MapView = forwardRef(({showRestStops, showChargingStations, showCampground
                 campgroundMarkers.clearLayers();
                 campgroundsAdded = false;
               }
+
 
               function addRestStopMarkers() {
                 if (restStopsAdded) return; // 이미 추가된 경우 중단
@@ -266,135 +431,140 @@ const MapView = forwardRef(({showRestStops, showChargingStations, showCampground
         </body>
         </html>
       `;
-      setHtmlContent(initialHtml);
-    }
-  }, [userLocation, htmlContent]);
+        setHtmlContent(initialHtml);
+      }
+    }, [userLocation, htmlContent, updatedCampgroundsData]);
 
-  // WebView 메시지 핸들러
-  const onMessage = useCallback(
-    event => {
-      try {
-        const data = JSON.parse(event.nativeEvent.data);
-        if (data.type === 'mapReady') {
-          if (!initialToggleSent.current) {
-            // 초기 토글 메시지를 한 번만 전송
-            setMapReady(true);
-            // 초기 토글 상태 전송
-            webviewRef.current.postMessage(
-              JSON.stringify({
-                type: 'toggleCampgrounds',
-                show: showCampgrounds,
-              }),
-            );
-            webviewRef.current.postMessage(
-              JSON.stringify({
-                type: 'toggleRestStops',
-                show: showRestStops
-              }),
-            );
-            webviewRef.current.postMessage(
-              JSON.stringify({
-                type: 'toggleChargingStations',
-                show: showChargingStations,
-              }),
-            );
-            initialToggleSent.current = true; // 토글 메시지 전송 완료
+    // WebView 메시지 핸들러
+    const onMessage = useCallback(
+      event => {
+        try {
+          const data = JSON.parse(event.nativeEvent.data);
+
+          if (data.type === 'jsError') {
+            console.error(`WebView JS Error: ${data.message} at ${data.source}:${data.lineno}:${data.colno}`, data.error);
           }
-        } else if (data.type === 'mapStatus') {
-          // 지도 상태 업데이트 처리 (선택 사항)
+
+          if (data.type === 'mapReady') {
+            if (!initialToggleSent.current) {
+              // 초기 토글 메시지를 한 번만 전송
+              setMapReady(true);
+              // 초기 토글 상태 전송
+              webviewRef.current.postMessage(
+                JSON.stringify({
+                  type: 'toggleCampgrounds',
+                  show: showCampgrounds,
+                }),
+              );
+              webviewRef.current.postMessage(
+                JSON.stringify({
+                  type: 'toggleRestStops',
+                  show: showRestStops,
+                }),
+              );
+              webviewRef.current.postMessage(
+                JSON.stringify({
+                  type: 'toggleChargingStations',
+                  show: showChargingStations,
+                }),
+              );
+              initialToggleSent.current = true; // 토글 메시지 전송 완료
+            }
+          } else if (data.type === 'mapStatus') {
+            // 지도 상태 업데이트 처리 (선택 사항)
+          }
+        } catch (error) {
+          console.error('Error parsing message from WebView:', error);
         }
-      } catch (error) {
-        console.error('Error parsing message from WebView:', error);
+      },
+      
+      [showCampgrounds, showRestStops, showChargingStations],
+    );
+
+    // 지도 초기화 완료 후 리셋 기능 노출
+    useImperativeHandle(ref, () => ({
+      resetMap: () => {
+        if (webviewRef.current) {
+          webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
+        }
+      },
+    }));
+
+    // 토글 상태가 변경될 때 메시지 전송
+    useEffect(() => {
+      if (mapReady && webviewRef.current) {
+        console.log('Sending toggleCampgrounds message:', showCampgrounds);
+        webviewRef.current.postMessage(
+          JSON.stringify({
+            type: 'toggleCampgrounds',
+            show: showCampgrounds,
+          }),
+        );
       }
-    },
-    [showCampgrounds, showRestStops, showChargingStations ],
-  );
+    }, [showCampgrounds, mapReady]);
 
-  // 지도 초기화 완료 후 리셋 기능 노출
-  useImperativeHandle(ref, () => ({
-    resetMap: () => {
-      if (webviewRef.current) {
-        webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
+    useEffect(() => {
+      if (mapReady && webviewRef.current) {
+        webviewRef.current.postMessage(
+          JSON.stringify({
+            type: 'toggleRestStops',
+            show: showRestStops,
+          }),
+        );
       }
-    },
-  }));
+    }, [showRestStops, mapReady]);
 
-  // 토글 상태가 변경될 때 메시지 전송
+    useEffect(() => {
+      if (mapReady && webviewRef.current) {
+        webviewRef.current.postMessage(
+          JSON.stringify({
+            type: 'toggleChargingStations',
+            show: showChargingStations,
+          }),
+        );
+      }
+    }, [showChargingStations, mapReady]);
 
-  useEffect(() => {
-    if (mapReady && webviewRef.current) {
-      console.log('Sending toggleCampgrounds message:', showCampgrounds);
-      webviewRef.current.postMessage(
-        JSON.stringify({
-          type: 'toggleCampgrounds', 
-          show: showCampgrounds
-        }),
+    if (error) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       );
     }
-  }, [showCampgrounds, mapReady]);
-  
 
-  useEffect(() => {
-    if (mapReady && webviewRef.current) {
-      webviewRef.current.postMessage(
-        JSON.stringify({
-          type: 'toggleRestStops', 
-          show: showRestStops
-        }),
-      );
-    }
-  }, [showRestStops, mapReady]);
-
-  useEffect(() => {
-    if (mapReady && webviewRef.current) {
-      webviewRef.current.postMessage(
-        JSON.stringify({
-          type: 'toggleChargingStations',
-          show: showChargingStations,
-        }),
-      );
-    }
-  }, [showChargingStations, mapReady]);
-
-  if (error) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
+      <View style={styles.container}>
+        {htmlContent ? (
+          <WebView
+            originWhitelist={['*']}
+            source={{html: htmlContent}}
+            style={{flex: 1}}
+            javaScriptEnabled={true}
+            ref={webviewRef}
+            onMessage={onMessage}
+            javaScriptCanOpenWindowsAutomatically={false}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            renderLoading={() => (
+              <ActivityIndicator
+                size="large"
+                color="#0000ff"
+                style={styles.loading}
+              />
+            )}
+          />
+        ) : (
+          <ActivityIndicator
+            size="large"
+            color="#0000ff"
+            style={styles.loading}
+          />
+        )}
       </View>
     );
-  }
-
-  return (
-    <View style={styles.container}>
-      {htmlContent ? (
-        <WebView
-          originWhitelist={['*']}
-          source={{html: htmlContent}}
-          style={{flex: 1}}
-          javaScriptEnabled={true}
-          ref={webviewRef}
-          onMessage={onMessage}
-          javaScriptCanOpenWindowsAutomatically={false}
-          domStorageEnabled={true}
-          startInLoadingState={true}
-          renderLoading={() => (
-            <ActivityIndicator
-              size="large"
-              color="#0000ff"
-              style={styles.loading}
-            />
-          )}
-        />
-      ) : (
-        <ActivityIndicator
-          size="large"
-          color="#0000ff"
-          style={styles.loading}
-        />
-      )}
-    </View>
-  );
-});
+  },
+);
 
 const styles = StyleSheet.create({
   container: {
