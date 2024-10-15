@@ -12,169 +12,37 @@ import {WebView} from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
 import axios from 'axios';
 import chargingStationsData from '../../data/chargingStations.json';
-import campgroundsData from '../../data/campground.json';
 import useLocation from '../../hooks/useLocation';
 
 //1hn%2BgLY7OOgfyP87C0jNZaIzN31HriUkwkZh7nfUzSLnsHtZlPP4nJwHbq%2FD30TINtoXvx0VNwOC255%2BFQA%2FKA%3D%3D
 
 const MapView = forwardRef(
-  ({showRestStops, showChargingStations, showCampgrounds}, ref) => {
+  ({showRestStops, 
+    showChargingStations, 
+    showCampgrounds, 
+    navigation,
+  }, ref) => {
     const {userLocation, error} = useLocation();
     const [htmlContent, setHtmlContent] = useState(null);
     const [mapReady, setMapReady] = useState(false);
     const webviewRef = useRef(null);
-    const [updatedCampgroundsData, setUpdatedCampgroundsData] = useState([]);
+    const [campgroundsData, setCampgroundsData] = useState([]);
 
+    // 캠핑장 데이터를 서버에서 가져오는 useEffect 수정
     useEffect(() => {
-      const fetchCampgroundImages = async () => {
-        const updatedData = await Promise.all(
-          campgroundsData.map(async campground => {
-            try {
-              // 캠핑장 이름의 앞 2글자 사용
-              const keyword = campground.name.substring(0, 2);
-
-              console.log(
-                `Fetching data for campground: ${campground.name} with keyword: ${keyword}`,
-              );
-
-              // 검색 키워드로 캠핑장 정보 검색
-              const searchResponse = await axios.get(
-                'http://apis.data.go.kr/B551011/KorService1/searchKeyword1',
-                {
-                  params: {
-                    serviceKey:
-                      '1hn+gLY7OOgfyP87C0jNZaIzN31HriUkwkZh7nfUzSLnsHtZlPP4nJwHbq/D30TINtoXvx0VNwOC255+FQA/KA==', // 디코딩된 서비스 키
-                    numOfRows: 1,
-                    pageNo: 1,
-                    MobileOS: 'ETC',
-                    MobileApp: 'YourAppName',
-                    keyword: keyword,
-                    contentTypeId: 12, // 자연 관광지
-                    _type: 'json', // JSON으로 요청
-                  },
-                  responseType: 'json', // JSON 응답을 기대
-                },
-              );
-
-              console.log(
-                `Search Response for ${campground.name}:`,
-                JSON.stringify(searchResponse.data, null, 2),
-              );
-
-              // 응답 구조에 맞게 데이터 추출
-              if (
-                searchResponse.data &&
-                searchResponse.data.response &&
-                searchResponse.data.response.body &&
-                searchResponse.data.response.body.items &&
-                searchResponse.data.response.body.items.item
-              ) {
-                const items = Array.isArray(
-                  searchResponse.data.response.body.items.item,
-                )
-                  ? searchResponse.data.response.body.items.item
-                  : [searchResponse.data.response.body.items.item];
-
-                if (items.length > 0) {
-                  const contentId = items[0].contentid;
-
-                  console.log(
-                    `Found contentId for ${campground.name}: ${contentId}`,
-                  );
-
-                  // 상세 정보에서 이미지 가져오기
-                  const detailResponse = await axios.get(
-                    'http://apis.data.go.kr/B551011/KorService1/detailCommon1',
-                    {
-                      params: {
-                        serviceKey:
-                          '1hn+gLY7OOgfyP87C0jNZaIzN31HriUkwkZh7nfUzSLnsHtZlPP4nJwHbq/D30TINtoXvx0VNwOC255+FQA/KA==', // 디코딩된 서비스 키
-                        MobileOS: 'ETC',
-                        MobileApp: 'YourAppName',
-                        contentId: contentId,
-                        defaultYN: 'Y',
-                        firstImageYN: 'Y',
-                        _type: 'json', // JSON으로 요청
-                      },
-                      responseType: 'json', // JSON 응답을 기대
-                    },
-                  );
-
-                  console.log(
-                    `Detail Response for ${campground.name}:`,
-                    JSON.stringify(detailResponse.data, null, 2),
-                  );
-
-                  if (
-                    detailResponse.data &&
-                    detailResponse.data.response &&
-                    detailResponse.data.response.body &&
-                    detailResponse.data.response.body.items &&
-                    detailResponse.data.response.body.items.item
-                  ) {
-                    const detailItems = Array.isArray(
-                      detailResponse.data.response.body.items.item,
-                    )
-                      ? detailResponse.data.response.body.items.item
-                      : [detailResponse.data.response.body.items.item];
-
-                    if (detailItems.length > 0 && detailItems[0].firstimage) {
-                      campground.imageURL = detailItems[0].firstimage; // 첫 번째 이미지 URL
-                      console.log(
-                        `Image URL for ${campground.name}: ${campground.imageURL}`,
-                      );
-                    } else {
-                      campground.imageURL = null;
-                      console.warn(`No image found for ${campground.name}`);
-                    }
-                  } else {
-                    console.error(
-                      `상세 정보 응답 오류 for ${campground.name}:`,
-                      detailResponse.data,
-                    );
-                    campground.imageURL = null;
-                  }
-                } else {
-                  console.error(
-                    `검색 결과 없음 for ${campground.name}:`,
-                    searchResponse.data.response.body,
-                  );
-                  campground.imageURL = null;
-                }
-              } else {
-                console.error(
-                  `검색 응답 오류 for ${campground.name}:`,
-                  searchResponse.data,
-                );
-                campground.imageURL = null;
-              }
-
-              // 좌표 로그 추가
-              console.log(`Coordinates for ${campground.name}: lat=${campground.location.lat}, lng=${campground.location.lng}`);
-
-              // API 호출 간 지연 시간 추가 (예: 100ms)
-              await new Promise(resolve => setTimeout(resolve, 100));
-            } catch (error) {
-              console.error(
-                `이미지 가져오기 오류 for ${campground.name}:`,
-                error,
-              );
-              campground.imageURL = null;
-            }
-            return campground;
-          }),
-        );
-
-        // 이미지가 있는 캠핑장만 필터링
-        const filteredData = updatedData.filter(
-          campground =>
-            campground.imageURL && campground.imageURL.trim() !== '',
-        );
-        setUpdatedCampgroundsData(filteredData);
-        console.log(`Filtered campgrounds count: ${filteredData.length}`);
+      const fetchCampgroundsData = async () => {
+        try {
+          // 서버의 캠핑장 데이터 API 엔드포인트 호출
+          const response = await axios.get('http://10.0.2.2:8080/api/campgrounds');
+          setCampgroundsData(response.data);
+          console.log('캠핑장 데이터가 성공적으로 로드되었습니다.');
+        } catch (error) {
+          console.error('캠핑장 데이터를 가져오는 중 오류 발생:', error);
+          setCampgroundsData([]); // 오류 발생 시 빈 배열로 설정
+        }
       };
 
-      fetchCampgroundImages();
+      fetchCampgroundsData();
     }, []);
 
     // 초기 토글 메시지 전송을 한 번만 수행하도록 플래그 설정
@@ -191,7 +59,7 @@ const MapView = forwardRef(
 
     // 사용자 위치가 설정되면 HTML 콘텐츠 초기화
     useEffect(() => {
-      if (userLocation && updatedCampgroundsData.length > 0 && !htmlContent) {
+      if (userLocation && !htmlContent) {
         const initialHtml = `
         <!DOCTYPE html>
         <html>
@@ -214,6 +82,18 @@ const MapView = forwardRef(
         <body>
           <div id="map"></div>
           <script>
+            // JavaScript 오류 감지 핸들러 추가
+            window.onerror = function(message, source, lineno, colno, error) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'jsError',
+                message: message,
+                source: source,
+                lineno: lineno,
+                colno: colno,
+                error: error ? error.toString() : '',
+              }));
+            };
+            
             (function() {
               var map;
               var restStopMarkers = L.markerClusterGroup({
@@ -230,7 +110,7 @@ const MapView = forwardRef(
               });
               var restStops = ${JSON.stringify(restStopsData)};
               var chargingStations = ${JSON.stringify(chargingStationsData)};
-              var campgrounds = ${JSON.stringify(updatedCampgroundsData)};
+              var campgrounds = ${JSON.stringify(campgroundsData || [])};
               var userLocation = [${userLocation.latitude}, ${
           userLocation.longitude
         }];
@@ -249,8 +129,11 @@ const MapView = forwardRef(
                   maxZoom:19,
                 }).addTo(map);
 
-                // 파스텔톤 효과 적용
-                tileLayer.getContainer().style.filter = 'saturate(0.7) brightness(1.0) hue-rotate(700deg)';
+                // 파스텔톤 효과 적용 - CSS를 통해 타일 스타일 변경
+                var style = document.createElement('style');
+                style.type = 'text/css';
+                style.innerHTML = '.leaflet-tile { filter: saturate(0.7) brightness(1.0) hue-rotate(700deg); }';
+                document.getElementsByTagName('head')[0].appendChild(style);
 
                 // 현재 위치 마커
                 var userMarker = L.marker(userLocation).addTo(map);
@@ -327,30 +210,47 @@ const MapView = forwardRef(
                   }
                 }
 
-                if (campgroundsAdded) {
-                  campgroundMarkers.clearLayers();
-                  campgrounds.forEach(function(campground) {
-                    var lat = parseFloat(campground.location.lat); // 로컬 JSON 파일의 좌표 사용
-                    var lng = parseFloat(campground.location.lng);
-                    console.log('Adding marker at:', lat, lng); // 디버깅 로그
-                    if (bounds.contains([lat, lng])) {
-                      var marker = L.marker([lat, lng]);
-                      var popupContent = '<b>' + (campground.name || '야영장 이름 없음') + '</b><br>';
-                      if (campground.imageURL) {
-                        popupContent += '<img src="' + campground.imageURL + '" alt="이미지" style="width:100px;height:auto;"><br>';
-                      }
-                      marker.bindPopup(popupContent);
-                      campgroundMarkers.addLayer(marker);
-                    }
-                  });
-                  if (!map.hasLayer(campgroundMarkers)) {
-                    map.addLayer(campgroundMarkers);
+                
+              if (campgroundsAdded) {
+                campgroundMarkers.clearLayers();
+                campgrounds.forEach(function(campground) {
+                  var lat = parseFloat(campground.location ? campground.location.lat : campground.latitude);
+                  var lng = parseFloat(campground.location ? campground.location.lng : campground.longitude);
+
+                  if (isNaN(lat) || isNaN(lng)) {
+                    console.warn('Invalid coordinates for campground:', campground);
+                    return; // 좌표가 유효하지 않으면 해당 마커 생성을 건너뜀
                   }
 
-                  // 캠핑장 마커 개수 전송
-                  window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markersAdded', count: campgrounds.length }));
+                  if (bounds.contains([lat, lng])) {
+                    var marker = L.marker([lat, lng]);
+                    var popupContent = '<b>' + (campground.name || '야영장 이름 없음') + '</b><br>';
+                    if (campground.imageURL) {
+                      popupContent += '<img src="' + campground.imageURL + '" alt="이미지" style="width:100px;height:auto;"><br>';
+                    }
+                    marker.bindPopup(popupContent);
+
+                    // 마커 클릭 시 이벤트 처리
+                    marker.on('click', function() {
+                      window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'campgroundSelected',
+                        data: campground
+                      }));
+                    });
+
+                    campgroundMarkers.addLayer(marker);
+                  }
+                });
+
+                if (!map.hasLayer(campgroundMarkers)) {
+                  map.addLayer(campgroundMarkers);
                 }
+
+                // 캠핑장 마커 개수 전송
+                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markersAdded', count: campgrounds.length }));
               }
+            }
+                
 
 
 
@@ -412,6 +312,8 @@ const MapView = forwardRef(
                     }
                   } else if (message.type === 'toggleCampgrounds') {
                     if (message.show) {
+                      // 캠핑장 데이터 설정
+                      campgrounds = message.data || [];
                       addCampgroundMarkers();
                     } else {
                       removeCampgroundMarkers();
@@ -433,7 +335,7 @@ const MapView = forwardRef(
       `;
         setHtmlContent(initialHtml);
       }
-    }, [userLocation, htmlContent, updatedCampgroundsData]);
+    }, [userLocation, htmlContent]);
 
     // WebView 메시지 핸들러
     const onMessage = useCallback(
@@ -442,7 +344,10 @@ const MapView = forwardRef(
           const data = JSON.parse(event.nativeEvent.data);
 
           if (data.type === 'jsError') {
-            console.error(`WebView JS Error: ${data.message} at ${data.source}:${data.lineno}:${data.colno}`, data.error);
+            console.error(
+              `WebView JS Error: ${data.message} at ${data.source}:${data.lineno}:${data.colno}`,
+              data.error,
+            );
           }
 
           if (data.type === 'mapReady') {
@@ -450,10 +355,15 @@ const MapView = forwardRef(
               // 초기 토글 메시지를 한 번만 전송
               setMapReady(true);
               // 초기 토글 상태 전송
+
+              // 캠핑장 데이터가 없는 경우 빈 배열로 설정
+              const campgroundsToSend = campgroundsData || [];
+
               webviewRef.current.postMessage(
                 JSON.stringify({
                   type: 'toggleCampgrounds',
                   show: showCampgrounds,
+                  data: campgroundsToSend, // 캠핑장 데이터 전달
                 }),
               );
               webviewRef.current.postMessage(
@@ -470,15 +380,22 @@ const MapView = forwardRef(
               );
               initialToggleSent.current = true; // 토글 메시지 전송 완료
             }
-          } else if (data.type === 'mapStatus') {
-            // 지도 상태 업데이트 처리 (선택 사항)
+          } else if (data.type === 'campgroundSelected') {
+            // 캠핑장 선택 메시지 처리
+            navigation.navigate('CampingDetail', {campground: data.data});
           }
         } catch (error) {
           console.error('Error parsing message from WebView:', error);
         }
       },
-      
-      [showCampgrounds, showRestStops, showChargingStations],
+
+      [
+        navigation,
+        showCampgrounds,
+        showRestStops,
+        showChargingStations,
+        campgroundsData,
+      ],
     );
 
     // 지도 초기화 완료 후 리셋 기능 노출
@@ -498,10 +415,11 @@ const MapView = forwardRef(
           JSON.stringify({
             type: 'toggleCampgrounds',
             show: showCampgrounds,
+            data: campgroundsData, // 캠핑장 데이터 전달
           }),
         );
       }
-    }, [showCampgrounds, mapReady]);
+    }, [showCampgrounds, mapReady, campgroundsData]);
 
     useEffect(() => {
       if (mapReady && webviewRef.current) {
@@ -553,6 +471,10 @@ const MapView = forwardRef(
                 style={styles.loading}
               />
             )}
+            onError={(syntheticEvent) => {
+              const { nativeEvent } = syntheticEvent;
+              console.error('WebView error: ', nativeEvent);
+            }}
           />
         ) : (
           <ActivityIndicator

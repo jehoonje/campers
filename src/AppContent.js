@@ -1,10 +1,11 @@
 // src/AppContent.js
 import React, { useState, useEffect, useRef } from 'react';
-import { SafeAreaView, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { SafeAreaView, View, StyleSheet } from 'react-native';
 import Header from './components/Header';
 import MainContent from './screens/MainContent';
-import RightDrawer from './components/RightDrawer/RightDrawer'; // RightDrawer 컴포넌트 임포트
-import { useDrawerStatus } from '@react-navigation/drawer'; // useDrawerStatus 임포트
+import RightDrawer from './components/RightDrawer/RightDrawer';
+import { useDrawerStatus } from '@react-navigation/drawer';
+import { useNavigation } from '@react-navigation/native'; // useNavigation 임포트
 
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
@@ -13,6 +14,7 @@ const AppContent = () => {
   const [showCampgrounds, setShowCampgrounds] = useState(true);
 
   const mainContentRef = useRef(null); // MainContent의 ref
+  const navigation = useNavigation(); // navigation 객체 사용
 
   const toggleRightDrawer = () => {
     setIsRightDrawerOpen(prev => !prev);
@@ -25,7 +27,7 @@ const AppContent = () => {
   const toggleCampgroundsFunc = () => {
     setShowCampgrounds(prev => !prev);
     console.log("캠핑 마커 토글:", !showCampgrounds);
-  }
+  };
 
   const toggleRestStopsFunc = () => {
     setShowRestStops(prev => !prev);
@@ -36,7 +38,6 @@ const AppContent = () => {
     setShowChargingStations(prev => !prev);
     console.log("충전소 마커 토글:", !showChargingStations);
   };
-
 
   // 왼쪽 드로어의 상태를 감지
   const drawerStatus = useDrawerStatus();
@@ -61,8 +62,8 @@ const AppContent = () => {
   return (
     <SafeAreaView style={styles.safeContainer}>
       {/* 헤더 */}
-      <Header 
-        toggleRightDrawer={toggleRightDrawer} 
+      <Header
+        toggleRightDrawer={toggleRightDrawer}
         onPressTitle={goToMainScreen} // "CAMPERS" 클릭 시 호출할 함수 전달
       />
 
@@ -76,6 +77,7 @@ const AppContent = () => {
           toggleRestStops={toggleRestStopsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
           toggleCampgrounds={toggleCampgroundsFunc}
+          navigation={navigation} // navigation 객체 전달
         />
       </View>
 
