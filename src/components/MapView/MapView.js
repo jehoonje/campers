@@ -72,7 +72,12 @@ const MapView = forwardRef(
             .leaflet-bar a { background-color: #fff; border-bottom: 1px solid #ccc; text-align: center; width: 30px; height: 30px; line-height: 30px; display: block; color: #000; font-size: 20px; }
             .leaflet-bar a:hover { background-color: #f4f4f4; }
             .leaflet-bar svg { width: 80%; height: 80%; padding: 10%; }
-          </style>
+          
+            /* 팝업의 스타일 수정 */
+            .leaflet-popup-close-button {
+              display: none; /* X 닫기 버튼 숨기기 */
+            }
+            </style>
           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
           <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
           <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
@@ -213,29 +218,52 @@ const MapView = forwardRef(
                 
               if (campgroundsAdded) {
                 campgroundMarkers.clearLayers();
-                campgrounds.forEach(function(campground) {
+                campgrounds.forEach(function(campground, index) {
                   var lat = parseFloat(campground.location ? campground.location.lat : campground.latitude);
                   var lng = parseFloat(campground.location ? campground.location.lng : campground.longitude);
 
                   if (isNaN(lat) || isNaN(lng)) {
                     console.warn('Invalid coordinates for campground:', campground);
-                    return; // 좌표가 유효하지 않으면 해당 마커 생성을 건너뜀
+                    return;
                   }
 
                   if (bounds.contains([lat, lng])) {
                     var marker = L.marker([lat, lng]);
-                    var popupContent = '<b>' + (campground.name || '야영장 이름 없음') + '</b><br>';
-                    if (campground.imageURL) {
-                      popupContent += '<img src="' + campground.imageURL + '" alt="이미지" style="width:100px;height:auto;"><br>';
+
+                    // 팝업 콘텐츠 생성
+                    var popupContent = '';
+                    if (campground.imageUrl) { // 'imageURL'에서 'imageUrl'로 변경
+                    popupContent += '<img src="' + campground.imageUrl + '" alt="이미지" style="width:100px;height:auto;"><br>';
+                    } else {
+                      popupContent += '이미지 URL이 없습니다.<br>';
+                    popupContent += '<img src="https://via.placeholder.com/100" alt="대체 이미지" style="width:100px;height:auto;"><br>'; // 대체 이미지
                     }
+                    
+                    // 이름과 오른쪽 끝의 '>>' 기호를 표시
+                    popupContent += '<div style="display: flex; justify-content: space-between; align-items: center;">';
+                    popupContent += '<b>' + (campground.name || '야영장 이름 없음') + '</b>';
+                    popupContent += '<b style="float: right;">&gt;&gt;</b>';  // >> 기호를 오른쪽으로 보냄
+                    popupContent += '</div>';
+
+                    // 팝업 옵션 설정
+                    var popupOptions = {
+                      closeButton: false, // X 닫기 버튼 제거
+                      };
+
                     marker.bindPopup(popupContent);
 
-                    // 마커 클릭 시 이벤트 처리
-                    marker.on('click', function() {
-                      window.ReactNativeWebView.postMessage(JSON.stringify({
-                        type: 'campgroundSelected',
-                        data: campground
-                      }));
+                    // 팝업 열릴 때 이벤트 리스너 추가
+                    marker.on('popupopen', function(e) {
+                      var popupNode = e.popup._contentNode;
+                      if (popupNode) {
+                        popupNode.style.cursor = 'pointer';
+                        popupNode.addEventListener('click', function() {
+                          window.ReactNativeWebView.postMessage(JSON.stringify({
+                            type: 'campgroundSelected',
+                            data: campground
+                          }));
+                        });
+                      }
                     });
 
                     campgroundMarkers.addLayer(marker);
@@ -251,9 +279,6 @@ const MapView = forwardRef(
               }
             }
                 
-
-
-
               function addCampgroundMarkers() {
                 if (campgroundsAdded) return; // 이미 추가된 경우 중단
                 campgroundsAdded = true; // 플래그 설정
@@ -325,6 +350,7 @@ const MapView = forwardRef(
                   console.error('React Native로부터 메시지 파싱 오류:', error);
                 }
               });
+              
 
               // 지도 초기화
               initializeMap();
@@ -464,6 +490,9 @@ const MapView = forwardRef(
             javaScriptCanOpenWindowsAutomatically={false}
             domStorageEnabled={true}
             startInLoadingState={true}
+            allowFileAccess={true}
+            allowUniversalAccessFromFileURLs={true}
+            mixedContentMode="always" // 추가
             renderLoading={() => (
               <ActivityIndicator
                 size="large"
