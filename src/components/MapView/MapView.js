@@ -6,6 +6,7 @@ import React, {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useMemo,
 } from 'react';
 import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -14,53 +15,55 @@ import axios from 'axios';
 import chargingStationsData from '../../data/chargingStations.json';
 import useLocation from '../../hooks/useLocation';
 
-//1hn%2BgLY7OOgfyP87C0jNZaIzN31HriUkwkZh7nfUzSLnsHtZlPP4nJwHbq%2FD30TINtoXvx0VNwOC255%2BFQA%2FKA%3D%3D
-
 const MapView = forwardRef(
-  ({showRestStops, 
-    showChargingStations, 
-    showCampgrounds, 
-    navigation,
-  }, ref) => {
+  (
+    {
+      showRestStops,
+      showChargingStations,
+      showCampgrounds,
+      navigation,
+    },
+    ref,
+  ) => {
     const {userLocation, error} = useLocation();
     const [htmlContent, setHtmlContent] = useState(null);
     const [mapReady, setMapReady] = useState(false);
     const webviewRef = useRef(null);
     const [campgroundsData, setCampgroundsData] = useState([]);
 
-    // 캠핑장 데이터를 서버에서 가져오는 useEffect 수정
+    const initialToggleSent = useRef(false);
+
+    useImperativeHandle(ref, () => ({
+      resetMap: () => {
+        if (webviewRef.current) {
+          webviewRef.current.postMessage(
+            JSON.stringify({type: 'resetMap'}),
+          );
+        }
+      },
+    }));
+
     useEffect(() => {
       const fetchCampgroundsData = async () => {
         try {
-          // 서버의 캠핑장 데이터 API 엔드포인트 호출
-          const response = await axios.get('http://10.0.2.2:8080/api/campgrounds');
+          const response = await axios.get(
+            'http://10.0.2.2:8080/api/campgrounds',
+          );
           setCampgroundsData(response.data);
           console.log('캠핑장 데이터가 성공적으로 로드되었습니다.');
         } catch (error) {
           console.error('캠핑장 데이터를 가져오는 중 오류 발생:', error);
-          setCampgroundsData([]); // 오류 발생 시 빈 배열로 설정
+          setCampgroundsData([]);
         }
       };
 
       fetchCampgroundsData();
     }, []);
 
-    // 초기 토글 메시지 전송을 한 번만 수행하도록 플래그 설정
-    const initialToggleSent = useRef(false);
-
-    // 부모 컴포넌트에서 resetMap 함수를 호출할 수 있도록 노출
-    useImperativeHandle(ref, () => ({
-      resetMap: () => {
-        if (webviewRef.current) {
-          webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
-        }
-      },
-    }));
-
     // 사용자 위치가 설정되면 HTML 콘텐츠 초기화
-    useEffect(() => {
-      if (userLocation && !htmlContent) {
-        const initialHtml = `
+    const initialHtml = useMemo(() => {
+      if (!userLocation) return null;
+      return `
         <!DOCTYPE html>
         <html>
         <head>
@@ -358,10 +361,13 @@ const MapView = forwardRef(
           </script>
         </body>
         </html>
-      `;
+      `;}, [userLocation]);
+
+    useEffect(() => {
+      if (initialHtml && !htmlContent) {
         setHtmlContent(initialHtml);
       }
-    }, [userLocation, htmlContent]);
+    }, [initialHtml, htmlContent]);
 
     // WebView 메시지 핸들러
     const onMessage = useCallback(
