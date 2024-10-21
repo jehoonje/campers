@@ -7,9 +7,11 @@ const MainContent = forwardRef(({
   showRestStops,
   showChargingStations,
   showCampgrounds,
+  showCountrysides,
   toggleRestStops,
   toggleChargingStations,
   toggleCampgrounds,
+  toggleCountrysides,
   navigation, // navigation 객체 수신
 }, ref) => {
   const mapViewRef = useRef(null);
@@ -31,6 +33,7 @@ const MainContent = forwardRef(({
           showRestStops={showRestStops}
           showChargingStations={showChargingStations}
           showCampgrounds={showCampgrounds}
+          showCountrysides={showCountrysides}
           navigation={navigation} // navigation 객체 전달
         />
       </View>
