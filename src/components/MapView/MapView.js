@@ -10,13 +10,15 @@ import React, {
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { WebView } from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
+// 새로운 데이터 임포트
+import countrysideData from '../../data/countryside.json';
 import axios from 'axios';
 import chargingStationsData from '../../data/chargingStations.json';
 import useLocation from '../../hooks/useLocation';
 
 const MapView = forwardRef(
   (
-    { showRestStops, showChargingStations, showCampgrounds, navigation },
+    { showRestStops, showCountrysides, showChargingStations, showCampgrounds, navigation },
     ref,
   ) => {
     const { userLocation, error } = useLocation();
@@ -64,6 +66,7 @@ const MapView = forwardRef(
       (event) => {
         try {
           const data = JSON.parse(event.nativeEvent.data);
+          console.log('Received message type:', data.type); // 수정된 로그
 
           if (data.type === 'jsError') {
             console.error(
@@ -82,9 +85,11 @@ const MapView = forwardRef(
                   userLocation: userLocation || { latitude: 0, longitude: 0 },
                   restStopsData: restStopsData || [],
                   chargingStationsData: chargingStationsData || [],
+                  countrysideData: countrysideData || [],
                   campgroundsData: campgroundsData || [],
                   showRestStops,
                   showChargingStations,
+                  showCountrysides,
                   showCampgrounds,
                 }),
               );
@@ -94,6 +99,9 @@ const MapView = forwardRef(
           } else if (data.type === 'campgroundSelected') {
             // 캠핑장 선택 메시지 처리
             navigation.navigate('CampingDetail', { campground: data.data });
+          } else if (data.type === 'countrysideSelected') {
+            // 농어촌체험마을 선택 시 처리
+            navigation.navigate('CountryDetail', { countryside: data.data });
           }
         } catch (error) {
           console.error('Error parsing message from WebView:', error);
@@ -104,6 +112,7 @@ const MapView = forwardRef(
         showCampgrounds,
         showRestStops,
         showChargingStations,
+        showCountrysides,
         campgroundsData,
         userLocation,
       ],
@@ -118,10 +127,11 @@ const MapView = forwardRef(
             showRestStops,
             showChargingStations,
             showCampgrounds,
+            showCountrysides,
           }),
         );
       }
-    }, [showCampgrounds, showRestStops, showChargingStations, mapReady]);
+    }, [showCampgrounds, showCountrysides, showRestStops, showChargingStations, mapReady]);
 
     if (error) {
       return (

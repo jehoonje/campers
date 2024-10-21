@@ -15,7 +15,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 const { height } = Dimensions.get('window');
 
-const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations, toggleCampgrounds }) => {
+const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations, toggleCampgrounds, toggleCountrysides }) => {
   const slideAnim = useRef(new Animated.Value(-height)).current; // 초기 위치: 화면 위쪽
 
   useEffect(() => {
@@ -41,10 +41,10 @@ const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations,
     { name: '모두 보기', icon: 'eye', lib: 'FontAwesome' },
     { name: '노지 캠핑', icon: 'tree', lib: 'FontAwesome' },
     { name: '캠핑카 주차장', icon: 'bus', lib: 'FontAwesome' },
-    { name: '액티비티', icon: 'bicycle', lib: 'FontAwesome' },
+    { name: '농어촌체험마을', icon: 'seedling', lib: 'FontAwesome5' },
+    { name: '해수욕장', icon: 'umbrella-beach', lib: 'FontAwesome5' },
     { name: '전기차 충전소', icon: 'bolt', lib: 'FontAwesome' },
     { name: '주유소', icon: 'gas-pump', lib: 'FontAwesome5' },
-    { name: '도로 공사중', icon: 'warning', lib: 'FontAwesome' },
     { name: '공중 화장실', icon: 'restroom', lib: 'FontAwesome5' },
     { name: '와이파이', icon: 'wifi', lib: 'FontAwesome' },
     { name: '휴지통', icon: 'trash', lib: 'FontAwesome' },
@@ -76,6 +76,8 @@ const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations,
                   toggleChargingStations(); // 충전소 버튼 클릭 시 마커 토글
                 } else if (item.name === '노지 캠핑') {
                   toggleCampgrounds(); // 캠핑 버튼 클릭시 마커 토글
+                } else if (item.name === '농어촌체험마을') {
+                  toggleCountrysides(); // 농어촌 버튼 클릭시 마커 토글
                 }
                 onClose(); // 버튼 클릭 시 드로어 닫기
               }}

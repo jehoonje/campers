@@ -1,318 +1,503 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-  <style>
-    html, body { margin: 0; padding: 0; height: 100%; }
-    #map { height: 100%; width: 100%; }
-    .leaflet-bar { background-color: white; border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); padding: 5px; }
-    .leaflet-bar a { background-color: #fff; border-bottom: 1px solid #ccc; text-align: center; width: 30px; height: 30px; line-height: 30px; display: block; color: #000; font-size: 20px; }
-    .leaflet-bar a:hover { background-color: #f4f4f4; }
-    .leaflet-bar svg { width: 80%; height: 80%; padding: 10%; }
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+      .leaflet-bar {
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+        padding: 5px;
+      }
+      .leaflet-bar a {
+        background-color: #fff;
+        border-bottom: 1px solid #ccc;
+        text-align: center;
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        display: block;
+        color: #000;
+        font-size: 20px;
+      }
+      .leaflet-bar a:hover {
+        background-color: #f4f4f4;
+      }
+      .leaflet-bar svg {
+        width: 80%;
+        height: 80%;
+        padding: 10%;
+      }
 
-    /* 팝업의 스타일 수정 */
-    .leaflet-popup-close-button {
-      display: none; /* X 닫기 버튼 숨기기 */
-    }
-  </style>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-    // JavaScript 오류 감지 핸들러 추가
-    window.onerror = function(message, source, lineno, colno, error) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({
-        type: 'jsError',
-        message: message,
-        source: source,
-        lineno: lineno,
-        colno: colno,
-        error: error ? error.toString() : '',
-      }));
-    };
+      /* 팝업의 스타일 수정 */
+      .leaflet-popup-close-button {
+        display: none; /* X 닫기 버튼 숨기기 */
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      // JavaScript 오류 감지 핸들러 추가
+      window.onerror = function (message, source, lineno, colno, error) {
+        window.ReactNativeWebView.postMessage(
+          JSON.stringify({
+            type: 'jsError',
+            message: message,
+            source: source,
+            lineno: lineno,
+            colno: colno,
+            error: error ? error.toString() : '',
+          }),
+        );
+      };
 
-    (function() {
-      var map;
-      var restStopMarkers = L.markerClusterGroup({
-        chunkedLoading: true, // 청크 로딩 활성화
-        chunkDelay: 50,
-      });
-      var chargingStationMarkers = L.markerClusterGroup({
-        chunkedLoading: true,
-        chunkDelay: 50,
-      });
-      var campgroundMarkers = L.markerClusterGroup({
-        chunkedLoading: true,
-        chunkDelay: 50,
-      });
-      var restStops = [];
-      var chargingStations = [];
-      var campgrounds = [];
-      var userLocation = [0, 0];
-
-      var restStopsAdded = false;
-      var chargingStationsAdded = false;
-      var campgroundsAdded = false;
-
-      function initializeMap() {
-        var initialLocation = userLocation || [0, 0];
-        map = L.map('map', {
-          renderer: L.canvas(), // 캔버스 렌더링 사용
-          zoomControl: false
-        }).setView(initialLocation, 5); // 초기 줌 레벨을 5로 설정하여 지도가 보이도록 함
-
-        var tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom:19,
-        }).addTo(map);
-
-        // 파스텔톤 효과 적용 - CSS를 통해 타일 스타일 변경
-        var style = document.createElement('style');
-        style.type = 'text/css';
-        style.innerHTML = '.leaflet-tile { filter: saturate(0.7) brightness(1.0) hue-rotate(700deg); }';
-        document.getElementsByTagName('head')[0].appendChild(style);
-
-        // 현재 위치 마커 (초기에는 표시하지 않음)
-        window.userMarker = null;
-
-        // 하단에 확대/축소 버튼 추가
-        L.control.zoom({
-          position: 'bottomright'
-        }).addTo(map);
-
-        // 현재 위치로 이동하는 커스텀 버튼 추가
-        var locateButton = L.control({position: 'bottomleft'});
-        locateButton.onAdd = function(map) {
-          var div = L.DomUtil.create('div', 'leaflet-bar');
-          div.innerHTML = '<a href="#" title="현재 위치로 이동"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-crosshair"><circle cx="12" cy="12" r="10"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></a>';
-          div.onclick = function() {
-            map.setView(userLocation, 13);
-          };
-          return div;
-        };
-        locateButton.addTo(map);
-
-        // 지도가 이동하거나 확대/축소될 때마다 가시 영역 내의 마커 업데이트
-        map.on('moveend', function() {
-          updateVisibleMarkers();
+      (function () {
+        var map;
+        // 마커 클러스터 그룹 생성
+        var restStopMarkers = L.markerClusterGroup({
+          chunkedLoading: true, // 청크 로딩 활성화
+          chunkDelay: 50,
+        });
+        var chargingStationMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
+        });
+        var campgroundMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
+        });
+        var countrysideMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
         });
 
-        // 지도 초기화 완료 메시지 전송
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mapReady' }));
-      }
+        var restStops = [];
+        var chargingStations = [];
+        var campgrounds = [];
+        var countrysides = [];
+        var userLocation = [0, 0];
 
-      function updateVisibleMarkers() {
-        var bounds = map.getBounds();
+        var restStopsAdded = false;
+        var chargingStationsAdded = false;
+        var campgroundsAdded = false;
+        var countrysidesAdded = false;
 
-        if (restStopsAdded) {
-          restStopMarkers.clearLayers();
-          restStops.forEach(function(stop) {
-            var lat = parseFloat(stop.위도);
-            var lng = parseFloat(stop.경도);
-            if (bounds.contains([lat, lng])) {
-              var marker = L.marker([lat, lng]);
-              marker.bindPopup(
-                (stop.휴게소명 || '이름 정보 없음') + '<br>' +
-                (stop.도로종류 || '도로 종류 정보 없음') + '<br>' +
-                (stop.휴게소종류 || '종류 정보 없음')
-              );
-              restStopMarkers.addLayer(marker);
-            }
-          });
-          if (!map.hasLayer(restStopMarkers)) {
-            map.addLayer(restStopMarkers);
-          }
-        }
+        function initializeMap() {
+          var initialLocation = userLocation || [0, 0];
+          map = L.map('map', {
+            renderer: L.canvas(), // 캔버스 렌더링 사용
+            zoomControl: false,
+          }).setView(initialLocation, 5); // 초기 줌 레벨을 5로 설정하여 지도가 보이도록 함
 
-        if (chargingStationsAdded) {
-          chargingStationMarkers.clearLayers();
-          chargingStations.forEach(function(station) {
-            var lat = parseFloat(station.위도);
-            var lng = parseFloat(station.경도);
-            if (bounds.contains([lat, lng])) {
-              var marker = L.marker([lat, lng]);
-              marker.bindPopup(
-                (station.충전소명 || '충전소 이름 없음') + '<br>' +
-                (station.주소 || '주소 정보 없음') + '<br>' +
-                (station.충전기타입 || '타입 정보 없음')
-              );
-              chargingStationMarkers.addLayer(marker);
-            }
-          });
-          if (!map.hasLayer(chargingStationMarkers)) {
-            map.addLayer(chargingStationMarkers);
-          }
-        }
+          var tileLayer = L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+              maxZoom: 19,
+            },
+          ).addTo(map);
 
-        if (campgroundsAdded) {
-          campgroundMarkers.clearLayers();
-          campgrounds.forEach(function(campground, index) {
-            var lat = parseFloat(campground.location ? campground.location.lat : campground.latitude);
-            var lng = parseFloat(campground.location ? campground.location.lng : campground.longitude);
+          // 파스텔톤 효과 적용 - CSS를 통해 타일 스타일 변경
+          var style = document.createElement('style');
+          style.type = 'text/css';
+          style.innerHTML =
+            '.leaflet-tile { filter: saturate(0.7) brightness(1.0) hue-rotate(700deg); }';
+          document.getElementsByTagName('head')[0].appendChild(style);
 
-            if (isNaN(lat) || isNaN(lng)) {
-              console.warn('Invalid coordinates for campground:', campground);
-              return;
-            }
+          // 현재 위치 마커 (초기에는 표시하지 않음)
+          window.userMarker = null;
 
-            if (bounds.contains([lat, lng])) {
-              var marker = L.marker([lat, lng]);
+          // 하단에 확대/축소 버튼 추가
+          L.control
+            .zoom({
+              position: 'bottomright',
+            })
+            .addTo(map);
 
-              // 팝업 콘텐츠 생성
-              var popupContent = '';
-              if (campground.imageUrl) {
-                popupContent += '<img src="' + campground.imageUrl + '" alt="이미지" style="width:100px;height:auto;"><br>';
-              } else {
-                popupContent += '이미지 URL이 없습니다.<br>';
-                popupContent += '<img src="https://via.placeholder.com/100" alt="대체 이미지" style="width:100px;height:auto;"><br>'; // 대체 이미지
-              }
-
-              // 이름과 오른쪽 끝의 '>>' 기호를 표시
-              popupContent += '<div style="display: flex; justify-content: space-between; align-items: center;">';
-              popupContent += '<b>' + (campground.name || '야영장 이름 없음') + '</b>';
-              popupContent += '<b style="float: right;">&gt;&gt;</b>';  // >> 기호를 오른쪽으로 보냄
-              popupContent += '</div>';
-
-              // 팝업 옵션 설정
-              var popupOptions = {
-                closeButton: false, // X 닫기 버튼 제거
-              };
-
-              marker.bindPopup(popupContent);
-
-              // 팝업 열릴 때 이벤트 리스너 추가
-              marker.on('popupopen', function(e) {
-                var popupNode = e.popup._contentNode;
-                if (popupNode) {
-                  popupNode.style.cursor = 'pointer';
-                  popupNode.addEventListener('click', function() {
-                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                      type: 'campgroundSelected',
-                      data: campground
-                    }));
-                  });
-                }
-              });
-
-              campgroundMarkers.addLayer(marker);
-            }
-          });
-
-          if (!map.hasLayer(campgroundMarkers)) {
-            map.addLayer(campgroundMarkers);
-          }
-
-          // 캠핑장 마커 개수 전송
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markersAdded', count: campgrounds.length }));
-        }
-      }
-
-      function addCampgroundMarkers() {
-        if (campgroundsAdded) return; // 이미 추가된 경우 중단
-        campgroundsAdded = true; // 플래그 설정
-        updateVisibleMarkers(); // 가시 영역 내의 마커 추가
-      }
-
-      function removeCampgroundMarkers() {
-        if (!campgroundsAdded) return; // 추가되지 않은 경우 중단
-        map.removeLayer(campgroundMarkers);
-        campgroundMarkers.clearLayers();
-        campgroundsAdded = false;
-      }
-
-      function addRestStopMarkers() {
-        if (restStopsAdded) return; // 이미 추가된 경우 중단
-        restStopsAdded = true; // 플래그 설정
-        updateVisibleMarkers(); // 가시 영역 내의 마커 추가
-      }
-
-      function removeRestStopMarkers() {
-        if (!restStopsAdded) return; // 추가되지 않은 경우 중단
-        map.removeLayer(restStopMarkers);
-        restStopMarkers.clearLayers();
-        restStopsAdded = false;
-      }
-
-      function addChargingStationMarkers() {
-        if (chargingStationsAdded) return; // 이미 추가된 경우 중단
-        chargingStationsAdded = true; // 플래그 설정
-        updateVisibleMarkers(); // 가시 영역 내의 마커 추가
-      }
-
-      function removeChargingStationMarkers() {
-        if (!chargingStationsAdded) return; // 추가되지 않은 경우 중단
-        map.removeLayer(chargingStationMarkers);
-        chargingStationMarkers.clearLayers();
-        chargingStationsAdded = false;
-      }
-
-      // 스크립트 로드 시점에 지도 초기화
-      initializeMap();
-
-      // React Native로부터 메시지 수신
-      document.addEventListener('message', function(event) {
-        try {
-          var message = JSON.parse(event.data);
-          console.log('Received message:', message);
-
-          if (message.type === 'initialData') {
-            // 초기 데이터 설정
-            userLocation = [message.userLocation.latitude, message.userLocation.longitude];
-            restStops = message.restStopsData || [];
-            chargingStations = message.chargingStationsData || [];
-            campgrounds = message.campgroundsData || [];
-
-            // 사용자 위치 마커 업데이트
-            if (userLocation) {
+          // 현재 위치로 이동하는 커스텀 버튼 추가
+          var locateButton = L.control({position: 'bottomleft'});
+          locateButton.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'leaflet-bar');
+            div.innerHTML =
+              '<a href="#" title="현재 위치로 이동"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-crosshair"><circle cx="12" cy="12" r="10"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></a>';
+            div.onclick = function () {
               map.setView(userLocation, 13);
-              if (window.userMarker) {
-                window.userMarker.setLatLng(userLocation);
-              } else {
-                window.userMarker = L.marker(userLocation).addTo(map);
-                window.userMarker.bindPopup('현재 위치').openPopup();
-              }
-            }
+            };
+            return div;
+          };
+          locateButton.addTo(map);
 
-            // 초기 레이어 표시 설정
-            if (message.showRestStops) addRestStopMarkers();
-            if (message.showChargingStations) addChargingStationMarkers();
-            if (message.showCampgrounds) addCampgroundMarkers();
-          } else if (message.type === 'toggleLayers') {
-            // 레이어 토글
-            if (message.showRestStops) {
-              addRestStopMarkers();
-            } else {
-              removeRestStopMarkers();
-            }
+          // 지도가 이동하거나 확대/축소될 때마다 가시 영역 내의 마커 업데이트
+          map.on('moveend', function () {
+            updateVisibleMarkers();
+          });
 
-            if (message.showChargingStations) {
-              addChargingStationMarkers();
-            } else {
-              removeChargingStationMarkers();
-            }
-
-            if (message.showCampgrounds) {
-              addCampgroundMarkers();
-            } else {
-              removeCampgroundMarkers();
-            }
-          } else if (message.type === 'resetMap') {
-            map.setView(userLocation, 13);
-          }
-        } catch (error) {
-          console.error('Error parsing message:', error);
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: 'jsError',
-            message: error.message,
-            error: error.toString(),
-          }));
+          // 지도 초기화 완료 메시지 전송
+          window.ReactNativeWebView.postMessage(
+            JSON.stringify({type: 'mapReady'}),
+          );
         }
-      });
-    })();
-  </script>
-</body>
+
+        function updateVisibleMarkers() {
+          var bounds = map.getBounds();
+
+          if (restStopsAdded) {
+            restStopMarkers.clearLayers();
+            restStops.forEach(function (stop) {
+              var lat = parseFloat(stop.위도);
+              var lng = parseFloat(stop.경도);
+              if (bounds.contains([lat, lng])) {
+                var marker = L.marker([lat, lng]);
+                marker.bindPopup(
+                  (stop.휴게소명 || '이름 정보 없음') +
+                    '<br>' +
+                    (stop.도로종류 || '도로 종류 정보 없음') +
+                    '<br>' +
+                    (stop.휴게소종류 || '종류 정보 없음'),
+                );
+                restStopMarkers.addLayer(marker);
+              }
+            });
+            if (!map.hasLayer(restStopMarkers)) {
+              map.addLayer(restStopMarkers);
+            }
+          }
+
+          if (chargingStationsAdded) {
+            chargingStationMarkers.clearLayers();
+            chargingStations.forEach(function (station) {
+              var lat = parseFloat(station.위도);
+              var lng = parseFloat(station.경도);
+              if (bounds.contains([lat, lng])) {
+                var marker = L.marker([lat, lng]);
+                marker.bindPopup(
+                  (station.충전소명 || '충전소 이름 없음') +
+                    '<br>' +
+                    (station.주소 || '주소 정보 없음') +
+                    '<br>' +
+                    (station.충전기타입 || '타입 정보 없음'),
+                );
+                chargingStationMarkers.addLayer(marker);
+              }
+            });
+            if (!map.hasLayer(chargingStationMarkers)) {
+              map.addLayer(chargingStationMarkers);
+            }
+          }
+
+          if (campgroundsAdded) {
+            campgroundMarkers.clearLayers();
+            campgrounds.forEach(function (campground, index) {
+              var lat = parseFloat(
+                campground.location
+                  ? campground.location.lat
+                  : campground.latitude,
+              );
+              var lng = parseFloat(
+                campground.location
+                  ? campground.location.lng
+                  : campground.longitude,
+              );
+
+              if (isNaN(lat) || isNaN(lng)) {
+                console.warn('Invalid coordinates for campground:', campground);
+                return;
+              }
+
+              if (bounds.contains([lat, lng])) {
+                var marker = L.marker([lat, lng]);
+
+                // 팝업 콘텐츠 생성
+                var popupContent = '';
+                if (campground.imageUrl) {
+                  popupContent +=
+                    '<img src="' +
+                    campground.imageUrl +
+                    '" alt="이미지" style="width:100px;height:auto;"><br>';
+                } else {
+                  popupContent += '이미지 URL이 없습니다.<br>';
+                  popupContent +=
+                    '<img src="https://via.placeholder.com/100" alt="대체 이미지" style="width:100px;height:auto;"><br>'; // 대체 이미지
+                }
+
+                // 이름과 오른쪽 끝의 '>>' 기호를 표시
+                popupContent +=
+                  '<div style="display: flex; justify-content: space-between; align-items: center;">';
+                popupContent +=
+                  '<b>' + (campground.name || '야영장 이름 없음') + '</b>';
+                popupContent += '<b style="float: right;">&gt;&gt;</b>'; // >> 기호를 오른쪽으로 보냄
+                popupContent += '</div>';
+
+                // 팝업 옵션 설정
+                var popupOptions = {
+                  closeButton: false, // X 닫기 버튼 제거
+                };
+
+                marker.bindPopup(popupContent);
+
+                // 팝업 열릴 때 이벤트 리스너 추가
+                marker.on('popupopen', function (e) {
+                  var popupNode = e.popup._contentNode;
+                  if (popupNode) {
+                    popupNode.style.cursor = 'pointer';
+                    popupNode.addEventListener('click', function () {
+                      window.ReactNativeWebView.postMessage(
+                        JSON.stringify({
+                          type: 'campgroundSelected',
+                          data: campground,
+                        }),
+                      );
+                    });
+                  }
+                });
+
+                campgroundMarkers.addLayer(marker);
+              }
+            });
+
+            if (!map.hasLayer(campgroundMarkers)) {
+              map.addLayer(campgroundMarkers);
+            }
+
+            // 캠핑장 마커 개수 전송
+            window.ReactNativeWebView.postMessage(
+              JSON.stringify({type: 'markersAdded', count: campgrounds.length}),
+            );
+          }
+
+          if (countrysidesAdded) {
+            console.log('Adding countryside markers');
+            countrysideMarkers.clearLayers();
+            countrysides.forEach(function (countryside, index) {
+              console.log('Processing countryside:', countryside.체험마을명);
+              var lat = parseFloat(countryside.위도);
+              var lng = parseFloat(countryside.경도);
+
+              if (isNaN(lat) || isNaN(lng)) {
+                console.warn(
+                  'Invalid coordinates for countryside:',
+                  countryside,
+                );
+                return;
+              }
+
+              if (bounds.contains([lat, lng])) {
+                console.log('Adding marker for:', countryside.체험마을명);
+                var marker = L.marker([lat, lng]);
+
+                // 팝업 콘텐츠 생성
+                var popupContent = '';
+                if (countryside.이미지url) {
+                  popupContent +=
+                    '<img src="' +
+                    countryside.이미지url +
+                    '" alt="이미지" style="width:100px;height:auto;"><br>';
+                } else {
+                  popupContent += '이미지 URL이 없습니다.<br>';
+                  popupContent +=
+                    '<img src="https://via.placeholder.com/100" alt="대체 이미지" style="width:100px;height:auto;"><br>';
+                }
+
+                // 이름과 '>>' 기호 표시
+                popupContent +=
+                  '<div style="display: flex; justify-content: space-between; align-items: center;">';
+                popupContent +=
+                  '<b>' + (countryside.체험마을명 || '마을 이름 없음') + '</b>';
+                popupContent += '<b style="float: right;">&gt;&gt;</b>';
+                popupContent += '</div>';
+
+                marker.bindPopup(popupContent);
+
+                // 팝업 클릭 이벤트 처리
+                marker.on('popupopen', function (e) {
+                  var popupNode = e.popup._contentNode;
+                  if (popupNode) {
+                    popupNode.style.cursor = 'pointer';
+                    popupNode.addEventListener('click', function () {
+                      window.ReactNativeWebView.postMessage(
+                        JSON.stringify({
+                          type: 'countrysideSelected',
+                          data: countryside,
+                        }),
+                      );
+                    });
+                  }
+                });
+
+                countrysideMarkers.addLayer(marker);
+              } else {
+                console.log(
+                  'Marker for',
+                  countryside.체험마을명,
+                  'is outside the current bounds'
+                );
+              }
+            });
+
+            if (!map.hasLayer(countrysideMarkers)) {
+              console.log('Adding countrysideMarkers to map');
+              map.addLayer(countrysideMarkers);
+            }
+          }
+        }
+
+        // 마커 추가/제거 함수
+        function addCampgroundMarkers() {
+          if (campgroundsAdded) return; // 이미 추가된 경우 중단
+          campgroundsAdded = true; // 플래그 설정
+          updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+        }
+
+        function removeCampgroundMarkers() {
+          if (!campgroundsAdded) return; // 추가되지 않은 경우 중단
+          map.removeLayer(campgroundMarkers);
+          campgroundMarkers.clearLayers();
+          campgroundsAdded = false;
+        }
+
+        function addRestStopMarkers() {
+          if (restStopsAdded) return; // 이미 추가된 경우 중단
+          restStopsAdded = true; // 플래그 설정
+          updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+        }
+
+        function removeRestStopMarkers() {
+          if (!restStopsAdded) return; // 추가되지 않은 경우 중단
+          map.removeLayer(restStopMarkers);
+          restStopMarkers.clearLayers();
+          restStopsAdded = false;
+        }
+
+        function addChargingStationMarkers() {
+          if (chargingStationsAdded) return; // 이미 추가된 경우 중단
+          chargingStationsAdded = true; // 플래그 설정
+          updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+        }
+
+        function removeChargingStationMarkers() {
+          if (!chargingStationsAdded) return; // 추가되지 않은 경우 중단
+          map.removeLayer(chargingStationMarkers);
+          chargingStationMarkers.clearLayers();
+          chargingStationsAdded = false;
+        }
+
+        function addCountrysideMarkers() {
+          if (countrysidesAdded) return;
+          countrysidesAdded = true;
+          updateVisibleMarkers();
+        }
+
+        function removeCountrysideMarkers() {
+          if (!countrysidesAdded) return;
+          map.removeLayer(countrysideMarkers);
+          countrysideMarkers.clearLayers();
+          countrysidesAdded = false;
+        }
+
+        // 스크립트 로드 시점에 지도 초기화
+        initializeMap();
+
+        // React Native로부터 메시지 수신
+        document.addEventListener('message', function (event) {
+          try {
+            var message = JSON.parse(event.data);
+            console.log('Received message:', message);
+
+            if (message.type === 'initialData') {
+              // 초기 데이터 설정
+              userLocation = [
+                message.userLocation.latitude,
+                message.userLocation.longitude,
+              ];
+              restStops = message.restStopsData || [];
+              chargingStations = message.chargingStationsData || [];
+              campgrounds = message.campgroundsData || [];
+              countrysides = message.countrysideData || [];
+
+              console.log('Initial Data Received:');
+              console.log('User Location:', userLocation);
+              console.log('Rest Stops:', restStops.length);
+              console.log('Charging Stations:', chargingStations.length);
+              console.log('Campgrounds:', campgrounds.length);
+              console.log('Countrysides:', countrysides.length);
+              
+              // 사용자 위치 마커 업데이트
+              if (userLocation) {
+                map.setView(userLocation, 13);
+                if (window.userMarker) {
+                  window.userMarker.setLatLng(userLocation);
+                } else {
+                  window.userMarker = L.marker(userLocation).addTo(map);
+                  window.userMarker.bindPopup('현재 위치').openPopup();
+                }
+              }
+
+              // 초기 레이어 표시 설정
+              if (message.showRestStops) addRestStopMarkers();
+              if (message.showChargingStations) addChargingStationMarkers();
+              if (message.showCampgrounds) addCampgroundMarkers();
+              if (message.showCountrysides) addCountrysideMarkers();
+            } else if (message.type === 'toggleLayers') {
+              // 레이어 토글
+              if (message.showRestStops) {
+                addRestStopMarkers();
+              } else {
+                removeRestStopMarkers();
+              }
+
+              if (message.showChargingStations) {
+                addChargingStationMarkers();
+              } else {
+                removeChargingStationMarkers();
+              }
+
+              if (message.showCountrysides) {
+                addCountrysideMarkers();
+              } else {
+                removeCountrysideMarkers();
+              }
+
+              if (message.showCampgrounds) {
+                addCampgroundMarkers();
+              } else {
+                removeCampgroundMarkers();
+              }
+            } else if (message.type === 'resetMap') {
+              map.setView(userLocation, 13);
+            }
+          } catch (error) {
+            console.error('Error parsing message:', error);
+            window.ReactNativeWebView.postMessage(
+              JSON.stringify({
+                type: 'jsError',
+                message: error.message,
+                error: error.toString(),
+              }),
+            );
+          }
+        });
+      })();
+    </script>
+  </body>
 </html>

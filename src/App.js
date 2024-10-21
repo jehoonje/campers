@@ -6,6 +6,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import AppContent from './AppContent';
 import LeftDrawerContent from './components/LeftDrawerContent';
 import CampingDetail from './components/CampingDetail/CampingDetail'; // CampingDetail 컴포넌트 임포트
+import CountryDetail from './components/CountryDetail/CountryDetail';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
@@ -21,6 +22,11 @@ const MainStack = () => (
       name="CampingDetail"
       component={CampingDetail}
       options={{ headerShown: false }} // CampingDetail에서 자체적으로 헤더를 관리
+    />
+    <Stack.Screen
+      name="CountryDetail"
+      component={CountryDetail}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

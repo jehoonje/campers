@@ -12,7 +12,7 @@ const AppContent = () => {
   const [showRestStops, setShowRestStops] = useState(true);
   const [showChargingStations, setShowChargingStations] = useState(true);
   const [showCampgrounds, setShowCampgrounds] = useState(true);
-
+  const [showCountrysides, setShowCountrysides] = useState(true);
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
 
@@ -38,6 +38,11 @@ const AppContent = () => {
     setShowChargingStations(prev => !prev);
     console.log("충전소 마커 토글:", !showChargingStations);
   };
+
+  const toggleCountrysidesFunc = () => {
+    setShowCountrysides(prev => !prev);
+    console.log("농어촌 마커 토글:", !showCountrysides);
+  }
 
   // 왼쪽 드로어의 상태를 감지
   const drawerStatus = useDrawerStatus();
@@ -74,9 +79,11 @@ const AppContent = () => {
           showRestStops={showRestStops}
           showChargingStations={showChargingStations}
           showCampgrounds={showCampgrounds}
+          showCountrysides={showCountrysides}
           toggleRestStops={toggleRestStopsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
           toggleCampgrounds={toggleCampgroundsFunc}
+          toggleCountrysides={toggleCountrysidesFunc}
           navigation={navigation} // navigation 객체 전달
         />
       </View>
@@ -88,6 +95,7 @@ const AppContent = () => {
         toggleRestStops={toggleRestStopsFunc}
         toggleChargingStations={toggleChargingStationsFunc}
         toggleCampgrounds={toggleCampgroundsFunc}
+        toggleCountrysides={toggleCountrysidesFunc}
       />
     </SafeAreaView>
   );
