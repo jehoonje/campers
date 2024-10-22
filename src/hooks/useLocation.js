@@ -1,7 +1,7 @@
 // src/hooks/useLocation.js
 import { useEffect, useState } from 'react';
 import { PermissionsAndroid, Platform } from 'react-native';
-import Geolocation from '@react-native-community/geolocation';
+import Geolocation from 'react-native-geolocation-service';
 
 const useLocation = () => {
   const [userLocation, setUserLocation] = useState(null);
