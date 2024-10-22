@@ -18,7 +18,7 @@ import useLocation from '../../hooks/useLocation';
 
 const MapView = forwardRef(
   (
-    { showRestStops, showCountrysides, showChargingStations, showCampgrounds, navigation },
+    { showRestStops, showCountrysides, showChargingStations, showCampgrounds, navigation, },
     ref,
   ) => {
     const { userLocation, error } = useLocation();

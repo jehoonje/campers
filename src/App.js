@@ -1,9 +1,10 @@
 // src/App.js
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createStackNavigator } from '@react-navigation/stack';
 import AppContent from './AppContent';
+import RNBootSplash from 'react-native-bootsplash'; 
 import LeftDrawerContent from './components/LeftDrawerContent';
 import CampingDetail from './components/CampingDetail/CampingDetail'; // CampingDetail 컴포넌트 임포트
 import CountryDetail from './components/CountryDetail/CountryDetail';
@@ -32,6 +33,11 @@ const MainStack = () => (
 );
 
 const App = () => {
+  useEffect(() => {
+    // 초기 설정 또는 데이터 로딩 후 스플래시 스크린 숨기기
+    RNBootSplash.hide({ fade: true });
+  }, []);
+
   return (
     <NavigationContainer>
       <Drawer.Navigator

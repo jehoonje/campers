@@ -13,6 +13,7 @@ const MainContent = forwardRef(({
   toggleCampgrounds,
   toggleCountrysides,
   navigation, // navigation 객체 수신
+  onLoadingComplete,
 }, ref) => {
   const mapViewRef = useRef(null);
 
