@@ -18,13 +18,19 @@ import useLocation from '../../hooks/useLocation';
 
 const MapView = forwardRef(
   (
-    { showRestStops, showCountrysides, showChargingStations, showCampgrounds, navigation, },
+    { showRestStops, 
+      showCountrysides, 
+      showChargingStations, 
+      showCampgrounds, 
+      showBeaches,
+      navigation, },
     ref,
   ) => {
     const { userLocation, error } = useLocation();
     const [mapReady, setMapReady] = useState(false);
     const webviewRef = useRef(null);
     const [campgroundsData, setCampgroundsData] = useState([]);
+    const [beachesData, setBeachesData] = useState({});
 
     const initialToggleSent = useRef(false);
 
@@ -54,6 +60,22 @@ const MapView = forwardRef(
       fetchCampgroundsData();
     }, []);
 
+    // 해수욕장 데이터를 가져오는 부분 추가
+    useEffect(() => {
+      const fetchBeachesData = async () => {
+        try {
+          const response = await axios.get('http://10.0.2.2:8080/api/beaches');
+          setBeachesData(response.data);
+          console.log('해수욕장 데이터가 성공적으로 로드되었습니다.');
+        } catch (error) {
+          console.error('해수욕장 데이터를 가져오는 중 오류 발생:', error);
+          setBeachesData([]); // 빈 배열로 설정
+        }
+      };
+
+      fetchBeachesData();
+    }, []);
+
     // 사용자 위치가 설정되면 WebView 로드
     useEffect(() => {
       if (userLocation) {
@@ -66,7 +88,7 @@ const MapView = forwardRef(
       (event) => {
         try {
           const data = JSON.parse(event.nativeEvent.data);
-          console.log('Received message type:', data.type); // 수정된 로그
+          // console.log('Received message type:', data.type); // 수정된 로그
 
           if (data.type === 'jsError') {
             console.error(
@@ -87,10 +109,12 @@ const MapView = forwardRef(
                   chargingStationsData: chargingStationsData || [],
                   countrysideData: countrysideData || [],
                   campgroundsData: campgroundsData || [],
+                  beachesData: beachesData || [],
                   showRestStops,
                   showChargingStations,
                   showCountrysides,
                   showCampgrounds,
+                  showBeaches,
                 }),
               );
 
@@ -102,6 +126,9 @@ const MapView = forwardRef(
           } else if (data.type === 'countrysideSelected') {
             // 농어촌체험마을 선택 시 처리
             navigation.navigate('CountryDetail', { countryside: data.data });
+          } else if (data.type === 'beachSelected') {
+            // 해수욕장 선택 시 처리
+            navigation.navigate('BeachDetail', { beach: data.data });
           }
         } catch (error) {
           console.error('Error parsing message from WebView:', error);
@@ -113,7 +140,9 @@ const MapView = forwardRef(
         showRestStops,
         showChargingStations,
         showCountrysides,
+        showBeaches,
         campgroundsData,
+        beachesData,
         userLocation,
       ],
     );
@@ -128,10 +157,17 @@ const MapView = forwardRef(
             showChargingStations,
             showCampgrounds,
             showCountrysides,
+            showBeaches,
           }),
         );
       }
-    }, [showCampgrounds, showCountrysides, showRestStops, showChargingStations, mapReady]);
+    }, [showCampgrounds, 
+        showCountrysides, 
+        showBeaches, 
+        showRestStops, 
+        showChargingStations, 
+        mapReady
+      ]);
 
     if (error) {
       return (

@@ -13,6 +13,7 @@ const AppContent = () => {
   const [showChargingStations, setShowChargingStations] = useState(true);
   const [showCampgrounds, setShowCampgrounds] = useState(true);
   const [showCountrysides, setShowCountrysides] = useState(true);
+  const [showBeaches, setShowBeaches] = useState(true);
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
 
@@ -27,6 +28,11 @@ const AppContent = () => {
   const toggleCampgroundsFunc = () => {
     setShowCampgrounds(prev => !prev);
     console.log("캠핑 마커 토글:", !showCampgrounds);
+  };
+
+  const toggleBeachesFunc = () => {
+    setShowBeaches(prev => !prev);
+    console.log("해수욕장 마커 토글:", !showBeaches);
   };
 
   const toggleRestStopsFunc = () => {
@@ -50,7 +56,7 @@ const AppContent = () => {
   useEffect(() => {
     if (drawerStatus === 'open') {
       if (isRightDrawerOpen) {
-        console.log("왼쪽 드로어가 열릴 때 오른쪽 드로어를 닫습니다.");
+        // console.log("왼쪽 드로어가 열릴 때 오른쪽 드로어를 닫습니다.");
         setIsRightDrawerOpen(false);
       }
     }
@@ -80,10 +86,12 @@ const AppContent = () => {
           showChargingStations={showChargingStations}
           showCampgrounds={showCampgrounds}
           showCountrysides={showCountrysides}
+          showBeaches={showBeaches}
           toggleRestStops={toggleRestStopsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
           toggleCampgrounds={toggleCampgroundsFunc}
           toggleCountrysides={toggleCountrysidesFunc}
+          toggleBeaches={toggleBeachesFunc}
           navigation={navigation} // navigation 객체 전달
         />
       </View>
@@ -96,6 +104,7 @@ const AppContent = () => {
         toggleChargingStations={toggleChargingStationsFunc}
         toggleCampgrounds={toggleCampgroundsFunc}
         toggleCountrysides={toggleCountrysidesFunc}
+        toggleBeaches={toggleBeachesFunc}
       />
     </SafeAreaView>
   );

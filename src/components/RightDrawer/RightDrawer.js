@@ -15,7 +15,7 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
 const { height } = Dimensions.get('window');
 
-const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations, toggleCampgrounds, toggleCountrysides }) => {
+const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations, toggleCampgrounds, toggleCountrysides, toggleBeaches, }) => {
   const slideAnim = useRef(new Animated.Value(-height)).current; // 초기 위치: 화면 위쪽
 
   useEffect(() => {
@@ -78,6 +78,8 @@ const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations,
                   toggleCampgrounds(); // 캠핑 버튼 클릭시 마커 토글
                 } else if (item.name === '농어촌체험마을') {
                   toggleCountrysides(); // 농어촌 버튼 클릭시 마커 토글
+                } else if (item.name === '해수욕장') {
+                  toggleBeaches(); // 농어촌 버튼 클릭시 마커 토글
                 }
                 onClose(); // 버튼 클릭 시 드로어 닫기
               }}

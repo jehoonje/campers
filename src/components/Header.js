@@ -9,12 +9,12 @@ const Header = ({ toggleRightDrawer, onPressTitle }) => {
   const navigation = useNavigation();
 
   const openLeftDrawer = () => {
-    console.log("왼쪽 드로어 열기 버튼 클릭");
+    // console.log("왼쪽 드로어 열기 버튼 클릭");
     navigation.dispatch(DrawerActions.openDrawer());
   };
 
   const handleToggleRightDrawer = () => {
-    console.log("오른쪽 드로어 토글 버튼 클릭");
+    // console.log("오른쪽 드로어 토글 버튼 클릭");
     toggleRightDrawer();
   };
 
