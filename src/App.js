@@ -8,6 +8,7 @@ import RNBootSplash from 'react-native-bootsplash';
 import LeftDrawerContent from './components/LeftDrawerContent';
 import CampingDetail from './components/CampingDetail/CampingDetail'; // CampingDetail 컴포넌트 임포트
 import CountryDetail from './components/CountryDetail/CountryDetail';
+import BeachDetail from './components/BeachDetail/BeachDetail';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
@@ -27,6 +28,11 @@ const MainStack = () => (
     <Stack.Screen
       name="CountryDetail"
       component={CountryDetail}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="BeachDetail"
+      component={BeachDetail}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
