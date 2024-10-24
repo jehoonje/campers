@@ -1,48 +1,57 @@
 // src/components/CampingDetail/CampingDetail.js
 import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import RenderHTML from 'react-native-render-html';
-import { useWindowDimensions } from 'react-native'; // 화면 너비를 가져오기 위해 사용
+import {useWindowDimensions} from 'react-native'; // 화면 너비를 가져오기 위해 사용
 
-function CampingDetail({ route, navigation }) {
-  const { campground } = route.params;
-  const { width } = useWindowDimensions();
+function CampingDetail({route, navigation}) {
+  const {campground} = route.params;
+  const {width} = useWindowDimensions();
 
   return (
     <View style={styles.container}>
       {/* 닫기 버튼 */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}>
         <Text style={styles.backButtonText}>{'<'}</Text>
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
-          {/* 캠핑장 이미지 */}
-          {campground.imageUrl && (
-            <Image source={{ uri: campground.imageUrl }} style={styles.image} />
-          )}
+        {/* 캠핑장 이미지 */}
+        {campground.imageUrl && (
+          <Image source={{uri: campground.imageUrl}} style={styles.image} />
+        )}
 
-          {/* 캠핑장 이름 */}
-          <Text style={styles.name}>{campground.name}</Text>
-          
-          {/* 캠핑장 주소 */}
-          <Text style={styles.addr}>{campground.address}</Text>
+        {/* 캠핑장 이름 */}
+        <Text style={styles.name}>{campground.name}</Text>
 
-          {/* 캠핑장 설명 */}
-          {campground.description && (
-              <>
-                <RenderHTML
-                  contentWidth={width - 32} // 패딩을 고려하여 너비 조정
-                  source={{ html: campground.description }}
-                  tagsStyles={tagsStyles}
-                />
-              </>
-            )}
-        </ScrollView>
+        {/* 캠핑장 주소 */}
+        <Text style={styles.sectionTitle}>주소</Text>
+        <Text style={styles.addr}>{campground.address}</Text>
+
+        {/* 캠핑장 설명 */}
+        {campground.description && (
+          <>
+            <Text style={styles.sectionTitle}>소개</Text>
+            <RenderHTML
+              contentWidth={width - 32} // 패딩을 고려하여 너비 조정
+              source={{html: campground.description}}
+              tagsStyles={tagsStyles}
+            />
+          </>
+        )}
+      </ScrollView>
     </View>
-    
   );
 }
-
 
 const tagsStyles = {
   body: {
@@ -60,6 +69,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 60, // 상단 여백 추가
+    backgroundColor: '#f5f5f5', // 전체 배경색 설정
   },
   contentContainer: {
     paddingHorizontal: 16,
@@ -67,21 +77,37 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 16,
+    top: 10,
     left: 16,
     zIndex: 1,
+    padding: 8,
+    backgroundColor: 'rgba(245, 245, 245, 0)', // 반투명 배경
+    borderRadius: 20,
   },
   backButtonText: {
-    fontSize: 24,
+    fontSize: 32,
+    color: '#333',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    marginTop: 24,
+    marginBottom: 12,
+    fontWeight: 'bold',
+    color: '#555',
   },
   image: {
     width: '100%',
-    height: 200,
-    marginBottom: 16,
+    height: 250,
+    marginBottom: 20,
+    marginTop: 15,
+    borderRadius: 10,
   },
   name: {
-    fontSize: 24,
+    fontSize: 26,
     marginBottom: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
   },
   addr: {
     fontSize: 20,

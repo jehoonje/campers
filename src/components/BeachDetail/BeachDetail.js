@@ -9,12 +9,12 @@ import {
   TouchableOpacity,
   Dimensions,
 } from 'react-native';
-import { useWindowDimensions } from 'react-native'; // 화면 너비를 가져오기 위해 사용
+import {useWindowDimensions} from 'react-native'; // 화면 너비를 가져오기 위해 사용
 import RenderHTML from 'react-native-render-html';
 
-const BeachDetail = ({ route, navigation }) => {
-  const { beach } = route.params;
-  const { width } = useWindowDimensions();
+const BeachDetail = ({route, navigation}) => {
+  const {beach} = route.params;
+  const {width} = useWindowDimensions();
 
   return (
     <View style={styles.container}>
@@ -28,7 +28,7 @@ const BeachDetail = ({ route, navigation }) => {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {/* 이미지 */}
         {beach.image1 ? (
-          <Image source={{ uri: beach.image1 }} style={styles.image} />
+          <Image source={{uri: beach.image1}} style={styles.image} />
         ) : (
           <Image
             source={require('../../assets/placeholder.png')}
@@ -53,7 +53,7 @@ const BeachDetail = ({ route, navigation }) => {
             <Text style={styles.sectionTitle}>소개</Text>
             <RenderHTML
               contentWidth={width - 32} // 패딩을 고려하여 너비 조정
-              source={{ html: beach.description }}
+              source={{html: beach.description}}
               tagsStyles={tagsStyles}
             />
           </>
@@ -104,7 +104,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 15,
     borderRadius: 10,
-
   },
   title: {
     fontSize: 26,
