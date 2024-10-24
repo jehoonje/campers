@@ -1,9 +1,12 @@
 // src/components/CampingDetail/CampingDetail.js
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import RenderHTML from 'react-native-render-html';
+import { useWindowDimensions } from 'react-native'; // 화면 너비를 가져오기 위해 사용
 
 function CampingDetail({ route, navigation }) {
   const { campground } = route.params;
+  const { width } = useWindowDimensions();
 
   return (
     <View style={styles.container}>
@@ -12,27 +15,55 @@ function CampingDetail({ route, navigation }) {
         <Text style={styles.backButtonText}>{'<'}</Text>
       </TouchableOpacity>
 
-      {/* 캠핑장 이미지 */}
-      {campground.imageUrl && (
-        <Image source={{ uri: campground.imageUrl }} style={styles.image} />
-      )}
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+          {/* 캠핑장 이미지 */}
+          {campground.imageUrl && (
+            <Image source={{ uri: campground.imageUrl }} style={styles.image} />
+          )}
 
-      {/* 캠핑장 이름 */}
-      <Text style={styles.name}>{campground.name}</Text>
+          {/* 캠핑장 이름 */}
+          <Text style={styles.name}>{campground.name}</Text>
+          
+          {/* 캠핑장 주소 */}
+          <Text style={styles.addr}>{campground.address}</Text>
 
-      {/* 캠핑장 설명 */}
-      <Text style={styles.description}>
-        {campground.description || '설명 정보가 없습니다.'}
-      </Text>
+          {/* 캠핑장 설명 */}
+          {campground.description && (
+              <>
+                <RenderHTML
+                  contentWidth={width - 32} // 패딩을 고려하여 너비 조정
+                  source={{ html: campground.description }}
+                  tagsStyles={tagsStyles}
+                />
+              </>
+            )}
+        </ScrollView>
     </View>
+    
   );
 }
+
+
+const tagsStyles = {
+  body: {
+    whiteSpace: 'normal',
+    color: '#666',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  p: {
+    marginVertical: 8,
+  },
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 60, // 상단 여백 추가
+  },
+  contentContainer: {
     paddingHorizontal: 16,
+    paddingBottom: 20,
   },
   backButton: {
     position: 'absolute',
@@ -50,6 +81,10 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 24,
+    marginBottom: 16,
+  },
+  addr: {
+    fontSize: 20,
     marginBottom: 16,
   },
   description: {
