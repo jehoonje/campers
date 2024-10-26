@@ -2,6 +2,18 @@
 <html>
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <!-- Leaflet CSS 링크 -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+    
+    <!-- 커스텀 스타일을 Leaflet CSS 후에 추가 -->
     <style>
       html,
       body {
@@ -39,20 +51,46 @@
         padding: 10%;
       }
 
-      /* 팝업의 스타일 수정 */
+      /* 팝업의 기본 스타일 제거 및 커스텀 스타일 적용 */
+      .custom-popup .leaflet-popup-content-wrapper {
+        border-radius: 0 !important; /* border-radius 제거 */
+        box-shadow: none !important; /* 그림자 제거 */
+        padding: 0 !important; /* 패딩 제거 */
+        background-color: #fff
+      }
+      .custom-popup .leaflet-popup-tip {
+        display: none !important; /* 말풍선 숨기기 */
+      }
+      .custom-popup .leaflet-popup-content {
+        margin: 0 !important; /* 콘텐츠 마진 제거 */
+      }
+
+      /* 팝업 내부 콘텐츠 스타일 */
+      .popup-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 200px; /* 팝업 너비 설정 */
+      }
+      .popup-content img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .popup-content .name {
+        padding: 5px 0;
+        text-align: center;
+        font-weight: bold;
+        background-color: rgba(194, 194, 194, 0.6) !important; /* 반투명 배경 */
+      }
+
+      /* 팝업의 닫기 버튼 숨기기 */
       .leaflet-popup-close-button {
-        display: none; /* X 닫기 버튼 숨기기 */
+        display: none;
       }
     </style>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+
+    <!-- Leaflet JS 링크 -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
   </head>
@@ -181,13 +219,23 @@
               var lng = parseFloat(stop.경도);
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng]);
-                marker.bindPopup(
-                  (stop.휴게소명 || '이름 정보 없음') +
-                    '<br>' +
-                    (stop.도로종류 || '도로 종류 정보 없음') +
-                    '<br>' +
-                    (stop.휴게소종류 || '종류 정보 없음'),
-                );
+
+                // 팝업 콘텐츠 생성
+                var popupContent = `
+                  <div class="popup-content">
+                    ${stop.imageUrl ? `<img src="${stop.imageUrl}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    <div class="name">${stop.휴게소명 || '이름 정보 없음'}</div>
+                  </div>
+                `;
+
+                // 팝업 옵션 설정
+                var popupOptions = {
+                  closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
+                };
+
+                marker.bindPopup(popupContent, popupOptions);
+
                 restStopMarkers.addLayer(marker);
               }
             });
@@ -203,11 +251,23 @@
               var lng = parseFloat(wifi.경도);
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng]);
-                marker.bindPopup(
-                  (wifi.ap명 || '이름 정보 없음') +
-                    '<br>' +
-                    (wifi.상세주소 || '도로 주소 정보 없음'),
-                );
+
+                // 팝업 콘텐츠 생성
+                var popupContent = `
+                  <div class="popup-content">
+                    ${wifi.imageUrl ? `<img src="${wifi.imageUrl}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    <div class="name">${wifi.ap명 || '이름 정보 없음'}</div>
+                  </div>
+                `;
+
+                // 팝업 옵션 설정
+                var popupOptions = {
+                  closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
+                };
+
+                marker.bindPopup(popupContent, popupOptions);
+
                 wifiMarkers.addLayer(marker);
               }
             });
@@ -223,13 +283,23 @@
               var lng = parseFloat(station.경도);
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng]);
-                marker.bindPopup(
-                  (station.충전소명 || '충전소 이름 없음') +
-                    '<br>' +
-                    (station.주소 || '주소 정보 없음') +
-                    '<br>' +
-                    (station.충전기타입 || '타입 정보 없음'),
-                );
+
+                // 팝업 콘텐츠 생성
+                var popupContent = `
+                  <div class="popup-content">
+                    ${station.imageUrl ? `<img src="${station.imageUrl}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    <div class="name">${station.충전소명 || '충전소 이름 없음'}</div>
+                  </div>
+                `;
+
+                // 팝업 옵션 설정
+                var popupOptions = {
+                  closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
+                };
+
+                marker.bindPopup(popupContent, popupOptions);
+
                 chargingStationMarkers.addLayer(marker);
               }
             });
@@ -253,33 +323,20 @@
                 var marker = L.marker([lat, lng]);
 
                 // 팝업 콘텐츠 생성
-                var popupContent = '';
-                if (beach.image1) {
-                  popupContent +=
-                    '<img src="' +
-                    beach.image1 +
-                    '" alt="이미지" style="width:100px;height:auto;"><br>';
-                } else {
-                  popupContent +=
-                    '<img src="placeholder.png" alt="대체 이미지" style="width:100px;height:auto;"><br>';
-                }
-
-                // 이름과 '>>' 기호 표시
-                popupContent +=
-                  '<div style="display: flex; justify-content: space-between; align-items: center;">';
-                popupContent +=
-                  '<b>' + (beach.title || '해수욕장 이름 없음') + '</b>';
-                popupContent += '<b style="float: right;">&gt;&gt;</b>';
-                popupContent += '</div>';
-
-                marker.bindPopup(popupContent);
+                var popupContent = `
+                  <div class="popup-content">
+                    ${beach.image1 ? `<img src="${beach.image1}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    <div class="name">${beach.title || '해수욕장 이름 없음'}</div>
+                  </div>
+                `;
 
                 // 팝업 옵션 설정
                 var popupOptions = {
                   closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
                 };
 
-                marker.bindPopup(popupContent);
+                marker.bindPopup(popupContent, popupOptions);
 
                 // 팝업 열릴 때 이벤트 리스너 추가
                 marker.on('popupopen', function (e) {
@@ -334,31 +391,20 @@
                 var marker = L.marker([lat, lng]);
 
                 // 팝업 콘텐츠 생성
-                var popupContent = '';
-                if (campground.imageUrl) {
-                  popupContent +=
-                    '<img src="' +
-                    campground.imageUrl +
-                    '" alt="이미지" style="width:100px;height:auto;"><br>';
-                } else {
-                  popupContent +=
-                    '<img src="placeholder.png" alt="대체 이미지" style="width:100px;height:auto;"><br>'; // 대체 이미지
-                }
-
-                // 이름과 오른쪽 끝의 '>>' 기호를 표시
-                popupContent +=
-                  '<div style="display: flex; justify-content: space-between; align-items: center;">';
-                popupContent +=
-                  '<b>' + (campground.name || '야영장 이름 없음') + '</b>';
-                popupContent += '<b style="float: right;">&gt;&gt;</b>'; // >> 기호를 오른쪽으로 보냄
-                popupContent += '</div>';
+                var popupContent = `
+                  <div class="popup-content">
+                    ${campground.imageUrl ? `<img src="${campground.imageUrl}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    <div class="name">${campground.name || '야영장 이름 없음'}</div>
+                  </div>
+                `;
 
                 // 팝업 옵션 설정
                 var popupOptions = {
                   closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
                 };
 
-                marker.bindPopup(popupContent);
+                marker.bindPopup(popupContent, popupOptions);
 
                 // 팝업 열릴 때 이벤트 리스너 추가
                 marker.on('popupopen', function (e) {
@@ -411,25 +457,20 @@
                 var marker = L.marker([lat, lng]);
 
                 // 팝업 콘텐츠 생성
-                var popupContent = '';
-                if (countryside.이미지url) {
-                  popupContent +=
-                    '<img src="' +
-                    countryside.이미지url +
-                    '" alt="이미지" style="width:100px;height:auto;"><br>';
-                } else {
-                  popupContent += '';
-                }
+                var popupContent = `
+                  <div class="popup-content">
+                    ${countryside.이미지url ? `<img src="${countryside.이미지url}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    <div class="name">${countryside.체험마을명 || '마을 이름 없음'}</div>
+                  </div>
+                `;
 
-                // 이름과 '>>' 기호 표시
-                popupContent +=
-                  '<div style="display: flex; justify-content: space-between; align-items: center;">';
-                popupContent +=
-                  '<b>' + (countryside.체험마을명 || '마을 이름 없음') + '</b>';
-                popupContent += '<b style="float: right;">&gt;&gt;</b>';
-                popupContent += '</div>';
+                // 팝업 옵션 설정
+                var popupOptions = {
+                  closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
+                };
 
-                marker.bindPopup(popupContent);
+                marker.bindPopup(popupContent, popupOptions);
 
                 // 팝업 클릭 이벤트 처리
                 marker.on('popupopen', function (e) {
@@ -464,7 +505,7 @@
           }
         }
 
-        // 마커 추가/제거 함수
+        // 마커 추가/제거 함수 정의
         function addCampgroundMarkers() {
           if (campgroundsAdded) return; // 이미 추가된 경우 중단
           campgroundsAdded = true; // 플래그 설정

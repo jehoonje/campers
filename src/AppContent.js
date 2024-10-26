@@ -15,6 +15,7 @@ const AppContent = () => {
   const [showCountrysides, setShowCountrysides] = useState(true);
   const [showWifis, setShowWifis] = useState(false);
   const [showBeaches, setShowBeaches] = useState(true);
+  const [showAllMarkers, setShowAllMarkers] = useState(false);
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
 
@@ -26,6 +27,35 @@ const AppContent = () => {
     setIsRightDrawerOpen(false);
   };
 
+  // 모든 마커를 토글하는 함수
+  const toggleAllMarkersFunc = () => {
+    const allMarkers = [showRestStops, showChargingStations, showCampgrounds, showCountrysides, showWifis, showBeaches];
+    const areAllMarkersTrue = allMarkers.every(marker => marker);
+
+    if (areAllMarkersTrue) {
+      // 모든 마커가 true일 경우 모두 false로 설정
+      setShowAllMarkers(false);
+      setShowRestStops(false);
+      setShowChargingStations(false);
+      setShowCampgrounds(false);
+      setShowCountrysides(false);
+      setShowWifis(false);
+      setShowBeaches(false);
+      console.log("모든 마커를 끔:", false);
+    } else {
+      // 하나 이상의 마커가 false일 경우 모두 true로 설정
+      setShowAllMarkers(true);
+      setShowRestStops(true);
+      setShowChargingStations(true);
+      setShowCampgrounds(true);
+      setShowCountrysides(true);
+      setShowWifis(true);
+      setShowBeaches(true);
+      console.log("모든 마커를 켬:", true);
+    }
+  };
+
+  // 개별 마커를 토글하는 함수들
   const toggleCampgroundsFunc = () => {
     setShowCampgrounds(prev => !prev);
     console.log("캠핑 마커 토글:", !showCampgrounds);
@@ -54,17 +84,26 @@ const AppContent = () => {
   const toggleCountrysidesFunc = () => {
     setShowCountrysides(prev => !prev);
     console.log("농어촌 마커 토글:", !showCountrysides);
-  }
+  };
+
+  // 모든 마커 상태가 변경될 때 `showAllMarkers` 상태를 업데이트
+  useEffect(() => {
+    const allMarkers = [showRestStops, showChargingStations, showCampgrounds, showCountrysides, showWifis, showBeaches];
+    const areAllMarkersTrue = allMarkers.every(marker => marker);
+    
+    if (areAllMarkersTrue) {
+      setShowAllMarkers(true);
+    } else {
+      setShowAllMarkers(false);
+    }
+  }, [showRestStops, showChargingStations, showCampgrounds, showCountrysides, showWifis, showBeaches]);
 
   // 왼쪽 드로어의 상태를 감지
   const drawerStatus = useDrawerStatus();
 
   useEffect(() => {
-    if (drawerStatus === 'open') {
-      if (isRightDrawerOpen) {
-        // console.log("왼쪽 드로어가 열릴 때 오른쪽 드로어를 닫습니다.");
-        setIsRightDrawerOpen(false);
-      }
+    if (drawerStatus === 'open' && isRightDrawerOpen) {
+      setIsRightDrawerOpen(false);
     }
   }, [drawerStatus, isRightDrawerOpen]);
 
@@ -88,12 +127,14 @@ const AppContent = () => {
       <View style={{ flex: 1 }}>
         <MainContent
           ref={mainContentRef}
+          showAllMarkers={showAllMarkers}
           showRestStops={showRestStops}
           showChargingStations={showChargingStations}
           showCampgrounds={showCampgrounds}
           showCountrysides={showCountrysides}
           showBeaches={showBeaches}
           showWifis={showWifis}
+          toggleAllMarkers={toggleAllMarkersFunc}
           toggleRestStops={toggleRestStopsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
           toggleCampgrounds={toggleCampgroundsFunc}
@@ -108,6 +149,7 @@ const AppContent = () => {
       <RightDrawer
         isOpen={isRightDrawerOpen}
         onClose={closeRightDrawer}
+        toggleAllMarkers={toggleAllMarkersFunc}
         toggleRestStops={toggleRestStopsFunc}
         toggleChargingStations={toggleChargingStationsFunc}
         toggleCampgrounds={toggleCampgroundsFunc}
