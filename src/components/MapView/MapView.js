@@ -19,7 +19,8 @@ import useLocation from '../../hooks/useLocation';
 
 const MapView = forwardRef(
   (
-    { showRestStops, 
+    { showAllMarkers,
+      showRestStops, 
       showCountrysides, 
       showChargingStations, 
       showCampgrounds, 
@@ -113,6 +114,7 @@ const MapView = forwardRef(
                   countrysideData: countrysideData || [],
                   campgroundsData: campgroundsData || [],
                   beachesData: beachesData || [],
+                  showAllMarkers,
                   showRestStops,
                   showChargingStations,
                   showCountrysides,
@@ -140,6 +142,7 @@ const MapView = forwardRef(
       },
       [
         navigation,
+        showAllMarkers,
         showCampgrounds,
         showRestStops,
         showChargingStations,
@@ -159,6 +162,7 @@ const MapView = forwardRef(
         webviewRef.current.postMessage(
           JSON.stringify({
             type: 'toggleLayers',
+            showAllMarkers,
             showRestStops,
             showChargingStations,
             showCampgrounds,
@@ -168,7 +172,9 @@ const MapView = forwardRef(
           }),
         );
       }
-    }, [showCampgrounds, 
+    }, [
+        showAllMarkers,
+        showCampgrounds, 
         showCountrysides, 
         showBeaches, 
         showRestStops,
@@ -201,6 +207,7 @@ const MapView = forwardRef(
             allowFileAccess={true}
             allowFileAccessFromFileURLs={true}
             allowUniversalAccessFromFileURLs={true}
+            
             mixedContentMode="always"
             renderLoading={() => (
               <ActivityIndicator

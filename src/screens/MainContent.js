@@ -4,12 +4,14 @@ import { View, StyleSheet } from 'react-native';
 import MapViewComponent from '../components/MapView/MapView';
 
 const MainContent = forwardRef(({
+  showAllMarkers,
   showRestStops,
   showChargingStations,
   showCampgrounds,
   showCountrysides,
   showBeaches,
   showWifis,
+  toggleAllMarkers,
   toggleRestStops,
   toggleChargingStations,
   toggleCampgrounds,
@@ -35,6 +37,7 @@ const MainContent = forwardRef(({
       <View style={styles.mapContainer}>
         <MapViewComponent
           ref={mapViewRef}
+          showAllMarkers={showAllMarkers}
           showRestStops={showRestStops}
           showChargingStations={showChargingStations}
           showCampgrounds={showCampgrounds}

@@ -18,6 +18,7 @@ const {height} = Dimensions.get('window');
 const RightDrawer = ({
   isOpen,
   onClose,
+  toggleAllMarkers,
   toggleRestStops,
   toggleChargingStations,
   toggleWifis,
@@ -89,7 +90,10 @@ const RightDrawer = ({
                   toggleBeaches(); // 농어촌 버튼 클릭시 마커 토글
                 } else if (item.name === '와이파이') {
                   toggleWifis(); // 농어촌 버튼 클릭시 마커 토글
+                } else if (item.name === '모두 보기') {
+                  toggleAllMarkers(); // 버튼 클릭시 모든 마커 토글
                 }
+
                 onClose(); // 버튼 클릭 시 드로어 닫기
               }}
             />
