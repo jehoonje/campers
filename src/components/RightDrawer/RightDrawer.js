@@ -1,5 +1,5 @@
 // src/components/RightDrawer/RightDrawer.js
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   View,
   StyleSheet,
@@ -13,9 +13,18 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 
-const { height } = Dimensions.get('window');
+const {height} = Dimensions.get('window');
 
-const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations, toggleCampgrounds, toggleCountrysides, toggleBeaches, }) => {
+const RightDrawer = ({
+  isOpen,
+  onClose,
+  toggleRestStops,
+  toggleChargingStations,
+  toggleWifis,
+  toggleCampgrounds,
+  toggleCountrysides,
+  toggleBeaches,
+}) => {
   const slideAnim = useRef(new Animated.Value(-height)).current; // 초기 위치: 화면 위쪽
 
   useEffect(() => {
@@ -37,32 +46,30 @@ const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations,
   if (!isOpen && slideAnim.__getValue() === -height) return null; // 드로어가 닫혔을 때 렌더링하지 않음
 
   const buttonData = [
-    { name: '즐겨찾기', icon: 'star', lib: 'FontAwesome' },
-    { name: '모두 보기', icon: 'eye', lib: 'FontAwesome' },
-    { name: '노지 캠핑', icon: 'tree', lib: 'FontAwesome' },
-    { name: '캠핑카 주차장', icon: 'bus', lib: 'FontAwesome' },
-    { name: '농어촌체험마을', icon: 'seedling', lib: 'FontAwesome5' },
-    { name: '해수욕장', icon: 'umbrella-beach', lib: 'FontAwesome5' },
-    { name: '전기차 충전소', icon: 'bolt', lib: 'FontAwesome' },
-    { name: '주유소', icon: 'gas-pump', lib: 'FontAwesome5' },
-    { name: '공중 화장실', icon: 'restroom', lib: 'FontAwesome5' },
-    { name: '와이파이', icon: 'wifi', lib: 'FontAwesome' },
-    { name: '휴지통', icon: 'trash', lib: 'FontAwesome' },
-    { name: '휴게소', icon: 'coffee', lib: 'FontAwesome' },
+    {name: '즐겨찾기', icon: 'star', lib: 'FontAwesome'},
+    {name: '모두 보기', icon: 'eye', lib: 'FontAwesome'},
+    {name: '노지 캠핑', icon: 'tree', lib: 'FontAwesome'},
+    {name: '캠핑카 주차장', icon: 'bus', lib: 'FontAwesome'},
+    {name: '농어촌체험마을', icon: 'seedling', lib: 'FontAwesome5'},
+    {name: '해수욕장', icon: 'umbrella-beach', lib: 'FontAwesome5'},
+    {name: '전기차 충전소', icon: 'bolt', lib: 'FontAwesome'},
+    {name: '주유소', icon: 'gas-pump', lib: 'FontAwesome5'},
+    {name: '공중 화장실', icon: 'restroom', lib: 'FontAwesome5'},
+    {name: '와이파이', icon: 'wifi', lib: 'FontAwesome'},
+    {name: '휴지통', icon: 'trash', lib: 'FontAwesome'},
+    {name: '휴게소', icon: 'coffee', lib: 'FontAwesome'},
   ];
 
   return (
     <Animated.View
-      style={[
-        styles.drawerContainer,
-        { transform: [{ translateY: slideAnim }] },
-      ]}
-    >
+      style={[styles.drawerContainer, {transform: [{translateY: slideAnim}]}]}>
       {/* 오버레이 터치 시 드로어 닫기 */}
       <TouchableOpacity style={styles.overlayTouchable} onPress={onClose} />
 
       <View style={styles.content}>
-        <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}>
           {buttonData.map((item, index) => (
             <DrawerButton
               key={index}
@@ -80,6 +87,8 @@ const RightDrawer = ({ isOpen, onClose, toggleRestStops, toggleChargingStations,
                   toggleCountrysides(); // 농어촌 버튼 클릭시 마커 토글
                 } else if (item.name === '해수욕장') {
                   toggleBeaches(); // 농어촌 버튼 클릭시 마커 토글
+                } else if (item.name === '와이파이') {
+                  toggleWifis(); // 농어촌 버튼 클릭시 마커 토글
                 }
                 onClose(); // 버튼 클릭 시 드로어 닫기
               }}
