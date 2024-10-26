@@ -96,11 +96,16 @@
           chunkedLoading: true,
           chunkDelay: 50,
         });
+        var wifiMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
+        });
 
         var restStops = [];
         var chargingStations = [];
         var campgrounds = [];
         var countrysides = [];
+        var wifis = [];
         var beaches = [];
         var userLocation = [0, 0];
 
@@ -109,6 +114,7 @@
         var campgroundsAdded = false;
         var beachesAdded = false;
         var countrysidesAdded = false;
+        var wifisAdded = false;
 
         function initializeMap() {
           var initialLocation = userLocation || [0, 0];
@@ -187,6 +193,26 @@
             });
             if (!map.hasLayer(restStopMarkers)) {
               map.addLayer(restStopMarkers);
+            }
+          }
+
+          if (wifisAdded) {
+            wifiMarkers.clearLayers();
+            wifis.forEach(function (wifi) {
+              var lat = parseFloat(wifi.위도);
+              var lng = parseFloat(wifi.경도);
+              if (bounds.contains([lat, lng])) {
+                var marker = L.marker([lat, lng]);
+                marker.bindPopup(
+                  (wifi.ap명 || '이름 정보 없음') +
+                    '<br>' +
+                    (wifi.상세주소 || '도로 주소 정보 없음'),
+                );
+                wifiMarkers.addLayer(marker);
+              }
+            });
+            if (!map.hasLayer(wifiMarkers)) {
+              map.addLayer(wifiMarkers);
             }
           }
 
@@ -478,6 +504,19 @@
           restStopsAdded = false;
         }
 
+        function addWifiMarkers() {
+          if (wifisAdded) return; // 이미 추가된 경우 중단
+          wifisAdded = true; // 플래그 설정
+          updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+        }
+
+        function removeWifiMarkers() {
+          if (!wifisAdded) return; // 추가되지 않은 경우 중단
+          map.removeLayer(wifiMarkers);
+          wifiMarkers.clearLayers();
+          wifisAdded = false;
+        }
+
         function addChargingStationMarkers() {
           if (chargingStationsAdded) return; // 이미 추가된 경우 중단
           chargingStationsAdded = true; // 플래그 설정
@@ -524,6 +563,7 @@
               campgrounds = message.campgroundsData || [];
               countrysides = message.countrysideData || [];
               beaches = message.beachesData || [];
+              wifis = message.wifisData || [];
 
               console.log('Initial Data Received:');
               console.log('User Location:', userLocation);
@@ -531,6 +571,7 @@
               console.log('Charging Stations:', chargingStations.length);
               console.log('Campgrounds:', campgrounds.length);
               console.log('beaches:', beaches.length);
+              console.log('wifis:', wifis.length);
               console.log('Countrysides:', countrysides.length);
 
               // 사용자 위치 마커 업데이트
@@ -550,6 +591,7 @@
               if (message.showCampgrounds) addCampgroundMarkers();
               if (message.showCountrysides) addCountrysideMarkers();
               if (message.showBeaches) addBeachMarkers();
+              if (message.showWifis) addWifiMarkers();
             } else if (message.type === 'toggleLayers') {
               // 레이어 토글
               if (message.showRestStops) {
@@ -562,6 +604,12 @@
                 addChargingStationMarkers();
               } else {
                 removeChargingStationMarkers();
+              }
+
+              if (message.showWifis) {
+                addWifiMarkers();
+              } else {
+                removeWifiMarkers();
               }
 
               if (message.showCountrysides) {

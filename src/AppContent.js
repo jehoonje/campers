@@ -9,10 +9,11 @@ import { useNavigation } from '@react-navigation/native'; // useNavigation 임�
 
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
-  const [showRestStops, setShowRestStops] = useState(true);
-  const [showChargingStations, setShowChargingStations] = useState(true);
+  const [showRestStops, setShowRestStops] = useState(false);
+  const [showChargingStations, setShowChargingStations] = useState(false);
   const [showCampgrounds, setShowCampgrounds] = useState(true);
   const [showCountrysides, setShowCountrysides] = useState(true);
+  const [showWifis, setShowWifis] = useState(false);
   const [showBeaches, setShowBeaches] = useState(true);
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
@@ -28,6 +29,11 @@ const AppContent = () => {
   const toggleCampgroundsFunc = () => {
     setShowCampgrounds(prev => !prev);
     console.log("캠핑 마커 토글:", !showCampgrounds);
+  };
+
+  const toggleWifisFunc = () => {
+    setShowWifis(prev => !prev);
+    console.log("WIFI 마커 토글:", !showWifis);
   };
 
   const toggleBeachesFunc = () => {
@@ -87,11 +93,13 @@ const AppContent = () => {
           showCampgrounds={showCampgrounds}
           showCountrysides={showCountrysides}
           showBeaches={showBeaches}
+          showWifis={showWifis}
           toggleRestStops={toggleRestStopsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
           toggleCampgrounds={toggleCampgroundsFunc}
           toggleCountrysides={toggleCountrysidesFunc}
           toggleBeaches={toggleBeachesFunc}
+          toggleWifis={toggleWifisFunc}
           navigation={navigation} // navigation 객체 전달
         />
       </View>
@@ -105,6 +113,7 @@ const AppContent = () => {
         toggleCampgrounds={toggleCampgroundsFunc}
         toggleCountrysides={toggleCountrysidesFunc}
         toggleBeaches={toggleBeachesFunc}
+        toggleWifis={toggleWifisFunc}
       />
     </SafeAreaView>
   );

@@ -10,6 +10,7 @@ import React, {
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { WebView } from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
+import wifisData from '../../data/wifi.json'
 // 새로운 데이터 임포트
 import countrysideData from '../../data/countryside.json';
 import axios from 'axios';
@@ -23,6 +24,7 @@ const MapView = forwardRef(
       showChargingStations, 
       showCampgrounds, 
       showBeaches,
+      showWifis,
       navigation, },
     ref,
   ) => {
@@ -106,6 +108,7 @@ const MapView = forwardRef(
                   type: 'initialData',
                   userLocation: userLocation || { latitude: 0, longitude: 0 },
                   restStopsData: restStopsData || [],
+                  wifisData: wifisData || [],
                   chargingStationsData: chargingStationsData || [],
                   countrysideData: countrysideData || [],
                   campgroundsData: campgroundsData || [],
@@ -115,6 +118,7 @@ const MapView = forwardRef(
                   showCountrysides,
                   showCampgrounds,
                   showBeaches,
+                  showWifis,
                 }),
               );
 
@@ -141,6 +145,8 @@ const MapView = forwardRef(
         showChargingStations,
         showCountrysides,
         showBeaches,
+        showWifis,
+        wifisData,
         campgroundsData,
         beachesData,
         userLocation,
@@ -158,13 +164,15 @@ const MapView = forwardRef(
             showCampgrounds,
             showCountrysides,
             showBeaches,
+            showWifis,
           }),
         );
       }
     }, [showCampgrounds, 
         showCountrysides, 
         showBeaches, 
-        showRestStops, 
+        showRestStops,
+        showWifis, 
         showChargingStations, 
         mapReady
       ]);
