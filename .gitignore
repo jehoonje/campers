@@ -72,3 +72,15 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# 보안 파일 (환경 설정 관련)
+.env
+.env.local
+.env.*.local
+env.json
+
+# 시스템 및 디버그 파일
+*.log
+*.key
+*.pem
+*.crt
