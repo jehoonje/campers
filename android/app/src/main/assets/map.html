@@ -53,10 +53,11 @@
 
       /* 팝업의 기본 스타일 제거 및 커스텀 스타일 적용 */
       .custom-popup .leaflet-popup-content-wrapper {
+        width: 120px; /* 팝업 너비 설정 */
         border-radius: 0 !important; /* border-radius 제거 */
-        box-shadow: none !important; /* 그림자 제거 */
+        /* box-shadow: none !important; 그림자 제거 */
         padding: 0 !important; /* 패딩 제거 */
-        background-color: #fff
+        background-color: rgb(100, 100, 100)
       }
       .custom-popup .leaflet-popup-tip {
         display: none !important; /* 말풍선 숨기기 */
@@ -70,18 +71,19 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        width: 200px; /* 팝업 너비 설정 */
+        width: 120px; /* 팝업 너비 설정 */
       }
       .popup-content img {
-        width: 100%;
+        width: 121px;
         height: auto;
         display: block;
       }
       .popup-content .name {
-        padding: 5px 0;
+        width: 121px;
+        padding: 1px 0;
         text-align: center;
         font-weight: bold;
-        background-color: rgba(194, 194, 194, 0.6) !important; /* 반투명 배경 */
+        background-color: rgba(255, 255, 255, 0.7) !important; /* 반투명 배경 */
       }
 
       /* 팝업의 닫기 버튼 숨기기 */
@@ -287,8 +289,9 @@
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
-                    ${station.imageUrl ? `<img src="${station.imageUrl}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
                     <div class="name">${station.충전소명 || '충전소 이름 없음'}</div>
+                    <div class="name">주소 : ${station.주소 || '주소 없음'}</div>
+                    <div class="name">충전기타입 : ${station.충전기타입 || '충전소 타입 정보 없음'}</div>
                   </div>
                 `;
 
