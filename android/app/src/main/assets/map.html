@@ -390,13 +390,17 @@
                 return;
               }
 
+              
+
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng]);
+
+                const imgFromWeb = "https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966"
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
-                    ${campground.imageUrl ? `<img src="${campground.imageUrl}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    ${campground.imageUrl ? `<img src="${campground.imageUrl}" alt="이미지">` : `<img src="${imgFromWeb}" alt="대체 이미지">`}
                     <div class="name">${campground.name || '야영장 이름 없음'}</div>
                   </div>
                 `;
