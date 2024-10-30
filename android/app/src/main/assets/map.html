@@ -12,7 +12,7 @@
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-    
+
     <!-- 커스텀 스타일을 Leaflet CSS 후에 추가 -->
     <style>
       html,
@@ -57,7 +57,7 @@
         border-radius: 0 !important; /* border-radius 제거 */
         /* box-shadow: none !important; 그림자 제거 */
         padding: 0 !important; /* 패딩 제거 */
-        background-color: rgb(100, 100, 100)
+        background-color: rgb(100, 100, 100);
       }
       .custom-popup .leaflet-popup-tip {
         display: none !important; /* 말풍선 숨기기 */
@@ -128,6 +128,14 @@
           chunkedLoading: true,
           chunkDelay: 50,
         });
+        var campsiteMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
+        });
+        var autocampMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
+        });
         var countrysideMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
@@ -144,6 +152,8 @@
         var restStops = [];
         var chargingStations = [];
         var campgrounds = [];
+        var campsites = [];
+        var autocamps = [];
         var countrysides = [];
         var wifis = [];
         var beaches = [];
@@ -152,6 +162,8 @@
         var restStopsAdded = false;
         var chargingStationsAdded = false;
         var campgroundsAdded = false;
+        var campsitesAdded = false;
+        var autocampsAdded = false;
         var beachesAdded = false;
         var countrysidesAdded = false;
         var wifisAdded = false;
@@ -225,7 +237,11 @@
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
-                    ${stop.imageUrl ? `<img src="${stop.imageUrl}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    ${
+                      stop.imageUrl
+                        ? `<img src="${stop.imageUrl}" alt="이미지">`
+                        : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`
+                    }
                     <div class="name">${stop.휴게소명 || '이름 정보 없음'}</div>
                   </div>
                 `;
@@ -257,7 +273,11 @@
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
-                    ${wifi.imageUrl ? `<img src="${wifi.imageUrl}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
+                    ${
+                      wifi.imageUrl
+                        ? `<img src="${wifi.imageUrl}" alt="이미지">`
+                        : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`
+                    }
                     <div class="name">${wifi.ap명 || '이름 정보 없음'}</div>
                   </div>
                 `;
@@ -289,9 +309,15 @@
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
-                    <div class="name">${station.충전소명 || '충전소 이름 없음'}</div>
-                    <div class="name">주소 : ${station.주소 || '주소 없음'}</div>
-                    <div class="name">충전기타입 : ${station.충전기타입 || '충전소 타입 정보 없음'}</div>
+                    <div class="name">${
+                      station.충전소명 || '충전소 이름 없음'
+                    }</div>
+                    <div class="name">주소 : ${
+                      station.주소 || '주소 없음'
+                    }</div>
+                    <div class="name">충전기타입 : ${
+                      station.충전기타입 || '충전소 타입 정보 없음'
+                    }</div>
                   </div>
                 `;
 
@@ -328,8 +354,14 @@
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
-                    ${beach.image1 ? `<img src="${beach.image1}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
-                    <div class="name">${beach.title || '해수욕장 이름 없음'}</div>
+                    ${
+                      beach.image1
+                        ? `<img src="${beach.image1}" alt="이미지">`
+                        : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`
+                    }
+                    <div class="name">${
+                      beach.title || '해수욕장 이름 없음'
+                    }</div>
                   </div>
                 `;
 
@@ -371,6 +403,7 @@
             );
           }
 
+          // 노지 캠핑 마커 생성 //
           if (campgroundsAdded) {
             campgroundMarkers.clearLayers();
             campgrounds.forEach(function (campground, index) {
@@ -390,18 +423,23 @@
                 return;
               }
 
-              
-
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng]);
 
-                const imgFromWeb = "https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966"
+                const imgFromWeb =
+                  'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
-                    ${campground.imageUrl ? `<img src="${campground.imageUrl}" alt="이미지">` : `<img src="${imgFromWeb}" alt="대체 이미지">`}
-                    <div class="name">${campground.name || '야영장 이름 없음'}</div>
+                    ${
+                      campground.imageUrl
+                        ? `<img src="${campground.imageUrl}" alt="이미지">`
+                        : `<img src="${imgFromWeb}" alt="대체 이미지">`
+                    }
+                    <div class="name">${
+                      campground.name || '야영장 이름 없음'
+                    }</div>
                   </div>
                 `;
 
@@ -443,6 +481,147 @@
             );
           }
 
+          // 야영장 마커 생성 //
+          if (campsitesAdded) {
+            campsiteMarkers.clearLayers();
+            campsites.forEach(function (campsite) {
+              var lat = parseFloat(campsite.lat);
+              var lng = parseFloat(campsite.lng);
+
+              if (isNaN(lat) || isNaN(lng)) {
+                console.warn('Invalid coordinates for beach:', campsite);
+                return;
+              }
+
+              if (bounds.contains([lat, lng])) {
+                var marker = L.marker([lat, lng]);
+
+                const imgFromWeb =
+                  'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
+
+                // 팝업 콘텐츠 생성
+                var popupContent = `
+                  <div class="popup-content">
+                    ${
+                      campsite.imageUrl
+                        ? `<img src="${campsite.imageUrl}" alt="이미지">`
+                        : `<img src="${imgFromWeb}" alt="대체 이미지">`
+                    }
+                    <div class="name">${
+                      campsite.name || '야영장 이름 없음'
+                    }</div>
+                  </div>
+                `;
+
+                // 팝업 옵션 설정
+                var popupOptions = {
+                  closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
+                };
+
+                marker.bindPopup(popupContent, popupOptions);
+
+                // 팝업 열릴 때 이벤트 리스너 추가
+                marker.on('popupopen', function (e) {
+                  var popupNode = e.popup._contentNode;
+                  if (popupNode) {
+                    popupNode.style.cursor = 'pointer';
+                    popupNode.addEventListener('click', function () {
+                      window.ReactNativeWebView.postMessage(
+                        JSON.stringify({
+                          type: 'campsiteSelected',
+                          data: campsite,
+                        }),
+                      );
+                    });
+                  }
+                });
+
+                campsiteMarkers.addLayer(marker);
+              }
+            });
+
+            if (!map.hasLayer(campsiteMarkers)) {
+              map.addLayer(campsiteMarkers);
+            }
+
+            // 야영장 마커 개수 전송
+            window.ReactNativeWebView.postMessage(
+              JSON.stringify({type: 'markersAdded', count: campsites.length}),
+            );
+          }
+
+          // 오토 캠핑 마커 생성 //
+          if (autocampsAdded) {
+            autocampMarkers.clearLayers();
+            autocamps.forEach(function (autocamp) {
+              var lat = parseFloat(autocamp.lat);
+              var lng = parseFloat(autocamp.lng);
+
+              if (isNaN(lat) || isNaN(lng)) {
+                console.warn('Invalid coordinates for beach:', autocamp);
+                return;
+              }
+
+              if (bounds.contains([lat, lng])) {
+                var marker = L.marker([lat, lng]);
+
+                const imgFromWeb =
+                  'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
+
+                // 팝업 콘텐츠 생성
+                var popupContent = `
+                  <div class="popup-content">
+                    ${
+                      autocamp.imageUrl
+                        ? `<img src="${autocamp.imageUrl}" alt="이미지">`
+                        : `<img src="${imgFromWeb}" alt="대체 이미지">`
+                    }
+                    <div class="name">${
+                      autocamp.name || '오토캠핑장 이름 없음'
+                    }</div>
+                  </div>
+                `;
+
+                // 팝업 옵션 설정
+                var popupOptions = {
+                  closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
+                };
+
+                marker.bindPopup(popupContent, popupOptions);
+
+                // 팝업 열릴 때 이벤트 리스너 추가
+                marker.on('popupopen', function (e) {
+                  var popupNode = e.popup._contentNode;
+                  if (popupNode) {
+                    popupNode.style.cursor = 'pointer';
+                    popupNode.addEventListener('click', function () {
+                      window.ReactNativeWebView.postMessage(
+                        JSON.stringify({
+                          type: 'autocampSelected',
+                          data: autocamp,
+                        }),
+                      );
+                    });
+                  }
+                });
+
+                autocampMarkers.addLayer(marker);
+              }
+            });
+
+            if (!map.hasLayer(autocampMarkers)) {
+              map.addLayer(autocampMarkers);
+            }
+
+            // 오토 캠핑장 마커 개수 전송
+            window.ReactNativeWebView.postMessage(
+              JSON.stringify({type: 'markersAdded', count: autocamps.length}),
+            );
+          }
+
+          // 농어촌문화체험마을 마커 생성
           if (countrysidesAdded) {
             console.log('Adding countryside markers');
             countrysideMarkers.clearLayers();
@@ -466,8 +645,14 @@
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
-                    ${countryside.이미지url ? `<img src="${countryside.이미지url}" alt="이미지">` : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`}
-                    <div class="name">${countryside.체험마을명 || '마을 이름 없음'}</div>
+                    ${
+                      countryside.이미지url
+                        ? `<img src="${countryside.이미지url}" alt="이미지">`
+                        : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`
+                    }
+                    <div class="name">${
+                      countryside.체험마을명 || '마을 이름 없음'
+                    }</div>
                   </div>
                 `;
 
@@ -512,7 +697,7 @@
           }
         }
 
-        // 마커 추가/제거 함수 정의
+        // 캠핑장 마커 추가/제거 함수 정의
         function addCampgroundMarkers() {
           if (campgroundsAdded) return; // 이미 추가된 경우 중단
           campgroundsAdded = true; // 플래그 설정
@@ -526,6 +711,35 @@
           campgroundsAdded = false;
         }
 
+        // 야영장 마커 추가제거
+        function addCampsiteMarkers() {
+          if (campsitesAdded) return; // 이미 추가된 경우 중단
+          campsitesAdded = true; // 플래그 설정
+          updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+        }
+
+        function removeCampsiteMarkers() {
+          if (!campsitesAdded) return; // 추가되지 않은 경우 중단
+          map.removeLayer(campsiteMarkers);
+          campsiteMarkers.clearLayers();
+          campsitesAdded = false;
+        }
+
+        // 오토 캠핑장 마커 추가제거
+        function addAutoCampMarkers() {
+          if (autocampsAdded) return; // 이미 추가된 경우 중단
+          autocampsAdded = true; // 플래그 설정
+          updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+        }
+
+        function removeAutoCampMarkers() {
+          if (!autocampsAdded) return; // 추가되지 않은 경우 중단
+          map.removeLayer(autocampMarkers);
+          autocampMarkers.clearLayers();
+          autocampsAdded = false;
+        }
+
+        // 해수욕장 마커 추가제거
         function addBeachMarkers() {
           if (beachesAdded) return;
           beachesAdded = true;
@@ -539,6 +753,7 @@
           beachesAdded = false;
         }
 
+        // 휴게소 마커 추가제거
         function addRestStopMarkers() {
           if (restStopsAdded) return; // 이미 추가된 경우 중단
           restStopsAdded = true; // 플래그 설정
@@ -552,6 +767,7 @@
           restStopsAdded = false;
         }
 
+        // 와이파이 마커 추가제거
         function addWifiMarkers() {
           if (wifisAdded) return; // 이미 추가된 경우 중단
           wifisAdded = true; // 플래그 설정
@@ -565,6 +781,7 @@
           wifisAdded = false;
         }
 
+        // 전기차 충전소 마커 추가제거
         function addChargingStationMarkers() {
           if (chargingStationsAdded) return; // 이미 추가된 경우 중단
           chargingStationsAdded = true; // 플래그 설정
@@ -578,6 +795,7 @@
           chargingStationsAdded = false;
         }
 
+        // 농어촌문화체험마을 마커 추가제거
         function addCountrysideMarkers() {
           if (countrysidesAdded) return;
           countrysidesAdded = true;
@@ -609,6 +827,8 @@
               restStops = message.restStopsData || [];
               chargingStations = message.chargingStationsData || [];
               campgrounds = message.campgroundsData || [];
+              campsites = message.campsitesData || [];
+              autocamps = message.autocampsData || [];
               countrysides = message.countrysideData || [];
               beaches = message.beachesData || [];
               wifis = message.wifisData || [];
@@ -618,6 +838,8 @@
               console.log('Rest Stops:', restStops.length);
               console.log('Charging Stations:', chargingStations.length);
               console.log('Campgrounds:', campgrounds.length);
+              console.log('Campsites:', campsites.length);
+              console.log('Autocamps:', autocamps.length);
               console.log('beaches:', beaches.length);
               console.log('wifis:', wifis.length);
               console.log('Countrysides:', countrysides.length);
@@ -640,6 +862,9 @@
               if (message.showCountrysides) addCountrysideMarkers();
               if (message.showBeaches) addBeachMarkers();
               if (message.showWifis) addWifiMarkers();
+              if (message.showCampsites) addCampsiteMarkers();
+              if (message.showAutoCamps) addAutoCampMarkers();
+
             } else if (message.type === 'toggleLayers') {
               // 레이어 토글
               if (message.showRestStops) {
@@ -670,6 +895,18 @@
                 addBeachMarkers();
               } else {
                 removeBeachMarkers();
+              }
+
+              if (message.showCampsites) {
+                addCampsiteMarkers();
+              } else {
+                removeCampsiteMarkers();
+              }
+
+              if (message.showAutoCamps) {
+                addAutoCampMarkers();
+              } else {
+                removeAutoCampMarkers();
               }
 
               if (message.showCampgrounds) {

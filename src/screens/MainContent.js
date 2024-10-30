@@ -11,6 +11,8 @@ const MainContent = forwardRef(({
   showCountrysides,
   showBeaches,
   showWifis,
+  showCampsites,
+  showAutoCamps,
   toggleAllMarkers,
   toggleRestStops,
   toggleChargingStations,
@@ -18,6 +20,8 @@ const MainContent = forwardRef(({
   toggleCountrysides,
   toggleBeaches,
   toggleWifis,
+  toggleCampsites,
+  toggleAutoCamps,
   navigation, // navigation 객체 수신
   onLoadingComplete,
 }, ref) => {
@@ -44,6 +48,8 @@ const MainContent = forwardRef(({
           showCountrysides={showCountrysides}
           showWifis={showWifis}
           showBeaches={showBeaches}
+          showCampsites={showCampsites}
+          showAutoCamps={showAutoCamps}
           navigation={navigation} // navigation 객체 전달
         />
       </View>

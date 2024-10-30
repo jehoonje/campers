@@ -7,10 +7,10 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import { WebView } from 'react-native-webview';
+import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
+import {WebView} from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
-import wifisData from '../../data/wifi.json'
+import wifisData from '../../data/wifi.json';
 // 새로운 데이터 임포트
 import countrysideData from '../../data/countryside.json';
 import axios from 'axios';
@@ -19,28 +19,34 @@ import useLocation from '../../hooks/useLocation';
 
 const MapView = forwardRef(
   (
-    { showAllMarkers,
-      showRestStops, 
-      showCountrysides, 
-      showChargingStations, 
-      showCampgrounds, 
+    {
+      showAllMarkers,
+      showRestStops,
+      showCountrysides,
+      showChargingStations,
+      showCampgrounds,
+      showCampsites,
+      showAutoCamps,
       showBeaches,
       showWifis,
-      navigation, },
+      navigation,
+    },
     ref,
   ) => {
-    const { userLocation, error } = useLocation();
+    const {userLocation, error} = useLocation();
     const [mapReady, setMapReady] = useState(false);
     const webviewRef = useRef(null);
     const [campgroundsData, setCampgroundsData] = useState([]);
     const [beachesData, setBeachesData] = useState({});
+    const [campsitesData, setCampsitesData] = useState({});
+    const [autocampsData, setAutoCampsData] = useState({});
 
     const initialToggleSent = useRef(false);
 
     useImperativeHandle(ref, () => ({
       resetMap: () => {
         if (webviewRef.current) {
-          webviewRef.current.postMessage(JSON.stringify({ type: 'resetMap' }));
+          webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
         }
       },
     }));
@@ -79,6 +85,42 @@ const MapView = forwardRef(
       fetchBeachesData();
     }, []);
 
+    // 야영장 데이터를 가져오는 부분 추가
+    useEffect(() => {
+      const fetchCampsitesData = async () => {
+        try {
+          const response = await axios.get(
+            'http://10.0.2.2:8080/api/campsites',
+          );
+          setCampsitesData(response.data);
+          console.log('야영장 데이터가 성공적으로 로드되었습니다.');
+        } catch (error) {
+          console.error('야영장 데이터를 가져오는 중 오류 발생:', error);
+          setCampsitesData([]); // 빈 배열로 설정
+        }
+      };
+
+      fetchCampsitesData();
+    }, []);
+
+    // 오토 캠핑장 데이터를 가져오는 부분 추가
+    useEffect(() => {
+      const fetchAutoCampsData = async () => {
+        try {
+          const response = await axios.get(
+            'http://10.0.2.2:8080/api/autocamps',
+          );
+          setAutoCampsData(response.data);
+          console.log('오토 캠핑장 데이터가 성공적으로 로드되었습니다.');
+        } catch (error) {
+          console.error('오토 캠핑장 데이터를 가져오는 중 오류 발생:', error);
+          setAutoCampsData([]); // 빈 배열로 설정
+        }
+      };
+
+      fetchAutoCampsData();
+    }, []);
+
     // 사용자 위치가 설정되면 WebView 로드
     useEffect(() => {
       if (userLocation) {
@@ -88,7 +130,7 @@ const MapView = forwardRef(
 
     // WebView 메시지 핸들러
     const onMessage = useCallback(
-      (event) => {
+      event => {
         try {
           const data = JSON.parse(event.nativeEvent.data);
           // console.log('Received message type:', data.type); // 수정된 로그
@@ -107,18 +149,22 @@ const MapView = forwardRef(
               webviewRef.current.postMessage(
                 JSON.stringify({
                   type: 'initialData',
-                  userLocation: userLocation || { latitude: 0, longitude: 0 },
+                  userLocation: userLocation || {latitude: 0, longitude: 0},
                   restStopsData: restStopsData || [],
                   wifisData: wifisData || [],
                   chargingStationsData: chargingStationsData || [],
                   countrysideData: countrysideData || [],
                   campgroundsData: campgroundsData || [],
+                  campsitesData: campsitesData || [],
+                  autocampsData: autocampsData || [],
                   beachesData: beachesData || [],
                   showAllMarkers,
                   showRestStops,
                   showChargingStations,
                   showCountrysides,
                   showCampgrounds,
+                  showAutoCamps,
+                  showCampsites,
                   showBeaches,
                   showWifis,
                 }),
@@ -128,13 +174,19 @@ const MapView = forwardRef(
             }
           } else if (data.type === 'campgroundSelected') {
             // 캠핑장 선택 메시지 처리
-            navigation.navigate('CampingDetail', { campground: data.data });
+            navigation.navigate('CampingDetail', {campground: data.data});
           } else if (data.type === 'countrysideSelected') {
             // 농어촌체험마을 선택 시 처리
-            navigation.navigate('CountryDetail', { countryside: data.data });
+            navigation.navigate('CountryDetail', {countryside: data.data});
           } else if (data.type === 'beachSelected') {
             // 해수욕장 선택 시 처리
-            navigation.navigate('BeachDetail', { beach: data.data });
+            navigation.navigate('BeachDetail', {beach: data.data});
+          } else if (data.type === 'CampsiteSelected') {
+            // 야영장 선택 시 처리
+            navigation.navigate('CampsiteDetail', {beach: data.data});
+          } else if (data.type === 'AutoCampSelected') {
+            // 오토캠핑장 선택 시 처리
+            navigation.navigate('AutoCampDetail', {beach: data.data});
           }
         } catch (error) {
           console.error('Error parsing message from WebView:', error);
@@ -144,6 +196,8 @@ const MapView = forwardRef(
         navigation,
         showAllMarkers,
         showCampgrounds,
+        showCampsites,
+        showAutoCamps,
         showRestStops,
         showChargingStations,
         showCountrysides,
@@ -151,6 +205,8 @@ const MapView = forwardRef(
         showWifis,
         wifisData,
         campgroundsData,
+        campsitesData,
+        autocampsData,
         beachesData,
         userLocation,
       ],
@@ -163,25 +219,29 @@ const MapView = forwardRef(
           JSON.stringify({
             type: 'toggleLayers',
             showAllMarkers,
-            showRestStops,
-            showChargingStations,
             showCampgrounds,
+            showCampsites,
+            showAutoCamps,
             showCountrysides,
             showBeaches,
+            showRestStops,
             showWifis,
+            showChargingStations,
           }),
         );
       }
     }, [
-        showAllMarkers,
-        showCampgrounds, 
-        showCountrysides, 
-        showBeaches, 
-        showRestStops,
-        showWifis, 
-        showChargingStations, 
-        mapReady
-      ]);
+      showAllMarkers,
+      showCampgrounds,
+      showCampsites,
+      showAutoCamps,
+      showCountrysides,
+      showBeaches,
+      showRestStops,
+      showWifis,
+      showChargingStations,
+      mapReady,
+    ]);
 
     if (error) {
       return (
@@ -196,8 +256,8 @@ const MapView = forwardRef(
         {mapReady ? (
           <WebView
             originWhitelist={['*']}
-            source={{ uri: 'file:///android_asset/map.html' }} // 로컬 HTML 파일 로드
-            style={{ flex: 1 }}
+            source={{uri: 'file:///android_asset/map.html'}} // 로컬 HTML 파일 로드
+            style={{flex: 1}}
             javaScriptEnabled={true}
             ref={webviewRef}
             onMessage={onMessage}
@@ -207,7 +267,6 @@ const MapView = forwardRef(
             allowFileAccess={true}
             allowFileAccessFromFileURLs={true}
             allowUniversalAccessFromFileURLs={true}
-            
             mixedContentMode="always"
             renderLoading={() => (
               <ActivityIndicator
@@ -216,8 +275,8 @@ const MapView = forwardRef(
                 style={styles.loading}
               />
             )}
-            onError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
+            onError={syntheticEvent => {
+              const {nativeEvent} = syntheticEvent;
               console.error('WebView error: ', nativeEvent);
             }}
           />
