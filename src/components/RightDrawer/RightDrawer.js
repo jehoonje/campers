@@ -19,14 +19,14 @@ const RightDrawer = ({
   isOpen,
   onClose,
   toggleAllMarkers,
+  toggleCampsites,
+  toggleAutoCamps,
   toggleRestStops,
   toggleChargingStations,
   toggleWifis,
   toggleCampgrounds,
   toggleCountrysides,
   toggleBeaches,
-  toggleCampsites,
-  toggleAutoCamps,
 }) => {
   const slideAnim = useRef(new Animated.Value(-height)).current; // 초기 위치: 화면 위쪽
 
@@ -87,18 +87,18 @@ const RightDrawer = ({
                   toggleChargingStations(); // 충전소 버튼 클릭 시 마커 토글
                 } else if (item.name === '노지 캠핑') {
                   toggleCampgrounds(); // 캠핑 버튼 클릭시 마커 토글
+                } else if (item.name === '야영 캠핑') {
+                  toggleCampsites(); // 버튼 클릭시 야영 마커 토글
+                } else if (item.name === '오토 캠핑') {
+                  toggleAutoCamps(); // 버튼 클릭시 오토캠핑장 마커 토글
+                } else if (item.name === '와이파이') {
+                  toggleWifis(); // 와이파이 버튼 클릭시 마커 토글
+                } else if (item.name === '모두 보기') {
+                  toggleAllMarkers(); // 버튼 클릭시 모든 마커 토글
                 } else if (item.name === '농어촌체험마을') {
                   toggleCountrysides(); // 농어촌 버튼 클릭시 마커 토글
                 } else if (item.name === '해수욕장') {
-                  toggleBeaches(); // 농어촌 버튼 클릭시 마커 토글
-                } else if (item.name === '와이파이') {
-                  toggleWifis(); // 농어촌 버튼 클릭시 마커 토글
-                } else if (item.name === '모두 보기') {
-                  toggleAllMarkers(); // 버튼 클릭시 모든 마커 토글
-                } else if (item.name === '야영 캠핑') {
-                  toggleCampsites(); // 버튼 클릭시 모든 마커 토글
-                } else if (item.name === '오토 캠핑') {
-                  toggleAutoCamps(); // 버튼 클릭시 모든 마커 토글
+                  toggleBeaches(); // 해수욕장 버튼 클릭시 마커 토글
                 }
                 onClose(); // 버튼 클릭 시 드로어 닫기
               }}

@@ -294,6 +294,7 @@
               }
             });
             if (!map.hasLayer(wifiMarkers)) {
+              console.log('Adding wifiMarkers to map');
               map.addLayer(wifiMarkers);
             }
           }
@@ -333,6 +334,7 @@
               }
             });
             if (!map.hasLayer(chargingStationMarkers)) {
+              console.log('Adding chargingStationMarkers to map');
               map.addLayer(chargingStationMarkers);
             }
           }
@@ -394,13 +396,9 @@
             });
 
             if (!map.hasLayer(beachMarkers)) {
+              console.log('Adding beachMarkers to map');
               map.addLayer(beachMarkers);
             }
-
-            // 해수욕장 마커 개수 전송
-            window.ReactNativeWebView.postMessage(
-              JSON.stringify({type: 'markersAdded', count: beaches.length}),
-            );
           }
 
           // 노지 캠핑 마커 생성 //
@@ -472,43 +470,38 @@
             });
 
             if (!map.hasLayer(campgroundMarkers)) {
+              console.log('Adding campgroundMarkers to map');
               map.addLayer(campgroundMarkers);
             }
-
-            // 캠핑장 마커 개수 전송
-            window.ReactNativeWebView.postMessage(
-              JSON.stringify({type: 'markersAdded', count: campgrounds.length}),
-            );
           }
 
-          // 야영장 마커 생성 //
+          // 야영장 마커 추가
           if (campsitesAdded) {
             campsiteMarkers.clearLayers();
             campsites.forEach(function (campsite) {
               var lat = parseFloat(campsite.lat);
               var lng = parseFloat(campsite.lng);
+              console.log( "lat, lng : ",  lat, lng );
+              
 
               if (isNaN(lat) || isNaN(lng)) {
-                console.warn('Invalid coordinates for beach:', campsite);
+                console.warn('Invalid coordinates for campsite:', campsite);
                 return;
               }
 
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng]);
 
-                const imgFromWeb =
-                  'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
-
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
                     ${
-                      campsite.imageUrl
-                        ? `<img src="${campsite.imageUrl}" alt="이미지">`
+                      campsite.image1
+                        ? `<img src="${campsite.image1}" alt="이미지">`
                         : `<img src="${imgFromWeb}" alt="대체 이미지">`
                     }
                     <div class="name">${
-                      campsite.name || '야영장 이름 없음'
+                      campsite.title || '야영장 이름 없음'
                     }</div>
                   </div>
                 `;
@@ -542,13 +535,9 @@
             });
 
             if (!map.hasLayer(campsiteMarkers)) {
+              console.log('Adding campsiteMarkers to map');
               map.addLayer(campsiteMarkers);
             }
-
-            // 야영장 마커 개수 전송
-            window.ReactNativeWebView.postMessage(
-              JSON.stringify({type: 'markersAdded', count: campsites.length}),
-            );
           }
 
           // 오토 캠핑 마커 생성 //
@@ -559,7 +548,7 @@
               var lng = parseFloat(autocamp.lng);
 
               if (isNaN(lat) || isNaN(lng)) {
-                console.warn('Invalid coordinates for beach:', autocamp);
+                console.warn('Invalid coordinates for autocamp:', autocamp);
                 return;
               }
 
@@ -573,12 +562,12 @@
                 var popupContent = `
                   <div class="popup-content">
                     ${
-                      autocamp.imageUrl
-                        ? `<img src="${autocamp.imageUrl}" alt="이미지">`
+                      autocamp.image1
+                        ? `<img src="${autocamp.image1}" alt="이미지">`
                         : `<img src="${imgFromWeb}" alt="대체 이미지">`
                     }
                     <div class="name">${
-                      autocamp.name || '오토캠핑장 이름 없음'
+                      autocamp.title || '오토캠핑장 이름 없음'
                     }</div>
                   </div>
                 `;
@@ -612,13 +601,9 @@
             });
 
             if (!map.hasLayer(autocampMarkers)) {
+              console.log('Adding autocampMarkers to map');
               map.addLayer(autocampMarkers);
             }
-
-            // 오토 캠핑장 마커 개수 전송
-            window.ReactNativeWebView.postMessage(
-              JSON.stringify({type: 'markersAdded', count: autocamps.length}),
-            );
           }
 
           // 농어촌문화체험마을 마커 생성
@@ -858,12 +843,12 @@
               // 초기 레이어 표시 설정
               if (message.showRestStops) addRestStopMarkers();
               if (message.showChargingStations) addChargingStationMarkers();
+              if (message.showCampsites) addCampsiteMarkers();
               if (message.showCampgrounds) addCampgroundMarkers();
+              if (message.showAutoCamps) addAutoCampMarkers();
               if (message.showCountrysides) addCountrysideMarkers();
               if (message.showBeaches) addBeachMarkers();
               if (message.showWifis) addWifiMarkers();
-              if (message.showCampsites) addCampsiteMarkers();
-              if (message.showAutoCamps) addAutoCampMarkers();
 
             } else if (message.type === 'toggleLayers') {
               // 레이어 토글
