@@ -37,9 +37,9 @@ const MapView = forwardRef(
     const [mapReady, setMapReady] = useState(false);
     const webviewRef = useRef(null);
     const [campgroundsData, setCampgroundsData] = useState([]);
-    const [beachesData, setBeachesData] = useState({});
-    const [campsitesData, setCampsitesData] = useState({});
-    const [autocampsData, setAutoCampsData] = useState({});
+    const [beachesData, setBeachesData] = useState([]);
+    const [campsitesData, setCampsitesData] = useState([]);
+    const [autocampsData, setAutoCampsData] = useState([]);
 
     const initialToggleSent = useRef(false);
 
@@ -181,12 +181,12 @@ const MapView = forwardRef(
           } else if (data.type === 'beachSelected') {
             // 해수욕장 선택 시 처리
             navigation.navigate('BeachDetail', {beach: data.data});
-          } else if (data.type === 'CampsiteSelected') {
+          } else if (data.type === 'campsiteSelected') {
             // 야영장 선택 시 처리
-            navigation.navigate('CampsiteDetail', {beach: data.data});
-          } else if (data.type === 'AutoCampSelected') {
+            navigation.navigate('CampsiteDetail', {campsite: data.data});
+          } else if (data.type === 'autocampSelected') {
             // 오토캠핑장 선택 시 처리
-            navigation.navigate('AutoCampDetail', {beach: data.data});
+            navigation.navigate('AutoCampDetail', {autocamp: data.data});
           }
         } catch (error) {
           console.error('Error parsing message from WebView:', error);

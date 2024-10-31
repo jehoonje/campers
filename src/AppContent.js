@@ -12,11 +12,11 @@ const AppContent = () => {
   const [showRestStops, setShowRestStops] = useState(false);
   const [showChargingStations, setShowChargingStations] = useState(false);
   const [showCampgrounds, setShowCampgrounds] = useState(true);
-  const [showCountrysides, setShowCountrysides] = useState(true);
-  const [showCampsites, setShowCampsites] = useState(false);
+  const [showCountrysides, setShowCountrysides] = useState(false);
+  const [showCampsites, setShowCampsites] = useState(true);
   const [showAutoCamps, setShowAutoCamps] = useState(false);
   const [showWifis, setShowWifis] = useState(false);
-  const [showBeaches, setShowBeaches] = useState(true);
+  const [showBeaches, setShowBeaches] = useState(false);
   const [showAllMarkers, setShowAllMarkers] = useState(false);
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
@@ -103,12 +103,12 @@ const AppContent = () => {
 
   const toggleCampsitesFunc = () => {
     setShowCampsites(prev => !prev);
-    console.log('농어촌 마커 토글:', !showCampsites);
+    console.log('야영장 마커 토글:', !showCampsites);
   };
 
   const toggleAutoCampsFunc = () => {
     setShowAutoCamps(prev => !prev);
-    console.log('농어촌 마커 토글:', !showAutoCamps);
+    console.log('오토캠핑장 마커 토글:', !showAutoCamps);
   };
 
   // 모든 마커 상태가 변경될 때 `showAllMarkers` 상태를 업데이트
@@ -177,8 +177,8 @@ const AppContent = () => {
           showCountrysides={showCountrysides}
           showBeaches={showBeaches}
           showWifis={showWifis}
-          ShowCampsites={showCampsites}
-          ShowAutoCamps={showAutoCamps}
+          showCampsites={showCampsites}
+          showAutoCamps={showAutoCamps}
           toggleAllMarkers={toggleAllMarkersFunc}
           toggleRestStops={toggleRestStopsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
