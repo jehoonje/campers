@@ -1,5 +1,5 @@
 // src/components/CampingDetail/CampingDetail.js
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,20 +7,111 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  useWindowDimensions,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
-import {useWindowDimensions} from 'react-native'; // 화면 너비를 가져오기 위해 사용
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import PropTypes from 'prop-types';
 
-function CampingDetail({route, navigation}) {
-  const {campground} = route.params;
-  const {width} = useWindowDimensions();
+// Define keyword categories and their corresponding icons
+const FACILITY_KEYWORDS = [
+  {
+    keywords: ['화장실'],
+    icon: 'toilet',
+    label: '화장실',
+  },
+  {
+    keywords: ['냇가', '물놀이', '계곡', '해수욕장'],
+    icon: 'swim',
+    label: '물놀이',
+  },
+  {
+    keywords: ['낚시', '물고기'],
+    icon: 'fish',
+    label: '낚시',
+  },
+  {
+    keywords: ['개수대'],
+    icon: 'faucet',
+    label: '개수대',
+  },
+  {
+    keywords: ['마트', '매점'],
+    icon: 'cart',
+    label: '마트/매점',
+  },
+  {
+    keywords: ['숲', '나무'],
+    icon: 'tree',
+    label: '숲/나무',
+  },
+  {
+    keywords: ['무료'],
+    icon: 'emoticon-happy-outline',
+    label: '무료',
+  },
+];
+
+// Reusable component for rendering individual facility icons
+const FacilityIcon = ({ iconName, label }) => (
+  <View style={styles.facilityItem}>
+    <MaterialCommunityIcons
+      name={iconName}
+      size={32}
+      color="#555"
+      accessible={true}
+      accessibilityLabel={label}
+    />
+    <Text style={styles.facilityText}>{label}</Text>
+  </View>
+);
+
+FacilityIcon.propTypes = {
+  iconName: PropTypes.string.isRequired,
+  label: PropTypes.string.isRequired,
+};
+
+function CampingDetail({ route, navigation }) {
+  const { campground } = route.params;
+  const { width } = useWindowDimensions();
+
+  // Combine 'feature' and 'description' fields for keyword search
+  const combinedText = useMemo(() => {
+    const feature = campground.feature || '';
+    const description = campground.description || '';
+    return `${feature} ${description}`;
+  }, [campground.feature, campground.description]);
+
+  // Determine which facilities to display based on keywords
+  const matchedFacilities = useMemo(() => {
+    return FACILITY_KEYWORDS.filter(facility =>
+      facility.keywords.some(keyword => combinedText.includes(keyword))
+    );
+  }, [combinedText]);
+
+  // Function to handle going back
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
+  // If campground data is not available, show a loading indicator
+  if (!campground) {
+    return (
+      <View style={styles.loadingContainer}>
+        <MaterialCommunityIcons name="loading" size={48} color="#0000ff" />
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* 닫기 버튼 */}
       <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}>
+        onPress={handleGoBack}
+        style={styles.backButton}
+        accessible={true}
+        accessibilityLabel="뒤로 가기">
         <Text style={styles.backButtonText}>{'<'}</Text>
       </TouchableOpacity>
 
@@ -37,14 +128,31 @@ function CampingDetail({route, navigation}) {
         <Text style={styles.sectionTitle}>주소</Text>
         <Text style={styles.addr}>{campground.address}</Text>
 
+        {/* 시설 아이콘 표시 */}
+        {matchedFacilities.length > 0 && (
+          <View style={styles.facilityContainer}>
+            {matchedFacilities.map((facility, index) => (
+              <FacilityIcon
+                key={index}
+                iconName={facility.icon}
+                label={facility.label}
+              />
+            ))}
+          </View>
+        )}
+
         {/* 캠핑장 설명 */}
         {campground.description && (
           <>
             <Text style={styles.sectionTitle}>소개</Text>
             <RenderHTML
               contentWidth={width - 32} // 패딩을 고려하여 너비 조정
-              source={{html: campground.description}}
+              source={{ html: campground.description }}
               tagsStyles={tagsStyles}
+              accessible={true}
+              onLinkPress={(evt, href) => {
+                Linking.openURL(href);
+              }}
             />
           </>
         )}
@@ -52,6 +160,15 @@ function CampingDetail({route, navigation}) {
     </View>
   );
 }
+
+CampingDetail.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      campground: PropTypes.object.isRequired,
+    }).isRequired,
+  }).isRequired,
+  navigation: PropTypes.object.isRequired,
+};
 
 const tagsStyles = {
   body: {
@@ -96,7 +213,6 @@ const styles = StyleSheet.create({
     color: '#555',
   },
   image: {
-    width: '100%',
     height: 250,
     marginBottom: 20,
     marginTop: 15,
@@ -113,9 +229,27 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 16,
   },
-  description: {
-    fontSize: 16,
+  facilityContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  facilityItem: {
+    alignItems: 'center',
+    margin: 10,
+  },
+  facilityText: {
+    marginTop: 5,
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
-export default CampingDetail;
+export default React.memo(CampingDetail);
