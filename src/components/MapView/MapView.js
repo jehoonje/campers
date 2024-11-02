@@ -33,7 +33,7 @@ const MapView = forwardRef(
     },
     ref,
   ) => {
-    const {userLocation, error} = useLocation();
+    const {userLocation, heading, error} = useLocation();
     const [mapReady, setMapReady] = useState(false);
     const webviewRef = useRef(null);
     const [campgroundsData, setCampgroundsData] = useState([]);
@@ -150,6 +150,7 @@ const MapView = forwardRef(
                 JSON.stringify({
                   type: 'initialData',
                   userLocation: userLocation || {latitude: 0, longitude: 0},
+                  heading: heading || 0, // 초기 방위각 포함
                   restStopsData: restStopsData || [],
                   wifisData: wifisData || [],
                   chargingStationsData: chargingStationsData || [],
@@ -242,6 +243,19 @@ const MapView = forwardRef(
       showChargingStations,
       mapReady,
     ]);
+
+    // 위치 및 방향 데이터가 변경될 때마다 WebView에 업데이트 메시지 전송
+    useEffect(() => {
+      if (mapReady && webviewRef.current && userLocation) {
+        webviewRef.current.postMessage(
+          JSON.stringify({
+            type: 'updateLocation',
+            userLocation,
+            heading,
+          }),
+        );
+      }
+    }, [userLocation, heading, mapReady]);
 
     if (error) {
       return (

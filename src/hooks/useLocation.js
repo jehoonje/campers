@@ -1,61 +1,66 @@
 // src/hooks/useLocation.js
 import { useEffect, useState } from 'react';
-import { PermissionsAndroid, Platform } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
+import { SensorTypes, setUpdateIntervalForType, accelerometer, magnetometer, gyroscope } from 'react-native-sensors';
+import { Platform, PermissionsAndroid } from 'react-native';
+
 
 const useLocation = () => {
   const [userLocation, setUserLocation] = useState(null);
   const [error, setError] = useState(null);
-
-  const requestLocationPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: '위치 권한 요청',
-            message: '앱에서 지도를 사용하기 위해 위치 권한이 필요합니다.',
-            buttonNeutral: '나중에 묻기',
-            buttonNegative: '취소',
-            buttonPositive: '허용',
-          },
-        );
-        return granted === PermissionsAndroid.RESULTS.GRANTED;
-      } catch (err) {
-        console.warn(err);
-        return false;
-      }
-    } else {
-      // iOS는 별도의 권한 요청이 필요함
-      return true;
-    }
-  };
+  const [heading, setHeading] = useState(0);
 
   useEffect(() => {
-    const getLocation = async () => {
-      const hasPermission = await requestLocationPermission();
-      if (!hasPermission) {
-        setError('위치 권한이 거부되었습니다.');
-        return;
+    const requestLocationPermission = async () => {
+      if (Platform.OS === 'ios') {
+        Geolocation.requestAuthorization('whenInUse');
+      } else {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          setError('위치 권한이 거부되었습니다.');
+          return;
+        }
       }
-
-      Geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation({ latitude, longitude });
-        },
-        (err) => {
-          console.error(err);
-          setError(err.message);
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 },
-      );
     };
 
-    getLocation();
+    requestLocationPermission();
+
+    const watchId = Geolocation.watchPosition(
+      position => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      error => {
+        setError(error.message);
+      },
+      {
+        enableHighAccuracy: true,
+        distanceFilter: 1,
+        interval: 1000,
+        fastestInterval: 500,
+        showsBackgroundLocationIndicator: true,
+      },
+    );
+
+    // 방향(방위각) 데이터 수집
+    setUpdateIntervalForType(SensorTypes.gyroscope, 100); // 밀리초 단위
+    const subscription = gyroscope.subscribe(({ x, y, z }) => {
+      // 간단한 방위각 계산 (예제)
+      const angle = Math.atan2(y, x) * (180 / Math.PI);
+      setHeading(angle);
+    });
+
+    return () => {
+      Geolocation.clearWatch(watchId);
+      subscription.unsubscribe();
+    };
   }, []);
 
-  return { userLocation, error };
+  return { userLocation, error, heading };
 };
 
 export default useLocation;
