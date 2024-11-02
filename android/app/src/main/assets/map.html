@@ -66,6 +66,12 @@
         margin: 0 !important; /* 콘텐츠 마진 제거 */
       }
 
+      /* 사용자 마커 회전을 위한 CSS 클래스 */
+      .rotated-marker {
+        transform-origin: center;
+        transition: transform 0.5s ease;
+      }
+
       /* 팝업 내부 콘텐츠 스타일 */
       .popup-content {
         display: flex;
@@ -95,10 +101,17 @@
     <!-- Leaflet JS 링크 -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+    <!-- Leaflet.RotatedMarker 플러그인 추가 -->
+    <script src="https://unpkg.com/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.js"></script>
   </head>
   <body>
     <div id="map"></div>
     <script>
+      console.log('Leaflet version:', L.version);
+      console.log(
+        'RotatedMarker plugin loaded:',
+        L.Marker.prototype.setRotationAngle !== undefined,
+      );
       // JavaScript 오류 감지 핸들러 추가
       window.onerror = function (message, source, lineno, colno, error) {
         window.ReactNativeWebView.postMessage(
@@ -114,36 +127,39 @@
       };
 
       (function () {
-        var map;
         // 마커 클러스터 그룹 생성
         var restStopMarkers = L.markerClusterGroup({
           chunkedLoading: true, // 청크 로딩 활성화
           chunkDelay: 50,
         });
+
         var chargingStationMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
-        var campgroundMarkers = L.markerClusterGroup({
-          chunkedLoading: true,
-          chunkDelay: 50,
-        });
+
+        var campgroundMarkers = L.layerGroup();
+
         var campsiteMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
+
         var autocampMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
+
         var countrysideMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
+
         var beachMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
+
         var wifiMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
@@ -168,12 +184,27 @@
         var countrysidesAdded = false;
         var wifisAdded = false;
 
+        // Debounce 함수 정의
+        function debounce(func, delay) {
+          let debounceTimer;
+          return function () {
+            const context = this;
+            const args = arguments;
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => func.apply(context, args), delay);
+          };
+        }
+
+        var map;
+        var userIcon;
+        var userMarker;
+
         function initializeMap() {
           var initialLocation = userLocation || [0, 0];
           map = L.map('map', {
             renderer: L.canvas(), // 캔버스 렌더링 사용
             zoomControl: false,
-          }).setView(initialLocation, 5); // 초기 줌 레벨을 5로 설정하여 지도가 보이도록 함
+          }).setView(initialLocation, 13); // 초기 줌 레벨을 5로 설정하여 지도가 보이도록 함
 
           var tileLayer = L.tileLayer(
             'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -190,7 +221,22 @@
           document.getElementsByTagName('head')[0].appendChild(style);
 
           // 현재 위치 마커 (초기에는 표시하지 않음)
-          window.userMarker = null;
+          // 사용자 마커 변수
+          // 사용자 마커 정의 (기존 코드 유지)
+
+          userIcon = L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/6dda4d4e-2657-4ca0-8c2e-50642f0ff03b', // 방향을 나타낼 수 있는 아이콘 URL
+            iconSize: [30, 30],
+            iconAnchor: [15, 15], // 중앙을 기준점으로 설정
+            popupAnchor: [0, 15],
+          });
+
+          userMarker = L.marker(initialLocation, {
+            icon: userIcon,
+            rotationAngle: 0, // 초기 회전 각도
+            rotationOrigin: 'center center', // 회전 기준점 설정
+          }).addTo(map);
 
           // 하단에 확대/축소 버튼 추가
           L.control
@@ -213,15 +259,94 @@
           locateButton.addTo(map);
 
           // 지도가 이동하거나 확대/축소될 때마다 가시 영역 내의 마커 업데이트
-          map.on('moveend', function () {
-            updateVisibleMarkers();
-          });
+          map.on('moveend', debounce(updateVisibleMarkers, 100));
 
           // 지도 초기화 완료 메시지 전송
           window.ReactNativeWebView.postMessage(
             JSON.stringify({type: 'mapReady'}),
           );
         }
+
+        // 아이콘 정의
+        const campgroundIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/594b1178-e803-4e55-8c36-2c0dc2544deb', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const campsiteIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/60d95381-b364-45c2-8164-1ac0d347498a', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const autocampIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/3e5b77df-0042-461d-b3fe-56cb1648c372', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const restareaIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/40453fd1-c914-4c1d-a6df-aa06d4de81ad', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const countrysideIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/1fde8d4a-5d26-42a1-8d9f-57cbad6b43bc', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const petrolIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/8651e7a2-a374-494d-bfd1-8c6fcaac8bfe', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const toiletIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/9a08c556-0198-45f5-bd50-160cc50b03bf', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const chargingstationIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/82536bae-e9aa-4ce5-9eb5-bb46a5da7aa3', // 충전소 아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const beachIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/f0748579-7246-4ede-9c78-6a753a035144', // 해수욕장 아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const wifiIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/46f39e43-edc9-4834-b9e8-1dd116f11bf8', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
 
         function updateVisibleMarkers() {
           var bounds = map.getBounds();
@@ -232,7 +357,7 @@
               var lat = parseFloat(stop.위도);
               var lng = parseFloat(stop.경도);
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng]);
+                var marker = L.marker([lat, lng], {icon: restareaIcon});
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
@@ -268,7 +393,7 @@
               var lat = parseFloat(wifi.위도);
               var lng = parseFloat(wifi.경도);
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng]);
+                var marker = L.marker([lat, lng], {icon: wifiIcon});
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
@@ -305,7 +430,7 @@
               var lat = parseFloat(station.위도);
               var lng = parseFloat(station.경도);
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng]);
+                var marker = L.marker([lat, lng], {icon: chargingstationIcon});
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
@@ -351,7 +476,7 @@
               }
 
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng]);
+                var marker = L.marker([lat, lng], {icon: beachIcon});
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
@@ -422,7 +547,7 @@
               }
 
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng]);
+                var marker = L.marker([lat, lng], {icon: campgroundIcon});
 
                 const imgFromWeb =
                   'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
@@ -481,22 +606,23 @@
             campsites.forEach(function (campsite) {
               var lat = parseFloat(campsite.lat);
               var lng = parseFloat(campsite.lng);
-              console.log( "lat, lng : ",  lat, lng );
-              
+              console.log('lat, lng : ', lat, lng);
 
               if (isNaN(lat) || isNaN(lng)) {
                 console.warn('Invalid coordinates for campsite:', campsite);
                 return;
               }
+              const imgFromWeb =
+                'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
 
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng]);
+                var marker = L.marker([lat, lng], {icon: campsiteIcon});
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
                     ${
-                      campsite.image1
+                      campsite.image1 && campsite.image1 !== '문의'
                         ? `<img src="${campsite.image1}" alt="이미지">`
                         : `<img src="${imgFromWeb}" alt="대체 이미지">`
                     }
@@ -553,7 +679,7 @@
               }
 
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng]);
+                var marker = L.marker([lat, lng], {icon: autocampIcon});
 
                 const imgFromWeb =
                   'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
@@ -562,7 +688,7 @@
                 var popupContent = `
                   <div class="popup-content">
                     ${
-                      autocamp.image1
+                      autocamp.image1 && autocamp.image1 !== '문의'
                         ? `<img src="${autocamp.image1}" alt="이미지">`
                         : `<img src="${imgFromWeb}" alt="대체 이미지">`
                     }
@@ -625,7 +751,7 @@
 
               if (bounds.contains([lat, lng])) {
                 console.log('Adding marker for:', countryside.체험마을명);
-                var marker = L.marker([lat, lng]);
+                var marker = L.marker([lat, lng], {icon: countrysideIcon});
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
@@ -802,13 +928,35 @@
           try {
             var message = JSON.parse(event.data);
             // console.log('Received message:', message);
+            if (message.type === 'updateLocation') {
+              // 사용자 위치 업데이트
+              if (message.userLocation) {
+                userLocation = [
+                  message.userLocation.latitude,
+                  message.userLocation.longitude,
+                ];
+                if (userMarker) {
+                  // userMarker가 존재하는지 확인
+                  userMarker.setLatLng(userLocation);
+                  map.setView(userLocation, map.getZoom());
+                } else {
+                  console.warn('userMarker가 초기화되지 않았습니다.');
+                }
+              }
+
+              // 사용자 방향 업데이트 (존재할 경우에만)
+              if (typeof message.heading === 'number') {
+                if (userMarker) {
+                  // userMarker가 존재하는지 확인
+                  userMarker.setRotationAngle(message.heading);
+                } else {
+                  console.warn('userMarker가 초기화되지 않았습니다.');
+                }
+              }
+            }
 
             if (message.type === 'initialData') {
               // 초기 데이터 설정
-              userLocation = [
-                message.userLocation.latitude,
-                message.userLocation.longitude,
-              ];
               restStops = message.restStopsData || [];
               chargingStations = message.chargingStationsData || [];
               campgrounds = message.campgroundsData || [];
@@ -829,14 +977,21 @@
               console.log('wifis:', wifis.length);
               console.log('Countrysides:', countrysides.length);
 
-              // 사용자 위치 마커 업데이트
-              if (userLocation) {
-                map.setView(userLocation, 13);
-                if (window.userMarker) {
-                  window.userMarker.setLatLng(userLocation);
+              // 사용자 위치 마커 설정
+              if (message.userLocation) {
+                userLocation = [
+                  message.userLocation.latitude,
+                  message.userLocation.longitude,
+                ];
+                if (userMarker) {
+                  // userMarker가 존재하는지 확인
+                  map.setView(userLocation, 13);
+                  userMarker.setLatLng(userLocation);
+                  if (message.heading !== undefined) {
+                    userMarker.setRotationAngle(message.heading);
+                  }
                 } else {
-                  window.userMarker = L.marker(userLocation).addTo(map);
-                  window.userMarker.bindPopup('현재 위치').openPopup();
+                  console.warn('userMarker가 초기화되지 않았습니다.');
                 }
               }
 
@@ -849,7 +1004,6 @@
               if (message.showCountrysides) addCountrysideMarkers();
               if (message.showBeaches) addBeachMarkers();
               if (message.showWifis) addWifiMarkers();
-
             } else if (message.type === 'toggleLayers') {
               // 레이어 토글
               if (message.showRestStops) {
@@ -900,7 +1054,20 @@
                 removeCampgroundMarkers();
               }
             } else if (message.type === 'resetMap') {
-              map.setView(userLocation, 13);
+              if (message.userLocation) {
+                userLocation = [
+                  message.userLocation.latitude,
+                  message.userLocation.longitude,
+                ];
+                if (userMarker) {
+                  // userMarker가 존재하는지 확인
+                  map.setView(userLocation, 13);
+                  userMarker.setLatLng(userLocation);
+                  userMarker.setRotationAngle(0);
+                } else {
+                  console.warn('userMarker가 초기화되지 않았습니다.');
+                }
+              }
             }
           } catch (error) {
             console.error('Error parsing message:', error);
