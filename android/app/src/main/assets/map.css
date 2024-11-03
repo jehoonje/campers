@@ -1,0 +1,81 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+#map {
+  height: 100%;
+  width: 100%;
+}
+.leaflet-bar {
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+  padding: 5px;
+}
+.leaflet-bar a {
+  background-color: #fff;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  display: block;
+  color: #000;
+  font-size: 20px;
+}
+.leaflet-bar a:hover {
+  background-color: #f4f4f4;
+}
+.leaflet-bar svg {
+  width: 80%;
+  height: 80%;
+  padding: 10%;
+}
+
+/* 팝업의 기본 스타일 제거 및 커스텀 스타일 적용 */
+.custom-popup .leaflet-popup-content-wrapper {
+  width: 120px; /* 팝업 너비 설정 */
+  border-radius: 0 !important; /* border-radius 제거 */
+  /* box-shadow: none !important; 그림자 제거 */
+  padding: 0 !important; /* 패딩 제거 */
+  background-color: rgb(100, 100, 100);
+}
+.custom-popup .leaflet-popup-tip {
+  display: none !important; /* 말풍선 숨기기 */
+}
+.custom-popup .leaflet-popup-content {
+  margin: 0 !important; /* 콘텐츠 마진 제거 */
+}
+
+/* 사용자 마커 회전을 위한 CSS 클래스 */
+.rotated-marker {
+  transform-origin: center;
+  transition: transform 0.5s ease;
+}
+
+/* 팝업 내부 콘텐츠 스타일 */
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 120px; /* 팝업 너비 설정 */
+}
+.popup-content img {
+  width: 121px;
+  height: auto;
+  display: block;
+}
+.popup-content .name {
+  width: 121px;
+  padding: 1px 0;
+  text-align: center;
+  font-weight: bold;
+  background-color: rgba(255, 255, 255, 0.7) !important; /* 반투명 배경 */
+}
+
+/* 팝업의 닫기 버튼 숨기기 */
+.leaflet-popup-close-button {
+  display: none;
+}
