@@ -20,7 +20,6 @@
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <!-- Leaflet.RotatedMarker 플러그인 추가 -->
     <script src="https://unpkg.com/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.js"></script>
-  
   </head>
   <body>
     <div id="map"></div>
@@ -30,7 +29,6 @@
         'RotatedMarker plugin loaded:',
         L.Marker.prototype.setRotationAngle !== undefined,
       );
-      
       // JavaScript 오류 감지 핸들러 추가
       window.onerror = function (message, source, lineno, colno, error) {
         window.ReactNativeWebView.postMessage(
@@ -57,22 +55,23 @@
           chunkDelay: 50,
         });
 
-        var campgroundMarkers = L.markerClusterGroup({
-          chunkedLoading: true,
-          chunkDelay: 50,
-        });
+        // var campgroundMarkers = L.markerClusterGroup({
+        //   chunkedLoading: true,
+        //   chunkDelay: 50,
+        // });
+
         // var campgroundMarkers = L.layerGroup();
 
         var campsiteMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
-
+        
         var fishingMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
-
+        
         var autocampMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
@@ -232,7 +231,8 @@
 
         const fishingIcon = L.icon({
           iconUrl:
-            'https://github.com/user-attachments/assets/bb30be58-a94d-4b94-8a06-007811ec346a', //  아이콘 URL
+            'https://github.com/user-attachments/assets/d7479207-be30-4321-a520-15428e262f89', //  아이콘 URL
+          
           iconSize: [70, 70], // 아이콘 크기
           iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
@@ -1042,7 +1042,7 @@
               if (message.showFishings) {
                 addFishingMarkers();
               } else {
-                removeWifiMarkers();
+                removeFishingMarkers();
               }
 
               if (message.showCountrysides) {
