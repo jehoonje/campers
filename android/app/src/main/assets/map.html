@@ -60,18 +60,18 @@
         //   chunkDelay: 50,
         // });
 
-        var campgroundMarkers = L.layerGroup();
+        // var campgroundMarkers = L.layerGroup();
 
         var campsiteMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
-
+        
         var fishingMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
-
+        
         var autocampMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
@@ -232,6 +232,7 @@
         const fishingIcon = L.icon({
           iconUrl:
             'https://github.com/user-attachments/assets/d7479207-be30-4321-a520-15428e262f89', //  아이콘 URL
+          
           iconSize: [70, 70], // 아이콘 크기
           iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
@@ -474,7 +475,7 @@
               var lng = parseFloat(fishing.lng);
 
               if (isNaN(lat) || isNaN(lng)) {
-                console.warn('Invalid coordinates for fishing:', fishing);
+                console.warn('Invalid coordinates for beach:', fishing);
                 return;
               }
 
