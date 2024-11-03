@@ -14,90 +14,7 @@
       href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
 
     <!-- 커스텀 스타일을 Leaflet CSS 후에 추가 -->
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-      }
-      #map {
-        height: 100%;
-        width: 100%;
-      }
-      .leaflet-bar {
-        background-color: white;
-        border-radius: 5px;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-        padding: 5px;
-      }
-      .leaflet-bar a {
-        background-color: #fff;
-        border-bottom: 1px solid #ccc;
-        text-align: center;
-        width: 30px;
-        height: 30px;
-        line-height: 30px;
-        display: block;
-        color: #000;
-        font-size: 20px;
-      }
-      .leaflet-bar a:hover {
-        background-color: #f4f4f4;
-      }
-      .leaflet-bar svg {
-        width: 80%;
-        height: 80%;
-        padding: 10%;
-      }
-
-      /* 팝업의 기본 스타일 제거 및 커스텀 스타일 적용 */
-      .custom-popup .leaflet-popup-content-wrapper {
-        width: 120px; /* 팝업 너비 설정 */
-        border-radius: 0 !important; /* border-radius 제거 */
-        /* box-shadow: none !important; 그림자 제거 */
-        padding: 0 !important; /* 패딩 제거 */
-        background-color: rgb(100, 100, 100);
-      }
-      .custom-popup .leaflet-popup-tip {
-        display: none !important; /* 말풍선 숨기기 */
-      }
-      .custom-popup .leaflet-popup-content {
-        margin: 0 !important; /* 콘텐츠 마진 제거 */
-      }
-
-      /* 사용자 마커 회전을 위한 CSS 클래스 */
-      .rotated-marker {
-        transform-origin: center;
-        transition: transform 0.5s ease;
-      }
-
-      /* 팝업 내부 콘텐츠 스타일 */
-      .popup-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 120px; /* 팝업 너비 설정 */
-      }
-      .popup-content img {
-        width: 121px;
-        height: auto;
-        display: block;
-      }
-      .popup-content .name {
-        width: 121px;
-        padding: 1px 0;
-        text-align: center;
-        font-weight: bold;
-        background-color: rgba(255, 255, 255, 0.7) !important; /* 반투명 배경 */
-      }
-
-      /* 팝업의 닫기 버튼 숨기기 */
-      .leaflet-popup-close-button {
-        display: none;
-      }
-    </style>
-
+    <link rel="stylesheet" href="./map.css" />
     <!-- Leaflet JS 링크 -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
@@ -145,6 +62,11 @@
           chunkDelay: 50,
         });
 
+        var fishingMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
+        });
+
         var autocampMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
@@ -169,6 +91,7 @@
         var chargingStations = [];
         var campgrounds = [];
         var campsites = [];
+        var fishings = [];
         var autocamps = [];
         var countrysides = [];
         var wifis = [];
@@ -179,6 +102,7 @@
         var chargingStationsAdded = false;
         var campgroundsAdded = false;
         var campsitesAdded = false;
+        var fishingsAdded = false;
         var autocampsAdded = false;
         var beachesAdded = false;
         var countrysidesAdded = false;
@@ -295,6 +219,14 @@
         const restareaIcon = L.icon({
           iconUrl:
             'https://github.com/user-attachments/assets/40453fd1-c914-4c1d-a6df-aa06d4de81ad', //  아이콘 URL
+          iconSize: [70, 70], // 아이콘 크기
+          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
+          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
+        });
+
+        const fishingIcon = L.icon({
+          iconUrl:
+            'https://github.com/user-attachments/assets/9517945a-fc80-4603-948f-2ba8f665842e', //  아이콘 URL
           iconSize: [70, 70], // 아이콘 크기
           iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
@@ -478,13 +410,16 @@
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng], {icon: beachIcon});
 
+                const imgFromWeb =
+                  'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
+
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
                     ${
                       beach.image1
                         ? `<img src="${beach.image1}" alt="이미지">`
-                        : `<img src="https://via.placeholder.com/200x100.png?text=No+Image" alt="대체 이미지">`
+                        : `<img src="${imgFromWeb}" alt="대체 이미지">`
                     }
                     <div class="name">${
                       beach.title || '해수욕장 이름 없음'
@@ -523,6 +458,72 @@
             if (!map.hasLayer(beachMarkers)) {
               console.log('Adding beachMarkers to map');
               map.addLayer(beachMarkers);
+            }
+          }
+
+          // 낚시터 마커 생성
+          if (fishingsAdded) {
+            fishingMarkers.clearLayers();
+            fishings.forEach(function (fishing) {
+              var lat = parseFloat(fishing.lat);
+              var lng = parseFloat(fishing.lng);
+
+              if (isNaN(lat) || isNaN(lng)) {
+                console.warn('Invalid coordinates for beach:', fishing);
+                return;
+              }
+
+              if (bounds.contains([lat, lng])) {
+                var marker = L.marker([lat, lng], {icon: fishingIcon});
+
+                const imgFromWeb =
+                  'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
+
+                // 팝업 콘텐츠 생성
+                var popupContent = `
+                  <div class="popup-content">
+                    ${
+                      fishing.image1
+                        ? `<img src="${fishing.image1}" alt="이미지">`
+                        : `<img src="${imgFromWeb}" alt="대체 이미지">`
+                    }
+                    <div class="name">${
+                      fishing.title || '낚시터 이름 없음'
+                    }</div>
+                  </div>
+                `;
+
+                // 팝업 옵션 설정
+                var popupOptions = {
+                  closeButton: false, // X 닫기 버튼 제거
+                  className: 'custom-popup', // 커스텀 클래스 적용
+                };
+
+                marker.bindPopup(popupContent, popupOptions);
+
+                // 팝업 열릴 때 이벤트 리스너 추가
+                marker.on('popupopen', function (e) {
+                  var popupNode = e.popup._contentNode;
+                  if (popupNode) {
+                    popupNode.style.cursor = 'pointer';
+                    popupNode.addEventListener('click', function () {
+                      window.ReactNativeWebView.postMessage(
+                        JSON.stringify({
+                          type: 'fishingSelected',
+                          data: fishing,
+                        }),
+                      );
+                    });
+                  }
+                });
+
+                fishingMarkers.addLayer(marker);
+              }
+            });
+
+            if (!map.hasLayer(fishingMarkers)) {
+              console.log('Adding fishingMarkers to map');
+              map.addLayer(fishingMarkers);
             }
           }
 
@@ -814,12 +815,24 @@
           campgroundsAdded = true; // 플래그 설정
           updateVisibleMarkers(); // 가시 영역 내의 마커 추가
         }
-
         function removeCampgroundMarkers() {
           if (!campgroundsAdded) return; // 추가되지 않은 경우 중단
           map.removeLayer(campgroundMarkers);
           campgroundMarkers.clearLayers();
           campgroundsAdded = false;
+        }
+
+        // 낚시터 마커 추가제거
+        function addFishingMarkers() {
+          if (fishingsAdded) return; // 이미 추가된 경우 중단
+          fishingsAdded = true; // 플래그 설정
+          updateVisibleMarkers(); // 가시 영역 내의 마커 추가
+        }
+        function removeFishingMarkers() {
+          if (!fishingsAdded) return; // 추가되지 않은 경우 중단
+          map.removeLayer(fishingMarkers);
+          fishingMarkers.clearLayers();
+          fishingsAdded = false;
         }
 
         // 야영장 마커 추가제거
@@ -828,7 +841,6 @@
           campsitesAdded = true; // 플래그 설정
           updateVisibleMarkers(); // 가시 영역 내의 마커 추가
         }
-
         function removeCampsiteMarkers() {
           if (!campsitesAdded) return; // 추가되지 않은 경우 중단
           map.removeLayer(campsiteMarkers);
@@ -842,7 +854,6 @@
           autocampsAdded = true; // 플래그 설정
           updateVisibleMarkers(); // 가시 영역 내의 마커 추가
         }
-
         function removeAutoCampMarkers() {
           if (!autocampsAdded) return; // 추가되지 않은 경우 중단
           map.removeLayer(autocampMarkers);
@@ -856,7 +867,6 @@
           beachesAdded = true;
           updateVisibleMarkers();
         }
-
         function removeBeachMarkers() {
           if (!beachesAdded) return;
           map.removeLayer(beachMarkers);
@@ -870,7 +880,6 @@
           restStopsAdded = true; // 플래그 설정
           updateVisibleMarkers(); // 가시 영역 내의 마커 추가
         }
-
         function removeRestStopMarkers() {
           if (!restStopsAdded) return; // 추가되지 않은 경우 중단
           map.removeLayer(restStopMarkers);
@@ -884,7 +893,6 @@
           wifisAdded = true; // 플래그 설정
           updateVisibleMarkers(); // 가시 영역 내의 마커 추가
         }
-
         function removeWifiMarkers() {
           if (!wifisAdded) return; // 추가되지 않은 경우 중단
           map.removeLayer(wifiMarkers);
@@ -898,7 +906,6 @@
           chargingStationsAdded = true; // 플래그 설정
           updateVisibleMarkers(); // 가시 영역 내의 마커 추가
         }
-
         function removeChargingStationMarkers() {
           if (!chargingStationsAdded) return; // 추가되지 않은 경우 중단
           map.removeLayer(chargingStationMarkers);
@@ -912,7 +919,6 @@
           countrysidesAdded = true;
           updateVisibleMarkers();
         }
-
         function removeCountrysideMarkers() {
           if (!countrysidesAdded) return;
           map.removeLayer(countrysideMarkers);
@@ -961,6 +967,7 @@
               chargingStations = message.chargingStationsData || [];
               campgrounds = message.campgroundsData || [];
               campsites = message.campsitesData || [];
+              fishings = message.fishingsData || [];
               autocamps = message.autocampsData || [];
               countrysides = message.countrysideData || [];
               beaches = message.beachesData || [];
@@ -973,6 +980,7 @@
               console.log('Campgrounds:', campgrounds.length);
               console.log('Campsites:', campsites.length);
               console.log('Autocamps:', autocamps.length);
+              console.log('fishings:', fishings.length);
               console.log('beaches:', beaches.length);
               console.log('wifis:', wifis.length);
               console.log('Countrysides:', countrysides.length);
@@ -1003,6 +1011,7 @@
               if (message.showAutoCamps) addAutoCampMarkers();
               if (message.showCountrysides) addCountrysideMarkers();
               if (message.showBeaches) addBeachMarkers();
+              if (message.showFishings) addFishingMarkers();
               if (message.showWifis) addWifiMarkers();
             } else if (message.type === 'toggleLayers') {
               // 레이어 토글
@@ -1022,6 +1031,12 @@
                 addWifiMarkers();
               } else {
                 removeWifiMarkers();
+              }
+
+              if (message.showFishings) {
+                addFishingMarkers();
+              } else {
+                removeFishingMarkers();
               }
 
               if (message.showCountrysides) {

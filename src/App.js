@@ -10,6 +10,7 @@ import CampingDetail from './components/CampingDetail/CampingDetail'; // Camping
 import CountryDetail from './components/CountryDetail/CountryDetail';
 import AutoCampDetail from './components/AutoCampDetail/AutoCampDetail';
 import CampsiteDetail from './components/CampsiteDetail/CampsiteDetail';
+import FishingDetail from './components/FishingDetail/FishingDetail';
 import BeachDetail from './components/BeachDetail/BeachDetail';
 
 const Drawer = createDrawerNavigator();
@@ -25,7 +26,7 @@ const MainStack = () => (
     <Stack.Screen
       name="CampingDetail"
       component={CampingDetail}
-      options={{ headerShown: false }} // CampingDetail에서 자체적으로 헤더를 관리
+      options={{ headerShown: false }} 
     />
     <Stack.Screen
       name="CountryDetail"
@@ -35,6 +36,11 @@ const MainStack = () => (
     <Stack.Screen
       name="BeachDetail"
       component={BeachDetail}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="FishingDetail"
+      component={FishingDetail}
       options={{ headerShown: false }}
     />
     <Stack.Screen

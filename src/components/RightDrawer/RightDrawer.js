@@ -21,6 +21,7 @@ const RightDrawer = ({
   toggleAllMarkers,
   toggleCampsites,
   toggleAutoCamps,
+  toggleFishings,
   toggleRestStops,
   toggleChargingStations,
   toggleWifis,
@@ -57,11 +58,10 @@ const RightDrawer = ({
     {name: '농어촌체험마을', icon: 'seedling', lib: 'FontAwesome5'},
     {name: '해수욕장', icon: 'umbrella-beach', lib: 'FontAwesome5'},
     {name: '전기차 충전소', icon: 'bolt', lib: 'FontAwesome'},
-    {name: '주유소', icon: 'gas-pump', lib: 'FontAwesome5'},
-    {name: '공중 화장실', icon: 'restroom', lib: 'FontAwesome5'},
+    {name: '낚시터', icon: 'fish', lib: 'FontAwesome5'},
     {name: '와이파이', icon: 'wifi', lib: 'FontAwesome'},
-    {name: '휴지통', icon: 'trash', lib: 'FontAwesome'},
     {name: '휴게소', icon: 'coffee', lib: 'FontAwesome'},
+    {name: '주유소', icon: 'gas-pump', lib: 'FontAwesome5'},
   ];
 
   return (
@@ -99,6 +99,8 @@ const RightDrawer = ({
                   toggleCountrysides(); // 농어촌 버튼 클릭시 마커 토글
                 } else if (item.name === '해수욕장') {
                   toggleBeaches(); // 해수욕장 버튼 클릭시 마커 토글
+                } else if (item.name === '낚시터') {
+                  toggleFishings(); // 낚시터 버튼 클릭시 마커 토글
                 }
                 onClose(); // 버튼 클릭 시 드로어 닫기
               }}
