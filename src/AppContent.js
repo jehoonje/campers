@@ -10,6 +10,7 @@ import {useNavigation} from '@react-navigation/native'; // useNavigation 임포�
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [showRestStops, setShowRestStops] = useState(false);
+  const [showFishings, setShowFishings] = useState(false);
   const [showChargingStations, setShowChargingStations] = useState(false);
   const [showCampgrounds, setShowCampgrounds] = useState(true);
   const [showCountrysides, setShowCountrysides] = useState(false);
@@ -36,6 +37,7 @@ const AppContent = () => {
       showChargingStations,
       showCampgrounds,
       showCountrysides,
+      showFishings,
       showWifis,
       showBeaches,
       showCampsites,
@@ -49,6 +51,7 @@ const AppContent = () => {
       setShowRestStops(false);
       setShowChargingStations(false);
       setShowCampgrounds(false);
+      setShowFishings(false);
       setShowCountrysides(false);
       setShowWifis(false);
       setShowBeaches(false);
@@ -63,6 +66,7 @@ const AppContent = () => {
       setShowCampgrounds(true);
       setShowCountrysides(true);
       setShowWifis(true);
+      setShowFishings(true);
       setShowBeaches(true);
       setShowCampsites(true);
       setShowAutoCamps(true);
@@ -89,6 +93,11 @@ const AppContent = () => {
   const toggleRestStopsFunc = () => {
     setShowRestStops(prev => !prev);
     console.log('휴게소 마커 토글:', !showRestStops);
+  };
+  
+  const toggleFishingsFunc = () => {
+    setShowFishings(prev => !prev);
+    console.log('휴게소 마커 토글:', !showFishings);
   };
 
   const toggleChargingStationsFunc = () => {
@@ -118,6 +127,7 @@ const AppContent = () => {
       showChargingStations,
       showCampgrounds,
       showCountrysides,
+      showFishings,
       showWifis,
       showBeaches,
       showCampsites,
@@ -136,6 +146,7 @@ const AppContent = () => {
     showCampgrounds,
     showCountrysides,
     showWifis,
+    showFishings,
     showBeaches,
     showCampsites,
     showAutoCamps,
@@ -176,11 +187,13 @@ const AppContent = () => {
           showCampgrounds={showCampgrounds}
           showCountrysides={showCountrysides}
           showBeaches={showBeaches}
+          showFishings={showFishings}
           showWifis={showWifis}
           showCampsites={showCampsites}
           showAutoCamps={showAutoCamps}
           toggleAllMarkers={toggleAllMarkersFunc}
           toggleRestStops={toggleRestStopsFunc}
+          toggleFishings={toggleFishingsFunc}
           toggleChargingStations={toggleChargingStationsFunc}
           toggleCampgrounds={toggleCampgroundsFunc}
           toggleCountrysides={toggleCountrysidesFunc}
@@ -198,6 +211,7 @@ const AppContent = () => {
         onClose={closeRightDrawer}
         toggleAllMarkers={toggleAllMarkersFunc}
         toggleRestStops={toggleRestStopsFunc}
+        toggleFishings={toggleFishingsFunc}
         toggleChargingStations={toggleChargingStationsFunc}
         toggleCampgrounds={toggleCampgroundsFunc}
         toggleCountrysides={toggleCountrysidesFunc}

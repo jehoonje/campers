@@ -12,9 +12,11 @@ const MainContent = forwardRef(({
   showBeaches,
   showWifis,
   showCampsites,
+  showFishings,
   showAutoCamps,
   toggleAllMarkers,
   toggleRestStops,
+  toggleFishings,
   toggleChargingStations,
   toggleCampgrounds,
   toggleCountrysides,
@@ -45,6 +47,7 @@ const MainContent = forwardRef(({
           showRestStops={showRestStops}
           showChargingStations={showChargingStations}
           showCampgrounds={showCampgrounds}
+          showFishings={showFishings}
           showCountrysides={showCountrysides}
           showWifis={showWifis}
           showBeaches={showBeaches}
