@@ -20,8 +20,7 @@
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     <!-- Leaflet.RotatedMarker 플러그인 추가 -->
     <script src="https://unpkg.com/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.js"></script>
-    <!-- Leaflet.RotatedMarker 플러그인 추가 -->
-    <script src="https://unpkg.com/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.js"></script>
+  
   </head>
   <body>
     <div id="map"></div>
@@ -31,11 +30,7 @@
         'RotatedMarker plugin loaded:',
         L.Marker.prototype.setRotationAngle !== undefined,
       );
-      console.log('Leaflet version:', L.version);
-      console.log(
-        'RotatedMarker plugin loaded:',
-        L.Marker.prototype.setRotationAngle !== undefined,
-      );
+      
       // JavaScript 오류 감지 핸들러 추가
       window.onerror = function (message, source, lineno, colno, error) {
         window.ReactNativeWebView.postMessage(
@@ -57,13 +52,16 @@
           chunkDelay: 50,
         });
 
-
         var chargingStationMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
 
-        var campgroundMarkers = L.layerGroup();
+        var campgroundMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
+        });
+        // var campgroundMarkers = L.layerGroup();
 
         var campsiteMarkers = L.markerClusterGroup({
           chunkedLoading: true,
@@ -80,18 +78,15 @@
           chunkDelay: 50,
         });
 
-
         var countrysideMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
 
-
         var beachMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
-
 
         var wifiMarkers = L.markerClusterGroup({
           chunkedLoading: true,
@@ -134,21 +129,6 @@
         var userIcon;
         var userMarker;
 
-        // Debounce 함수 정의
-        function debounce(func, delay) {
-          let debounceTimer;
-          return function () {
-            const context = this;
-            const args = arguments;
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => func.apply(context, args), delay);
-          };
-        }
-
-        var map;
-        var userIcon;
-        var userMarker;
-
         function initializeMap() {
           var initialLocation = userLocation || [0, 0];
           map = L.map('map', {
@@ -171,22 +151,6 @@
           document.getElementsByTagName('head')[0].appendChild(style);
 
           // 현재 위치 마커 (초기에는 표시하지 않음)
-          // 사용자 마커 변수
-          // 사용자 마커 정의 (기존 코드 유지)
-
-          userIcon = L.icon({
-            iconUrl:
-              'https://github.com/user-attachments/assets/6dda4d4e-2657-4ca0-8c2e-50642f0ff03b', // 방향을 나타낼 수 있는 아이콘 URL
-            iconSize: [30, 30],
-            iconAnchor: [15, 15], // 중앙을 기준점으로 설정
-            popupAnchor: [0, 15],
-          });
-
-          userMarker = L.marker(initialLocation, {
-            icon: userIcon,
-            rotationAngle: 0, // 초기 회전 각도
-            rotationOrigin: 'center center', // 회전 기준점 설정
-          }).addTo(map);
           // 사용자 마커 변수
           // 사용자 마커 정의 (기존 코드 유지)
 
@@ -268,7 +232,7 @@
 
         const fishingIcon = L.icon({
           iconUrl:
-            'https://github.com/user-attachments/assets/9517945a-fc80-4603-948f-2ba8f665842e', //  아이콘 URL
+            'https://github.com/user-attachments/assets/bb30be58-a94d-4b94-8a06-007811ec346a', //  아이콘 URL
           iconSize: [70, 70], // 아이콘 크기
           iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
@@ -404,7 +368,6 @@
               var lat = parseFloat(station.위도);
               var lng = parseFloat(station.경도);
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng], {icon: chargingstationIcon});
                 var marker = L.marker([lat, lng], {icon: chargingstationIcon});
 
                 // 팝업 콘텐츠 생성
@@ -592,7 +555,6 @@
 
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng], {icon: campgroundIcon});
-                var marker = L.marker([lat, lng], {icon: campgroundIcon});
 
                 const imgFromWeb =
                   'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
@@ -652,7 +614,6 @@
               var lat = parseFloat(campsite.lat);
               var lng = parseFloat(campsite.lng);
               console.log('lat, lng : ', lat, lng);
-              console.log('lat, lng : ', lat, lng);
 
               if (isNaN(lat) || isNaN(lng)) {
                 console.warn('Invalid coordinates for campsite:', campsite);
@@ -660,18 +621,14 @@
               }
               const imgFromWeb =
                 'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
-              const imgFromWeb =
-                'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
 
               if (bounds.contains([lat, lng])) {
-                var marker = L.marker([lat, lng], {icon: campsiteIcon});
                 var marker = L.marker([lat, lng], {icon: campsiteIcon});
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `
                   <div class="popup-content">
                     ${
-                      campsite.image1 && campsite.image1 !== '문의'
                       campsite.image1 && campsite.image1 !== '문의'
                         ? `<img src="${campsite.image1}" alt="이미지">`
                         : `<img src="${imgFromWeb}" alt="대체 이미지">`
@@ -730,7 +687,6 @@
 
               if (bounds.contains([lat, lng])) {
                 var marker = L.marker([lat, lng], {icon: autocampIcon});
-                var marker = L.marker([lat, lng], {icon: autocampIcon});
 
                 const imgFromWeb =
                   'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
@@ -739,7 +695,6 @@
                 var popupContent = `
                   <div class="popup-content">
                     ${
-                      autocamp.image1 && autocamp.image1 !== '문의'
                       autocamp.image1 && autocamp.image1 !== '문의'
                         ? `<img src="${autocamp.image1}" alt="이미지">`
                         : `<img src="${imgFromWeb}" alt="대체 이미지">`
@@ -803,7 +758,6 @@
 
               if (bounds.contains([lat, lng])) {
                 console.log('Adding marker for:', countryside.체험마을명);
-                var marker = L.marker([lat, lng], {icon: countrysideIcon});
                 var marker = L.marker([lat, lng], {icon: countrysideIcon});
 
                 // 팝업 콘텐츠 생성
@@ -1015,35 +969,6 @@
 
             if (message.type === 'initialData') {
               // 초기 데이터 설정
-            if (message.type === 'updateLocation') {
-              // 사용자 위치 업데이트
-              if (message.userLocation) {
-                userLocation = [
-                  message.userLocation.latitude,
-                  message.userLocation.longitude,
-                ];
-                if (userMarker) {
-                  // userMarker가 존재하는지 확인
-                  userMarker.setLatLng(userLocation);
-                  map.setView(userLocation, map.getZoom());
-                } else {
-                  console.warn('userMarker가 초기화되지 않았습니다.');
-                }
-              }
-
-              // 사용자 방향 업데이트 (존재할 경우에만)
-              if (typeof message.heading === 'number') {
-                if (userMarker) {
-                  // userMarker가 존재하는지 확인
-                  userMarker.setRotationAngle(message.heading);
-                } else {
-                  console.warn('userMarker가 초기화되지 않았습니다.');
-                }
-              }
-            }
-
-            if (message.type === 'initialData') {
-              // 초기 데이터 설정
               restStops = message.restStopsData || [];
               chargingStations = message.chargingStationsData || [];
               campgrounds = message.campgroundsData || [];
@@ -1079,21 +1004,7 @@
                   if (message.heading !== undefined) {
                     userMarker.setRotationAngle(message.heading);
                   }
-              // 사용자 위치 마커 설정
-              if (message.userLocation) {
-                userLocation = [
-                  message.userLocation.latitude,
-                  message.userLocation.longitude,
-                ];
-                if (userMarker) {
-                  // userMarker가 존재하는지 확인
-                  map.setView(userLocation, 13);
-                  userMarker.setLatLng(userLocation);
-                  if (message.heading !== undefined) {
-                    userMarker.setRotationAngle(message.heading);
-                  }
                 } else {
-                  console.warn('userMarker가 초기화되지 않았습니다.');
                   console.warn('userMarker가 초기화되지 않았습니다.');
                 }
               }
@@ -1131,7 +1042,7 @@
               if (message.showFishings) {
                 addFishingMarkers();
               } else {
-                removeFishingMarkers();
+                removeWifiMarkers();
               }
 
               if (message.showCountrysides) {
@@ -1164,20 +1075,6 @@
                 removeCampgroundMarkers();
               }
             } else if (message.type === 'resetMap') {
-              if (message.userLocation) {
-                userLocation = [
-                  message.userLocation.latitude,
-                  message.userLocation.longitude,
-                ];
-                if (userMarker) {
-                  // userMarker가 존재하는지 확인
-                  map.setView(userLocation, 13);
-                  userMarker.setLatLng(userLocation);
-                  userMarker.setRotationAngle(0);
-                } else {
-                  console.warn('userMarker가 초기화되지 않았습니다.');
-                }
-              }
               if (message.userLocation) {
                 userLocation = [
                   message.userLocation.latitude,
