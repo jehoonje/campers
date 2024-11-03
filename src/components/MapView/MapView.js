@@ -24,6 +24,7 @@ const MapView = forwardRef(
       showRestStops,
       showCountrysides,
       showChargingStations,
+      showFishings,
       showCampgrounds,
       showCampsites,
       showAutoCamps,
@@ -40,6 +41,7 @@ const MapView = forwardRef(
     const [beachesData, setBeachesData] = useState([]);
     const [campsitesData, setCampsitesData] = useState([]);
     const [autocampsData, setAutoCampsData] = useState([]);
+    const [fishingsData, setFishingsData] = useState([]);
 
     const initialToggleSent = useRef(false);
 
@@ -50,6 +52,22 @@ const MapView = forwardRef(
         }
       },
     }));
+
+    // 낚시터 데이터를 가져오는 부분
+    useEffect(() => {
+      const fetchFishingsData = async () => {
+        try {
+          const response = await axios.get('http://10.0.2.2:8080/api/fishings');
+          setFishingsData(response.data);
+          console.log('낚시터 데이터가 성공적으로 로드되었습니다.');
+        } catch (error) {
+          console.error('낚시터 데이터를 가져오는 중 오류 발생:', error);
+          setFishingsData([]); // 빈 배열로 설정
+        }
+      };
+
+      fetchFishingsData();
+    }, []);
 
     // 캠핑장 데이터를 가져오는 부분
     useEffect(() => {
@@ -153,6 +171,7 @@ const MapView = forwardRef(
                   heading: heading || 0, // 초기 방위각 포함
                   restStopsData: restStopsData || [],
                   wifisData: wifisData || [],
+                  fishingsData: fishingsData || [],
                   chargingStationsData: chargingStationsData || [],
                   countrysideData: countrysideData || [],
                   campgroundsData: campgroundsData || [],
@@ -163,6 +182,7 @@ const MapView = forwardRef(
                   showRestStops,
                   showChargingStations,
                   showCountrysides,
+                  showFishings,
                   showCampgrounds,
                   showAutoCamps,
                   showCampsites,
@@ -188,6 +208,9 @@ const MapView = forwardRef(
           } else if (data.type === 'autocampSelected') {
             // 오토캠핑장 선택 시 처리
             navigation.navigate('AutoCampDetail', {autocamp: data.data});
+          } else if (data.type === 'fishingSelected') {
+            // 낚시터 선택 시 처리
+            navigation.navigate('FishingDetail', {fishing: data.data});
           }
         } catch (error) {
           console.error('Error parsing message from WebView:', error);
@@ -199,6 +222,7 @@ const MapView = forwardRef(
         showCampgrounds,
         showCampsites,
         showAutoCamps,
+        showFishings,
         showRestStops,
         showChargingStations,
         showCountrysides,
@@ -207,6 +231,7 @@ const MapView = forwardRef(
         wifisData,
         campgroundsData,
         campsitesData,
+        fishingsData,
         autocampsData,
         beachesData,
         userLocation,
@@ -224,6 +249,7 @@ const MapView = forwardRef(
             showCampsites,
             showAutoCamps,
             showCountrysides,
+            showFishings,
             showBeaches,
             showRestStops,
             showWifis,
@@ -237,6 +263,7 @@ const MapView = forwardRef(
       showCampsites,
       showAutoCamps,
       showCountrysides,
+      showFishings,
       showBeaches,
       showRestStops,
       showWifis,
