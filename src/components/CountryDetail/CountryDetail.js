@@ -1,10 +1,21 @@
 // src/components/CountryDetail/CountryDetail.js
-import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Linking, ScrollView, Animated, Dimensions } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Linking,
+  ScrollView,
+  Animated,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Ionicons } from '@expo/vector-icons'; // 아이콘 라이브러리 설치 필요
+import Ionicons from 'react-native-vector-icons/Ionicons'; // 변경된 아이콘 라이브러리
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 function CountryDetail({ route, navigation }) {
   const { countryside } = route.params;
@@ -22,31 +33,57 @@ function CountryDetail({ route, navigation }) {
   const [scrollViewHeight, setScrollViewHeight] = useState(120); // 초기 높이 120
 
   // 스크롤바의 높이 계산
-  const scrollbarHeight = scrollViewHeight < contentHeight
-    ? (scrollViewHeight / contentHeight) * scrollViewHeight
-    : scrollViewHeight;
+  const scrollbarHeight =
+    scrollViewHeight < contentHeight
+      ? (scrollViewHeight / contentHeight) * scrollViewHeight
+      : scrollViewHeight;
 
   // 스크롤바의 위치 계산
-  const scrollbarTranslateY = contentHeight > scrollViewHeight ? scrollY.interpolate({
-    inputRange: [0, contentHeight - scrollViewHeight],
-    outputRange: [0, scrollViewHeight - scrollbarHeight],
-    extrapolate: 'clamp',
-  }) : new Animated.Value(0);
+  const scrollbarTranslateY =
+    contentHeight > scrollViewHeight
+      ? scrollY.interpolate({
+          inputRange: [0, contentHeight - scrollViewHeight],
+          outputRange: [0, scrollViewHeight - scrollbarHeight],
+          extrapolate: 'clamp',
+        })
+      : new Animated.Value(0);
+
+  // 이미지 로딩 상태
+  const [imageLoading, setImageLoading] = useState(true);
 
   return (
     <View style={styles.container}>
       {/* 닫기 버튼 */}
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>{'<'}</Text>
+        <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false} // 전체 스크롤바 숨기기
+      >
         {/* 이미지 */}
-        {countryside.이미지url ? (
-          <Image source={{ uri: countryside.이미지url }} style={styles.image} />
-        ) : (
-          <Image source={require('../../assets/placeholder.png')} style={styles.image} />
-        )}
+        <View style={styles.imageContainer}>
+          {imageLoading && (
+            <ActivityIndicator size="large" color="#1e90ff" style={styles.imageLoader} />
+          )}
+          {countryside.이미지url ? (
+            <Image
+              source={{ uri: countryside.이미지url }}
+              style={styles.image}
+              resizeMode="contain" // 이미지가 프레임 내에서 중앙에 위치하도록 설정
+              onLoadEnd={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
+            />
+          ) : (
+            <Image
+              source={require('../../assets/placeholder.png')}
+              style={styles.image}
+              resizeMode="contain"
+              onLoadEnd={() => setImageLoading(false)}
+            />
+          )}
+        </View>
 
         {/* 마을 이름 */}
         <Text style={styles.name}>{countryside.체험마을명}</Text>
@@ -56,8 +93,11 @@ function CountryDetail({ route, navigation }) {
         {programList.length > 0 ? (
           <View style={styles.programContainer}>
             {/* 스크롤 힌트 그라데이션 */}
-            <LinearGradient colors={['rgba(224, 247, 250, 1)', 'rgba(224, 247, 250, 0)']} style={styles.gradientTop} />
-            
+            <LinearGradient
+              colors={['rgba(224, 247, 250, 1)', 'rgba(224, 247, 250, 0)']}
+              style={styles.gradientTop}
+            />
+
             {/* 프로그램 리스트 ScrollView */}
             <Animated.ScrollView
               contentContainerStyle={styles.programContent}
@@ -67,11 +107,14 @@ function CountryDetail({ route, navigation }) {
               )}
               scrollEventThrottle={16}
               showsVerticalScrollIndicator={false} // 기본 스크롤바 숨기기
+              nestedScrollEnabled={true} // 중첩 스크롤 활성화
               onContentSizeChange={(w, h) => setContentHeight(h)}
               onLayout={(e) => setScrollViewHeight(e.nativeEvent.layout.height)}
             >
               {programList.map((program, index) => (
-                <Text key={index} style={styles.listItem}>{program}</Text>
+                <Text key={index} style={styles.listItem}>
+                  {program}
+                </Text>
               ))}
             </Animated.ScrollView>
 
@@ -91,31 +134,38 @@ function CountryDetail({ route, navigation }) {
             )}
 
             {/* 스크롤 힌트 그라데이션 */}
-            <LinearGradient colors={['rgba(224, 247, 250, 1)', 'rgba(224, 247, 250, 0)']} style={styles.gradientBottom} />
+            <LinearGradient
+              colors={['rgba(224, 247, 250, 0)', 'rgba(224, 247, 250, 1)']}
+              style={styles.gradientBottom}
+            />
           </View>
         ) : (
           <Text style={styles.description}>프로그램 정보가 없습니다.</Text>
         )}
 
-        {/* 주소 */}
-        <Text style={styles.sectionTitle}>주소</Text>
-        <Text style={styles.description}>{countryside.소재지도로명주소 || '주소 정보가 없습니다.'}</Text>
+        {/* 주소 정보 */}
+        <View style={styles.infoRow}>
+          <Ionicons name="location-outline" size={24} color="#555" style={styles.icon} />
+          <Text style={styles.description}>{countryside.소재지도로명주소 || '주소 정보가 없습니다.'}</Text>
+        </View>
 
-        {/* 전화번호 */}
-        <Text style={styles.sectionTitle}>대표 전화번호</Text>
-        <Text style={styles.description}>{countryside.대표전화번호 || '전화번호 정보가 없습니다.'}</Text>
+        {/* 전화번호 정보 */}
+        <View style={styles.infoRow}>
+          <Ionicons name="call-outline" size={24} color="#555" style={styles.icon} />
+          <Text style={styles.description}>{countryside.대표전화번호 || '전화번호 정보가 없습니다.'}</Text>
+        </View>
 
-        {/* 홈페이지 */}
+        {/* 홈페이지 정보 */}
         {countryside.홈페이지주소 ? (
-          <>
-            <Text style={styles.sectionTitle}>홈페이지</Text>
+          <View style={styles.infoRow}>
+            <Ionicons name="link-outline" size={24} color="#555" style={styles.icon} />
             <Text
               style={[styles.description, styles.link]}
               onPress={() => Linking.openURL(countryside.홈페이지주소)}
             >
               {countryside.홈페이지주소}
             </Text>
-          </>
+          </View>
         ) : null}
       </ScrollView>
     </View>
@@ -141,15 +191,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffffaa', // 반투명 배경
     borderRadius: 20,
   },
-  backButtonText: {
-    fontSize: 24,
-    color: '#333',
+  imageContainer: {
+    width: '100%',
+    height: 250, // 고정 높이
+    marginBottom: 16,
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#F4F7F8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageLoader: {
+    position: 'absolute',
+    zIndex: 1,
   },
   image: {
     width: '100%',
-    height: 200,
-    marginBottom: 16,
-    borderRadius: 10,
+    height: '100%',
   },
   name: {
     fontSize: 24,
@@ -167,9 +225,10 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     color: '#666',
+    flex: 1, // 텍스트가 공간을 충분히 차지하도록 설정
   },
   link: {
-    color: '#1e90ff',
+    color: '#333',
     textDecorationLine: 'underline',
   },
   listItem: {
@@ -179,10 +238,10 @@ const styles = StyleSheet.create({
     color: '#444',
   },
   programContainer: {
-    backgroundColor: '#e0f7fa', // 스크롤 박스 배경색
+    backgroundColor: '#F4F7F8', // 스크롤 박스 배경색
     borderRadius: 10,
     padding: 10,
-    maxHeight: 120, // 스크롤뷰 높이 설정
+    height: 120, // 고정 높이로 변경
     marginBottom: 16,
     position: 'relative', // 그라데이션과 스크롤바를 위치시키기 위해
   },
@@ -195,12 +254,12 @@ const styles = StyleSheet.create({
     right: 5,
     width: 4,
     height: '100%',
-    backgroundColor: '#ccc',
+    backgroundColor: '#F4F7F8',
     borderRadius: 2,
   },
   scrollbar: {
     width: 4,
-    backgroundColor: '#1e90ff',
+    backgroundColor: '#ccc',
     borderRadius: 2,
   },
   gradientTop: {
@@ -220,6 +279,15 @@ const styles = StyleSheet.create({
     height: 20,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  icon: {
+    marginRight: 10,
   },
 });
 
