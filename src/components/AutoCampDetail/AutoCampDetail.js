@@ -1,5 +1,5 @@
-// src/components/autocampDetail/autocampDetail.js
-import React from 'react';
+// src/components/AutoCampDetail/AutoCampDetail.js
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,21 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  useWindowDimensions,
+  Linking,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
-import {useWindowDimensions} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-function AutoCampDetail({route, navigation}) {
-  const {autocamp} = route.params;
-  const {width} = useWindowDimensions();
+function AutoCampDetail({ route, navigation }) {
+  const { autocamp } = route.params;
+  const { width } = useWindowDimensions();
+
+  // 이미지 로딩 상태 관리
+  const [imageLoading, setImageLoading] = useState(true);
 
   // 시설 정보를 합쳐서 단어를 검색합니다.
   const facilitiesText = `${autocamp.facilities || ''} ${
@@ -53,59 +60,97 @@ function AutoCampDetail({route, navigation}) {
   };
 
   // 포함된 시설 단어 목록
-  const includedFacilities = facilityWords.filter(word =>
-    facilitiesText.includes(word),
+  const includedFacilities = facilityWords.filter((word) =>
+    facilitiesText.includes(word)
   );
 
   // 주차 가능 여부 확인
   const isParkingAvailable =
     autocamp.parkingleports && autocamp.parkingleports.includes('가능');
-    
-  
+
   // 애견동반 가능 여부 확인
   const isPetAvailable =
     autocamp.chkpetleports && autocamp.chkpetleports.includes('가능');
 
+  // 재사용 가능한 InfoRow 컴포넌트
+  const InfoRow = ({ iconName, text, onPress }) => (
+    <TouchableOpacity
+      style={styles.infoRow}
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      <Ionicons name={iconName} size={24} color="#555" style={styles.icon} />
+      <Text style={[styles.infoText, onPress && styles.link]}>{text}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       {/* 닫기 버튼 */}
       <TouchableOpacity
         onPress={() => navigation.goBack()}
-        style={styles.backButton}>
-        <Text style={styles.backButtonText}>{'<'}</Text>
+        style={styles.backButton}
+      >
+        <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <ScrollView
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {/* 이미지 슬라이더 */}
         {(autocamp.image1 || autocamp.image2) && (
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.imageSlider}>
-            {autocamp.image1 && (
-              <Image
-                source={{uri: autocamp.image1}}
-                style={styles.image}
-                resizeMode="cover"
+          <View style={styles.imageSlider}>
+            {imageLoading && (
+              <ActivityIndicator
+                size="large"
+                color="#1e90ff"
+                style={styles.imageLoader}
               />
             )}
-            {autocamp.image2 && (
-              <Image
-                source={{uri: autocamp.image2}}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            )}
-          </ScrollView>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+            >
+              {autocamp.image1 && (
+                <Image
+                  source={{ uri: autocamp.image1 }}
+                  style={styles.image}
+                  resizeMode="cover"
+                  onLoadEnd={() => setImageLoading(false)}
+                  onError={() => setImageLoading(false)}
+                />
+              )}
+              {autocamp.image2 && (
+                <Image
+                  source={{ uri: autocamp.image2 }}
+                  style={styles.image}
+                  resizeMode="cover"
+                  onLoadEnd={() => setImageLoading(false)}
+                />
+              )}
+            </ScrollView>
+          </View>
         )}
 
         {/* 캠핑장 이름 */}
         <Text style={styles.name}>{autocamp.title}</Text>
 
         {/* 캠핑장 주소 */}
-        <Text style={styles.addr}>{autocamp.addr}</Text>
+        <InfoRow
+          iconName="location-outline"
+          text={autocamp.addr || '주소 정보가 없습니다.'}
+          onPress={() => {
+            if (autocamp.addr) {
+              const url = Platform.select({
+                ios: `maps:0,0?q=${autocamp.addr}`,
+                android: `geo:0,0?q=${autocamp.addr}`,
+              });
+              Linking.openURL(url);
+            }
+          }}
+        />
 
         {/* 시설 아이콘 표시 */}
         <View style={styles.facilityContainer}>
@@ -138,146 +183,156 @@ function AutoCampDetail({route, navigation}) {
         {/* 캠핑장 설명 */}
         {autocamp.description && (
           <>
+            <View style={styles.sectionContainer}>
+              <Ionicons
+                name="information-circle-outline"
+                size={24}
+                color="#555"
+                style={styles.icon}
+              />
+              <Text style={styles.sectionTitle}>소개</Text>
+            </View>
             <RenderHTML
               contentWidth={width - 32}
-              source={{html: autocamp.description}}
+              source={{ html: autocamp.description }}
               tagsStyles={tagsStyles}
+              onLinkPress={(evt, href) => {
+                Linking.openURL(href);
+              }}
             />
           </>
         )}
 
-        {/* 나머지 필드들 */}
-
         {/* 문의 및 안내 */}
         {autocamp.infocenterleports && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>문의 및 안내</Text>
+          <InfoRow
+            iconName="call-outline"
+            text={autocamp.infocenterleports}
+            onPress={() => {
+              const phoneNumber = autocamp.infocenterleports.match(
+                /(\d{2,3}-\d{3,4}-\d{4})/
+              );
+              if (phoneNumber) {
+                Linking.openURL(`tel:${phoneNumber[0]}`);
+              }
+            }}
+          />
+        )}
+
+        {/* 예약 안내 */}
+        {autocamp.reservation && (
+          <>
+            <View style={styles.sectionContainer}>
+              <Ionicons
+                name="document-text-outline"
+                size={24}
+                color="#555"
+                style={styles.icon}
+              />
+              <Text style={styles.sectionTitle}>예약 안내</Text>
+            </View>
             <RenderHTML
               contentWidth={width - 32}
-              source={{html: autocamp.infocenterleports}}
+              source={{ html: autocamp.reservation }}
               tagsStyles={tagsStyles}
+              onLinkPress={(evt, href) => {
+                Linking.openURL(href);
+              }}
             />
-          </View>
+          </>
         )}
 
         {/* 개장기간 */}
         {autocamp.openperiod && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>개장기간</Text>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{html: autocamp.openperiod}}
-              tagsStyles={tagsStyles}
-            />
-          </View>
-        )}
-
-        {/* 주차요금 */}
-        {autocamp.parkingfeeleports && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>주차요금</Text>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{html: autocamp.parkingfeeleports}}
-              tagsStyles={tagsStyles}
-            />
-          </View>
-        )}
-
-        {/* 주차시설 */}
-        {autocamp.parkingleports && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>주차시설</Text>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{html: autocamp.parkingleports}}
-              tagsStyles={tagsStyles}
-            />
-          </View>
-        )}
-
-        {/* 예약안내 */}
-        {autocamp.reservation && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>예약안내</Text>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{html: autocamp.reservation}}
-              tagsStyles={tagsStyles}
-            />
-          </View>
-        )}
-
-        {/* 쉬는날 */}
-        {autocamp.restdateleports && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>쉬는날</Text>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{html: autocamp.restdateleports}}
-              tagsStyles={tagsStyles}
-            />
-          </View>
+          <InfoRow
+            iconName="calendar-outline"
+            text={`개장기간: ${autocamp.openperiod}`}
+          />
         )}
 
         {/* 이용시간 */}
         {autocamp.usetimeleports && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>이용시간</Text>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{html: autocamp.usetimeleports}}
-              tagsStyles={tagsStyles}
-            />
-          </View>
+          <InfoRow
+            iconName="time-outline"
+            text={`이용시간: ${autocamp.usetimeleports}`}
+          />
+        )}
+
+        {/* 쉬는날 */}
+        {autocamp.restdateleports && (
+          <InfoRow
+            iconName="close-circle-outline"
+            text={`쉬는날: ${autocamp.restdateleports}`}
+          />
         )}
 
         {/* 이용요금 */}
         {autocamp.campingfee && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>이용요금</Text>
+          <>
+            <View style={styles.sectionContainer}>
+              <Ionicons
+                name="cash-outline"
+                size={24}
+                color="#555"
+                style={styles.icon}
+              />
+              <Text style={styles.sectionTitle}>이용요금</Text>
+            </View>
             <RenderHTML
               contentWidth={width - 32}
-              source={{html: autocamp.campingfee}}
+              source={{ html: autocamp.campingfee }}
               tagsStyles={tagsStyles}
+              onLinkPress={(evt, href) => {
+                Linking.openURL(href);
+              }}
             />
-          </View>
+          </>
         )}
 
         {/* 부대시설 */}
         {autocamp.facilities && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>부대시설</Text>
+          <>
+            <View style={styles.sectionContainer}>
+              <Ionicons
+                name="construct-outline"
+                size={24}
+                color="#555"
+                style={styles.icon}
+              />
+              <Text style={styles.sectionTitle}>부대시설</Text>
+            </View>
             <RenderHTML
               contentWidth={width - 32}
-              source={{html: autocamp.facilities}}
+              source={{ html: autocamp.facilities }}
               tagsStyles={tagsStyles}
+              onLinkPress={(evt, href) => {
+                Linking.openURL(href);
+              }}
             />
-          </View>
+          </>
         )}
 
         {/* 주요시설 */}
         {autocamp.mainfacilities && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>주요시설</Text>
+          <>
+            <View style={styles.sectionContainer}>
+              <Ionicons
+                name="apps-outline"
+                size={24}
+                color="#555"
+                style={styles.icon}
+              />
+              <Text style={styles.sectionTitle}>주요시설</Text>
+            </View>
             <RenderHTML
               contentWidth={width - 32}
-              source={{html: autocamp.mainfacilities}}
+              source={{ html: autocamp.mainfacilities }}
               tagsStyles={tagsStyles}
+              onLinkPress={(evt, href) => {
+                Linking.openURL(href);
+              }}
             />
-          </View>
-        )}
-
-        {/* 애완동물 동반 가능 */}
-        {autocamp.chkpetleports && (
-          <View style={styles.fieldContainer}>
-            <Text style={styles.sectionTitle}>애완동물 동반 가능</Text>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{html: autocamp.chkpetleports}}
-              tagsStyles={tagsStyles}
-            />
-          </View>
+          </>
         )}
       </ScrollView>
     </View>
@@ -308,23 +363,30 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 10,
+    top: 16,
     left: 16,
     zIndex: 1,
     padding: 8,
     backgroundColor: 'rgba(245, 245, 245, 0)',
     borderRadius: 20,
   },
-  backButtonText: {
-    fontSize: 32,
-    color: '#333',
-  },
   imageSlider: {
     marginBottom: 20,
     marginTop: 15,
+    height: 250,
+    // 이미지 보더 제거
+    // borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#e0f7fa',
+  },
+  imageLoader: {
+    position: 'absolute',
+    zIndex: 1,
+    alignSelf: 'center',
+    top: '50%',
   },
   image: {
-    width: Dimensions.get('window').width,
+    width: Dimensions.get('window').width - 32,
     height: 250,
   },
   name: {
@@ -332,11 +394,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontWeight: 'bold',
     color: '#333',
-    textAlign: 'center',
-  },
-  addr: {
-    fontSize: 20,
-    marginBottom: 16,
     textAlign: 'center',
   },
   facilityContainer: {
@@ -354,17 +411,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
   },
-  sectionTitle: {
-    fontSize: 20,
+  sectionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 24,
     marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    marginLeft: 10,
     fontWeight: 'bold',
     color: '#555',
   },
-  fieldText: {
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  infoText: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 16,
+    flex: 1,
+  },
+  link: {
+    color: '#1e90ff',
+    textDecorationLine: 'underline',
   },
 });
 
