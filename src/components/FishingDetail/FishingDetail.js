@@ -12,15 +12,14 @@ import {
 import RenderHTML from 'react-native-render-html';
 import {useWindowDimensions} from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { FontAwesome } from '@expo/vector-icons';
 
 function FishingDetail({route, navigation}) {
   const {fishing} = route.params;
   const {width} = useWindowDimensions();
 
   // 시설 정보를 합쳐서 단어를 검색합니다.
-  const facilitiesText = `${fishing.facilities || ''} ${
-    fishing.mainfacilities || ''
-  }`;
+  const facilitiesText = `${fishing.facilities || ''}`;
 
   // 검색할 단어 목록
   const facilityWords = [
@@ -36,13 +35,12 @@ function FishingDetail({route, navigation}) {
   // 단어와 아이콘 매핑
   const facilityIcons = {
     화장실: 'toilet',
-    개수대: 'faucet',
     취사: 'silverware-fork-knife',
-    매점: 'power-plug',
+    매점: 'alpha-m-box',
     샤워: 'shower',
     바베큐: 'barbecue', // 'wifi'는 'barbecue'로 변경 (적절한 아이콘 선택)
     식당: 'silverware-fork-knife', // 'water-boiler'는 'silverware-fork-knife'로 변경
-    대여: 'fire',
+    대여: 'account-convert',
     에어컨: 'air-conditioner',
   };
 
@@ -92,10 +90,10 @@ function FishingDetail({route, navigation}) {
           </ScrollView>
         )}
 
-        {/* 캠핑장 이름 */}
+        {/* 낚시터 이름 */}
         <Text style={styles.name}>{fishing.title}</Text>
 
-        {/* 캠핑장 주소 */}
+        {/* 낚시터 주소 */}
         <Text style={styles.addr}>{fishing.addr}</Text>
 
         {/* 시설 아이콘 표시 */}
@@ -286,8 +284,8 @@ const styles = StyleSheet.create({
   image: {
     width: Dimensions.get('window').width - 32, // 콘텐츠 패딩을 고려
     height: 250,
-    marginRight: 10, // 이미지 간 간격
-    borderRadius: 10, // 이미지 모서리 둥글게
+    // marginRight: 10, // 이미지 간 간격
+    // borderRadius: 10, // 이미지 모서리 둥글게
   },
   name: {
     fontSize: 26,
