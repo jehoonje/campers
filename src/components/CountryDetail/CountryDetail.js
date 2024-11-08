@@ -211,7 +211,8 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 24,
-    marginBottom: 16,
+    textAlign: 'center',
+    marginBottom: 40,
     fontWeight: 'bold',
     color: '#333',
   },
