@@ -1,5 +1,5 @@
 // src/components/BeachDetail/BeachDetail.js
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,34 +7,68 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
-import {useWindowDimensions} from 'react-native'; // 화면 너비를 가져오기 위해 사용
+import { useWindowDimensions } from 'react-native'; // 화면 너비를 가져오기 위해 사용
 import RenderHTML from 'react-native-render-html';
+import Ionicons from 'react-native-vector-icons/Ionicons'; // 아이콘 라이브러리 추가
 
-const BeachDetail = ({route, navigation}) => {
-  const {beach} = route.params;
-  const {width} = useWindowDimensions();
+const BeachDetail = ({ route, navigation }) => {
+  const { beach } = route.params;
+  const { width } = useWindowDimensions();
+
+  // 이미지 로딩 상태 관리
+  const [imageLoading, setImageLoading] = useState(true);
+
+  // 재사용 가능한 InfoRow 컴포넌트
+  const InfoRow = ({ iconName, text, onPress }) => (
+    <TouchableOpacity
+      style={styles.infoRow}
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      <Ionicons name={iconName} size={24} color="#555" style={styles.icon} />
+      <Text style={[styles.infoText, onPress && styles.link]}>{text}</Text>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       {/* 뒤로가기 버튼 */}
       <TouchableOpacity
         onPress={() => navigation.goBack()}
-        style={styles.backButton}>
-        <Text style={styles.backButtonText}>{'<'}</Text>
+        style={styles.backButton}
+      >
+        <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {/* 이미지 */}
-        {beach.image1 ? (
-          <Image source={{uri: beach.image1}} style={styles.image} />
-        ) : (
-          <Image
-            source={require('../../assets/placeholder.png')}
-            style={styles.image}
-          />
-        )}
+        <View style={styles.imageContainer}>
+          {imageLoading && (
+            <ActivityIndicator
+              size="large"
+              color="#1e90ff"
+              style={styles.imageLoader}
+            />
+          )}
+          {beach.image1 ? (
+            <Image
+              source={{ uri: beach.image1 }}
+              style={styles.image}
+              resizeMode="cover"
+              onLoadEnd={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
+            />
+          ) : (
+            <Image
+              source={require('../../assets/placeholder.png')}
+              style={styles.image}
+              resizeMode="cover"
+              onLoadEnd={() => setImageLoading(false)}
+            />
+          )}
+        </View>
 
         {/* 해수욕장 이름 */}
         <Text style={styles.title}>{beach.title || '해수욕장 이름 없음'}</Text>
@@ -42,18 +76,37 @@ const BeachDetail = ({route, navigation}) => {
         {/* 주소 */}
         {beach.addr && (
           <>
-            <Text style={styles.sectionTitle}>주소</Text>
-            <Text style={styles.address}>{beach.addr}</Text>
+            <InfoRow
+              iconName="location-outline"
+              text={beach.addr || '주소 정보가 없습니다.'}
+              onPress={() => {
+                if (beach.addr) {
+                  const url = Platform.select({
+                    ios: `maps:0,0?q=${beach.addr}`,
+                    android: `geo:0,0?q=${beach.addr}`,
+                  });
+                  Linking.openURL(url);
+                }
+              }}
+            />
           </>
         )}
 
         {/* 소개 */}
         {beach.description && (
           <>
-            <Text style={styles.sectionTitle}>소개</Text>
+            <View style={styles.sectionContainer}>
+              <Ionicons
+                name="information-circle-outline"
+                size={24}
+                color="#555"
+                style={styles.icon}
+              />
+              <Text style={styles.sectionTitle}>소개</Text>
+            </View>
             <RenderHTML
               contentWidth={width - 32} // 패딩을 고려하여 너비 조정
-              source={{html: beach.description}}
+              source={{ html: beach.description }}
               tagsStyles={tagsStyles}
             />
           </>
@@ -87,23 +140,30 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 10,
+    top: 16,
     left: 16,
     zIndex: 1,
     padding: 8,
     backgroundColor: 'rgba(245, 245, 245, 0)', // 반투명 배경
     borderRadius: 20,
   },
-  backButtonText: {
-    fontSize: 32,
-    color: '#333',
+  imageContainer: {
+    marginBottom: 20,
+    marginTop: 15,
+    height: 250,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#e0f7fa',
+  },
+  imageLoader: {
+    position: 'absolute',
+    zIndex: 1,
+    alignSelf: 'center',
+    top: '50%',
   },
   image: {
     width: '100%',
-    height: 250,
-    marginBottom: 20,
-    marginTop: 15,
-    borderRadius: 10,
+    height: '100%',
   },
   title: {
     fontSize: 26,
@@ -112,22 +172,35 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
-  sectionTitle: {
-    fontSize: 20,
+  sectionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 24,
     marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    marginLeft: 8,
     fontWeight: 'bold',
     color: '#555',
   },
-  address: {
-    fontSize: 16,
-    color: '#666',
-    lineHeight: 24,
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
   },
-  description: {
+  icon: {
+    marginRight: 8,
+  },
+  infoText: {
     fontSize: 16,
     color: '#666',
-    lineHeight: 24,
+    flex: 1,
+  },
+  link: {
+    color: '#1e90ff',
+    textDecorationLine: 'underline',
   },
 });
 
