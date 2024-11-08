@@ -7,6 +7,7 @@ import RightDrawer from './components/RightDrawer/RightDrawer';
 import {useDrawerStatus} from '@react-navigation/drawer';
 import {useNavigation} from '@react-navigation/native'; // useNavigation 임포트
 
+
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
   const [showRestStops, setShowRestStops] = useState(false);
