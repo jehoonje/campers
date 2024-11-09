@@ -1,5 +1,5 @@
 // src/screens/LoginScreen.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
