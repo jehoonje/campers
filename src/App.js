@@ -25,7 +25,7 @@ const MainStack = () => (
     <Stack.Screen
       name="AppContent"
       component={AppContent}
-      options={{ headerShown: false }} // AppContent 내부에서 헤더를 관리
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="CampingDetail"
@@ -57,11 +57,6 @@ const MainStack = () => (
       component={CampsiteDetail}
       options={{ headerShown: false }}
     />
-  </Stack.Navigator>
-);
-
-const AuthStack = () => (
-  <Stack.Navigator>
     <Stack.Screen
       name="LoginScreen"
       component={LoginScreen}
@@ -75,7 +70,15 @@ const AuthStack = () => (
   </Stack.Navigator>
 );
 
-const AppContentWrapper = () => {
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContainer />
+    </AuthProvider>
+  );
+};
+
+const AppContainer = () => {
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
 
   useEffect(() => {
@@ -87,45 +90,27 @@ const AppContentWrapper = () => {
   }, []);
 
   useEffect(() => {
-    // 초기 설정 또는 데이터 로딩 후 스플래시 스크린 숨기기
     RNBootSplash.hide({ fade: true });
   }, []);
 
-  if (isLoggedIn === null) {
-    // 아직 로그인 상태를 확인 중이면 로딩 스크린을 보여줄 수 있습니다.
-    return null;
-  }
-
   return (
     <NavigationContainer>
-      {isLoggedIn ? (
-        <Drawer.Navigator
-          initialRouteName="Main"
-          screenOptions={{
-            headerShown: false, // 헤더는 AppContent에서 관리
-            drawerType: 'front',
-            drawerStyle: {
-              marginTop: 60, // 헤더 높이에 맞춤
-              width: 250,
-            },
-            overlayColor: 'transparent',
-          }}
-          drawerContent={(props) => <LeftDrawerContent {...props} />}
-        >
-          <Drawer.Screen name="Main" component={MainStack} />
-        </Drawer.Navigator>
-      ) : (
-        <AuthStack />
-      )}
+      <Drawer.Navigator
+        initialRouteName="Main"
+        screenOptions={{
+          headerShown: false,
+          drawerType: 'front',
+          drawerStyle: {
+            marginTop: 60,
+            width: 250,
+          },
+          overlayColor: 'transparent',
+        }}
+        drawerContent={props => <LeftDrawerContent {...props} />}
+      >
+        <Drawer.Screen name="Main" component={MainStack} />
+      </Drawer.Navigator>
     </NavigationContainer>
-  );
-};
-
-const App = () => {
-  return (
-    <AuthProvider>
-      <AppContentWrapper />
-    </AuthProvider>
   );
 };
 
