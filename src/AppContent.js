@@ -1,12 +1,11 @@
 // src/AppContent.js
-import React, {useState, useEffect, useRef} from 'react';
-import {SafeAreaView, View, StyleSheet} from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { SafeAreaView, View, StyleSheet } from 'react-native';
 import Header from './components/Header';
 import MainContent from './screens/MainContent';
 import RightDrawer from './components/RightDrawer/RightDrawer';
-import {useDrawerStatus} from '@react-navigation/drawer';
-import {useNavigation} from '@react-navigation/native'; // useNavigation 임포트
-
+import { useDrawerStatus } from '@react-navigation/drawer';
+import { useNavigation } from '@react-navigation/native';
 
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
@@ -95,10 +94,10 @@ const AppContent = () => {
     setShowRestStops(prev => !prev);
     console.log('휴게소 마커 토글:', !showRestStops);
   };
-  
+
   const toggleFishingsFunc = () => {
     setShowFishings(prev => !prev);
-    console.log('휴게소 마커 토글:', !showFishings);
+    console.log('낚시터 마커 토글:', !showFishings);
   };
 
   const toggleChargingStationsFunc = () => {
@@ -179,7 +178,7 @@ const AppContent = () => {
       />
 
       {/* 메인 콘텐츠 */}
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         <MainContent
           ref={mainContentRef}
           showAllMarkers={showAllMarkers}

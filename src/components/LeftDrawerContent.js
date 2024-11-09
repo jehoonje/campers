@@ -4,9 +4,21 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native'; // useNavigation 훅 임포트
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useContext } from 'react';
+import { AuthContext } from '../AuthContext';
+
+
 
 const LeftDrawerContent = () => {
   const navigation = useNavigation(); // navigation 객체 가져오기
+
+  const { setIsLoggedIn } = useContext(AuthContext);
+  
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('userToken');
+    setIsLoggedIn(false);
+  };
 
   return (
     <DrawerContentScrollView>
@@ -21,6 +33,15 @@ const LeftDrawerContent = () => {
         >
           <Ionicons name="log-in-outline" size={24} color="#333" style={styles.icon} />
           <Text style={styles.loginText}>로그인</Text>
+        </TouchableOpacity>
+
+        {/* 로그아웃 버튼 */}
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={24} color="#333" style={styles.icon} />
+          <Text style={styles.logoutText}>로그아웃</Text>
         </TouchableOpacity>
 
         {/* 추가적인 드로어 메뉴 항목 */}
