@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SignupScreen = () => {
   const [step, setStep] = useState(1); // 현재 스텝을 추적하는 상태
@@ -26,18 +27,25 @@ const SignupScreen = () => {
     }
 
     // 서버로 이메일 전송하여 인증번호 요청
-    fetch('http://your-server-url.com/api/request-verification-code', {
+    fetch('http://10.0.2.2:8080/api/request-verification-code', { // 실제 서버 주소로 변경
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setStep(2); // 다음 스텝으로 이동
-          Alert.alert('인증번호 발송', '입력하신 이메일로 인증번호가 발송되었습니다.');
-        } else {
-          Alert.alert('오류', data.message || '인증번호 발송에 실패했습니다.');
+      .then((response) => response.text()) // 응답을 텍스트로 받음
+      .then((text) => {
+        console.log('서버 응답:', text); // 서버 응답 로그
+        try {
+          const data = JSON.parse(text);
+          if (data.success) {
+            setStep(2); // 다음 스텝으로 이동
+            Alert.alert('인증번호 발송', '입력하신 이메일로 인증번호가 발송되었습니다.');
+          } else {
+            Alert.alert('오류', data.message || '인증번호 발송에 실패했습니다.');
+          }
+        } catch (error) {
+          console.error('JSON 파싱 오류:', error);
+          Alert.alert('오류', '서버 응답을 이해할 수 없습니다.');
         }
       })
       .catch((error) => {
@@ -54,18 +62,25 @@ const SignupScreen = () => {
     }
 
     // 서버로 인증번호 검증 요청
-    fetch('http://your-server-url.com/api/verify-code', {
+    fetch('http://10.0.2.2:8080/api/verify-code', { // 실제 서버 주소로 변경
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, code: verificationCode }),
     })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setStep(3); // 다음 스텝으로 이동
-          Alert.alert('인증 성공', '인증번호가 확인되었습니다.');
-        } else {
-          Alert.alert('오류', data.message || '인증번호가 일치하지 않습니다.');
+      .then((response) => response.text()) // 응답을 텍스트로 받음
+      .then((text) => {
+        console.log('서버 응답:', text); // 서버 응답 로그
+        try {
+          const data = JSON.parse(text);
+          if (data.success) {
+            setStep(3); // 다음 스텝으로 이동
+            Alert.alert('인증 성공', '인증번호가 확인되었습니다.');
+          } else {
+            Alert.alert('오류', data.message || '인증번호가 일치하지 않습니다.');
+          }
+        } catch (error) {
+          console.error('JSON 파싱 오류:', error);
+          Alert.alert('오류', '서버 응답을 이해할 수 없습니다.');
         }
       })
       .catch((error) => {
@@ -82,17 +97,24 @@ const SignupScreen = () => {
     }
 
     // 서버로 회원가입 요청
-    fetch('http://your-server-url.com/api/signup', {
+    fetch('http://10.0.2.2:8080/api/signup', { // 실제 서버 주소로 변경
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          setStep(4); // 가입 완료 스텝으로 이동
-        } else {
-          Alert.alert('회원가입 실패', data.message || '다시 시도해주세요.');
+      .then((response) => response.text()) // 응답을 텍스트로 받음
+      .then((text) => {
+        console.log('서버 응답:', text); // 서버 응답 로그
+        try {
+          const data = JSON.parse(text);
+          if (data.success) {
+            setStep(4); // 가입 완료 스텝으로 이동
+          } else {
+            Alert.alert('회원가입 실패', data.message || '다시 시도해주세요.');
+          }
+        } catch (error) {
+          console.error('JSON 파싱 오류:', error);
+          Alert.alert('오류', '서버 응답을 이해할 수 없습니다.');
         }
       })
       .catch((error) => {
@@ -196,7 +218,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center', // 수직 가운데 정렬
-    alignItems: 'center',     // 수평 가운데 정렬
+    alignItems: 'center', // 수평 가운데 정렬
   },
   backButton: {
     position: 'absolute',
@@ -206,7 +228,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   innerContainer: {
-    width: '80%',           // 화면 너비의 80%
+    width: '80%', // 화면 너비의 80%
     alignItems: 'center',
   },
   title: {
