@@ -1,5 +1,5 @@
 // src/screens/LoginScreen.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -11,26 +11,29 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // 아이콘 라이브러리 추가
 import { useNavigation } from '@react-navigation/native'; // useNavigation 훅 임포트
+import { AuthContext } from '../AuthContext';
 
 const LoginScreen = () => {
-  const [id, setId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation(); // 네비게이션 객체 가져오기
+  const { setIsLoggedIn } = useContext(AuthContext);
 
   const handleLogin = () => {
     // 로그인 로직 구현 (예: 서버에 요청)
     // 성공 시 토큰 저장 및 메인 화면으로 이동
-    fetch('http://your-server-url.com/api/login', {
+    fetch('http://10.0.2.2:8080/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, password }),
+      body: JSON.stringify({ email, password }),
     })
       .then((response) => response.json())
       .then(async (data) => {
         if (data.token) {
           await AsyncStorage.setItem('userToken', data.token);
           Alert.alert('로그인 성공', '환영합니다!');
-          navigation.navigate('Main'); // 메인 화면으로 이동
+          setIsLoggedIn(true); // 로그인 상태 업데이트
+          navigation.navigate('AppContent');
         } else {
           Alert.alert('로그인 실패', '아이디 또는 비밀번호를 확인해주세요.');
         }
@@ -60,9 +63,9 @@ const LoginScreen = () => {
 
         <TextInput
           style={styles.input}
-          placeholder="아이디"
-          value={id}
-          onChangeText={setId}
+          placeholder="이메일"
+          value={email}
+          onChangeText={setEmail}
           autoCapitalize="none"
         />
 
