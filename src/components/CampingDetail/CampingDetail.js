@@ -1,5 +1,5 @@
 // src/components/CampingDetail/CampingDetail.js
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,15 @@ import {
   useWindowDimensions,
   ActivityIndicator,
   Linking,
+  Modal,
 } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import ReviewComponent from '../ReviewComponent/ReviewComponent';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // 추가된 아이콘 라이브러리
 import PropTypes from 'prop-types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 // Define keyword categories and their corresponding icons
 const FACILITY_KEYWORDS = [
@@ -98,6 +102,31 @@ function CampingDetail({ route, navigation }) {
   const { campground } = route.params;
   const { width } = useWindowDimensions();
 
+  const [activeTab, setActiveTab] = useState('detail'); 
+  const [averageRating, setAverageRating] = useState(0);
+
+  // 탭 버튼 클릭 핸들러
+  const handleTabPress = (tab) => {
+    setActiveTab(tab);
+  };
+
+  // 평균 별점 가져오기
+useEffect(() => {
+  const fetchAverageRating = async () => {
+    try {
+      const response = await axios.get(
+        `http://10.0.2.2:8080/api/reviews/average/Campground/${campground.id}`
+      );
+      setAverageRating(response.data.averageRating);
+    } catch (error) {
+      console.error('Error fetching average rating:', error);
+      setAverageRating(0);
+    }
+  };
+
+  fetchAverageRating();
+}, [campground.id]);
+
   // Combine 'feature' and 'description' fields for keyword search
   const combinedText = useMemo(() => {
     const feature = campground.feature || '';
@@ -139,72 +168,142 @@ function CampingDetail({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
-      <ScrollView
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false} // 전체 스크롤바 숨기기
-      >
-        {/* 캠핑장 이미지 */}
-        {campground.imageUrl && (
-          <Image source={{ uri: campground.imageUrl }} style={styles.image} />
-        )}
+      {/* 캠핑장 이미지 */}
+      {campground.imageUrl && (
+        <Image source={{ uri: campground.imageUrl }} style={styles.image} />
+      )}
 
-        {/* 캠핑장 이름 */}
-        <Text style={styles.name}>{campground.name}</Text>
+      {/* 캠핑장 이름 */}
+      <Text style={styles.name}>{campground.name}</Text>
 
-        {/* 시설 아이콘 표시 */}
-        {matchedFacilities.length > 0 && (
-          <View style={styles.facilityContainer}>
-            {matchedFacilities.map((facility, index) => (
-              <FacilityIcon
-                key={index}
-                iconName={facility.icon}
-                label={facility.label}
-              />
-            ))}
-          </View>
-        )}
+      {/* 평균 별점 표시 */}
+      <View style={styles.ratingContainer}>
+        {Array.from({ length: 5 }, (_, index) => {
+          const filled = index < Math.round(averageRating);
+          return (
+            <MaterialCommunityIcons
+              key={index}
+              name={filled ? 'star' : 'star-outline'}
+              size={24}
+              color={filled ? '#FFD700' : '#ccc'}
+            />
+          );
+        })}
+        <Text style={styles.averageRatingText}>
+          {averageRating.toFixed(1)}
+        </Text>
+      </View>
 
-        {/* 주소 정보 */}
-        <InfoRow
-          iconName="location-outline"
-          text={campground.address || '주소 정보가 없습니다.'}
-          onPress={() => {
-            if (campground.address) {
-              const url = Platform.select({
-                ios: `maps:0,0?q=${campground.address}`,
-                android: `geo:0,0?q=${campground.address}`,
-              });
-              Linking.openURL(url);
-            }
-          }}
-        />
+      {/* 탭 버튼 */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === 'detail' && styles.activeTabButton,
+          ]}
+          onPress={() => handleTabPress('detail')}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === 'detail'
+                ? styles.activeTabButtonText
+                : styles.inactiveTabButtonText,
+            ]}
+          >
+            Detail
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === 'review' && styles.activeTabButton,
+          ]}
+          onPress={() => handleTabPress('review')}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === 'review'
+                ? styles.activeTabButtonText
+                : styles.inactiveTabButtonText,
+            ]}
+          >
+            Review
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* 소개 정보 */}
-        <View style={styles.sectionContainer}>
-          <Ionicons name="information-outline" size={24} color="#555" style={styles.icon} />
-          <Text style={styles.sectionTitle}>소개</Text>
-        </View>
-        {campground.description && (
-          <RenderHTML
-            contentWidth={width - 32} // 패딩을 고려하여 너비 조정
-            source={{ html: campground.description }}
-            tagsStyles={tagsStyles}
-            accessible={true}
-            onLinkPress={(evt, href) => {
-              Linking.openURL(href);
+      {/* 탭 내용 */}
+      {activeTab === 'detail' ? (
+        // Detail 내용
+        <ScrollView
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 시설 아이콘 표시 */}
+          {matchedFacilities.length > 0 && (
+            <View style={styles.facilityContainer}>
+              {matchedFacilities.map((facility, index) => (
+                <FacilityIcon
+                  key={index}
+                  iconName={facility.icon}
+                  label={facility.label}
+                />
+              ))}
+            </View>
+          )}
+
+          {/* 주소 정보 */}
+          <InfoRow
+            iconName="location-outline"
+            text={campground.address || '주소 정보가 없습니다.'}
+            onPress={() => {
+              if (campground.address) {
+                const url = Platform.select({
+                  ios: `maps:0,0?q=${campground.address}`,
+                  android: `geo:0,0?q=${campground.address}`,
+                });
+                Linking.openURL(url);
+              }
             }}
           />
-        )}
 
-        {/* 홈페이지 정보 */}
-        {campground.website && (
-          <InfoRow
-            iconName="link-outline"
-            text={campground.website}
-            onPress={() => Linking.openURL(campground.website)}
-          />
-        )}
-      </ScrollView>
+          {/* 소개 정보 */}
+          <View style={styles.sectionContainer}>
+            <Ionicons
+              name="information-outline"
+              size={24}
+              color="#555"
+              style={styles.icon}
+            />
+            <Text style={styles.sectionTitle}>소개</Text>
+          </View>
+          {campground.description && (
+            <RenderHTML
+              contentWidth={width - 32}
+              source={{ html: campground.description }}
+              tagsStyles={tagsStyles}
+              accessible={true}
+              onLinkPress={(evt, href) => {
+                Linking.openURL(href);
+              }}
+            />
+          )}
+
+          {/* 홈페이지 정보 */}
+          {campground.website && (
+            <InfoRow
+              iconName="link-outline"
+              text={campground.website}
+              onPress={() => Linking.openURL(campground.website)}
+            />
+          )}
+        </ScrollView>
+      ) : (
+        // Review 내용
+        <ReviewComponent contentType="Campground" contentId={campground.id} />
+      )}
     </View>
   );
 }
@@ -238,7 +337,8 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingBottom: 10,
+    marginTop:10,
   },
   backButton: {
     position: 'absolute',
@@ -253,7 +353,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 24,
-    marginBottom: 12,
+    marginBottom: 6,
   },
   sectionTitle: {
     fontSize: 20,
@@ -264,9 +364,44 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: 250,
-    marginBottom: 20,
+    marginBottom: 10,
     marginTop: 15,
     // borderRadius: 10, // 보더 제거
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderColor: 'transparent',
+  },
+  activeTabButton: {
+    borderColor: '#333', // 선택된 탭의 하단 보더 색상
+  },
+  tabButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  activeTabButtonText: {
+    color: '#333', // 선택된 탭의 글씨 색상
+  },
+  inactiveTabButtonText: {
+    color: '#aaa', // 선택되지 않은 탭의 글씨 색상
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  averageRatingText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#333',
   },
   name: {
     fontSize: 26,
@@ -283,7 +418,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 5,
   },
   facilityItem: {
     alignItems: 'center',
@@ -304,7 +439,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 16,
-    marginBottom: 8,
   },
   icon: {
     marginRight: 10,
