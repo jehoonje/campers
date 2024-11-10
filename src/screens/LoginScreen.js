@@ -33,6 +33,7 @@ const LoginScreen = () => {
           await AsyncStorage.setItem('userToken', data.token);
           Alert.alert('로그인 성공', '환영합니다!');
           setIsLoggedIn(true); // 로그인 상태 업데이트
+          navigation.navigate('AppContent');
         } else {
           Alert.alert('로그인 실패', '아이디 또는 비밀번호를 확인해주세요.');
         }
