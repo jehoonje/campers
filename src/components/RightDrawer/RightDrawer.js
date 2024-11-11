@@ -61,7 +61,6 @@ const RightDrawer = ({
     {name: '낚시터', icon: 'fish', lib: 'FontAwesome5'},
     {name: '와이파이', icon: 'wifi', lib: 'FontAwesome'},
     {name: '휴게소', icon: 'coffee', lib: 'FontAwesome'},
-    {name: '주유소', icon: 'gas-pump', lib: 'FontAwesome5'},
   ];
 
   return (

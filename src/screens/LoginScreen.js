@@ -7,45 +7,65 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // 아이콘 라이브러리 추가
 import { useNavigation } from '@react-navigation/native'; // useNavigation 훅 임포트
 import { AuthContext } from '../AuthContext';
+import axiosInstance from '../utils/axiosInstance'; // 중앙화된 Axios 인스턴스 임포트
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigation = useNavigation(); // 네비게이션 객체 가져오기
+  const navigation = useNavigation();
   const { setIsLoggedIn } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // 로그인 로직 구현 (예: 서버에 요청)
-    // 성공 시 토큰 저장 및 메인 화면으로 이동
-    fetch('http://10.0.2.2:8080/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-      .then((response) => response.json())
-      .then(async (data) => {
-        if (data.token) {
-          await AsyncStorage.setItem('userToken', data.token);
-          Alert.alert('로그인 성공', '환영합니다!');
-          setIsLoggedIn(true); // 로그인 상태 업데이트
-          navigation.navigate('AppContent');
-        } else {
-          Alert.alert('로그인 실패', '아이디 또는 비밀번호를 확인해주세요.');
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('입력 오류', '이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axiosInstance.post('/login', {
+        email,
+        password,
       });
+
+      console.log('서버 응답:', response.data); // 응답 데이터 로그 출력
+
+      const { accessToken, refreshToken, message } = response.data;
+
+      if (accessToken && refreshToken) {
+        await AsyncStorage.setItem('accessToken', accessToken);
+        await AsyncStorage.setItem('refreshToken', refreshToken);
+        Alert.alert('로그인 성공', '환영합니다!');
+        setIsLoggedIn(true);
+        navigation.navigate('AppContent');
+      } else if (message) {
+        Alert.alert('로그인 실패', message);
+      } else {
+        Alert.alert('로그인 실패', '아이디 또는 비밀번호를 확인해주세요.');
+      }
+    } catch (error) {
+      console.error('로그인 오류:', error);
+      if (error.response && error.response.data && error.response.data.message) {
+        Alert.alert('로그인 실패', error.response.data.message);
+      } else {
+        Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleKakaoLogin = () => {
     // 카카오 로그인 로직 구현
+    Alert.alert('카카오 로그인', '카카오 로그인 기능은 아직 구현되지 않았습니다.');
   };
 
   return (
@@ -67,6 +87,7 @@ const LoginScreen = () => {
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
+          keyboardType="email-address"
         />
 
         <TextInput
@@ -77,17 +98,22 @@ const LoginScreen = () => {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Sign In</Text>
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Sign In</Text>
+          )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.kakaoButton} onPress={handleKakaoLogin}>
-          <Text style={styles.buttonText}>Kakao Login</Text>
+        <TouchableOpacity style={styles.kakaoButton} onPress={handleKakaoLogin} disabled={loading}>
+          <Text style={[styles.buttonText, { color: '#000' }]}>Kakao Login</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.signupButton}
           onPress={() => navigation.navigate('SignupScreen')}
+          disabled={loading}
         >
           <Text style={styles.signupText}>Sign up</Text>
         </TouchableOpacity>
@@ -136,6 +162,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     marginBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   kakaoButton: {
     width: '100%',          // 부모 컨테이너의 100%
@@ -143,6 +171,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     marginBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
     color: '#333',
