@@ -1,5 +1,5 @@
 // src/components/AutoCampDetail/AutoCampDetail.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,10 +16,39 @@ import {
 import RenderHTML from 'react-native-render-html';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import ReviewComponent from '../ReviewComponent/ReviewComponent';
+import axios from 'axios';
+import PropTypes from 'prop-types';
 
 function AutoCampDetail({ route, navigation }) {
   const { autocamp } = route.params;
   const { width } = useWindowDimensions();
+
+  // 탭 상태 관리
+  const [activeTab, setActiveTab] = useState('detail');
+  const [averageRating, setAverageRating] = useState(0);
+
+  // 탭 버튼 클릭 핸들러
+  const handleTabPress = (tab) => {
+    setActiveTab(tab);
+  };
+
+  // 평균 별점 가져오기
+  useEffect(() => {
+    const fetchAverageRating = async () => {
+      try {
+        const response = await axios.get(
+          `http://10.0.2.2:8080/api/reviews/average/AutoCamp/${autocamp.id}`
+        );
+        setAverageRating(response.data.averageRating);
+      } catch (error) {
+        console.error('Error fetching average rating:', error);
+        setAverageRating(0);
+      }
+    };
+
+    fetchAverageRating();
+  }, [autocamp.id]);
 
   // 이미지 로딩 상태 관리
   const [imageLoading, setImageLoading] = useState(true);
@@ -78,11 +107,19 @@ function AutoCampDetail({ route, navigation }) {
       style={styles.infoRow}
       onPress={onPress}
       disabled={!onPress}
+      accessible={true}
+      accessibilityLabel={text}
     >
       <Ionicons name={iconName} size={24} color="#555" style={styles.icon} />
       <Text style={[styles.infoText, onPress && styles.link]}>{text}</Text>
     </TouchableOpacity>
   );
+
+  InfoRow.propTypes = {
+    iconName: PropTypes.string.isRequired,
+    text: PropTypes.string.isRequired,
+    onPress: PropTypes.func,
+  };
 
   return (
     <View style={styles.container}>
@@ -90,254 +127,334 @@ function AutoCampDetail({ route, navigation }) {
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={styles.backButton}
+        accessible={true}
+        accessibilityLabel="뒤로 가기"
       >
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
-      <ScrollView
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* 이미지 슬라이더 */}
-        {(autocamp.image1 || autocamp.image2) && (
-          <View style={styles.imageSlider}>
-            {imageLoading && (
-              <ActivityIndicator
-                size="large"
-                color="#1e90ff"
-                style={styles.imageLoader}
+      {/* 캠핑장 이미지 */}
+      {(autocamp.image1 || autocamp.image2) && (
+        <View style={styles.imageSlider}>
+          {imageLoading && (
+            <ActivityIndicator
+              size="large"
+              color="#1e90ff"
+              style={styles.imageLoader}
+            />
+          )}
+          <ScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+          >
+            {autocamp.image1 && (
+              <Image
+                source={{ uri: autocamp.image1 }}
+                style={styles.image}
+                resizeMode="cover"
+                onLoadEnd={() => setImageLoading(false)}
+                onError={() => setImageLoading(false)}
               />
             )}
-            <ScrollView
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-            >
-              {autocamp.image1 && (
-                <Image
-                  source={{ uri: autocamp.image1 }}
-                  style={styles.image}
-                  resizeMode="cover"
-                  onLoadEnd={() => setImageLoading(false)}
-                  onError={() => setImageLoading(false)}
-                />
-              )}
-              {autocamp.image2 && (
-                <Image
-                  source={{ uri: autocamp.image2 }}
-                  style={styles.image}
-                  resizeMode="cover"
-                  onLoadEnd={() => setImageLoading(false)}
-                />
-              )}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* 캠핑장 이름 */}
-        <Text style={styles.name}>{autocamp.title}</Text>
-
-        {/* 캠핑장 주소 */}
-        <InfoRow
-          iconName="location-outline"
-          text={autocamp.addr || '주소 정보가 없습니다.'}
-          onPress={() => {
-            if (autocamp.addr) {
-              const url = Platform.select({
-                ios: `maps:0,0?q=${autocamp.addr}`,
-                android: `geo:0,0?q=${autocamp.addr}`,
-              });
-              Linking.openURL(url);
-            }
-          }}
-        />
-
-        {/* 시설 아이콘 표시 */}
-        <View style={styles.facilityContainer}>
-          {includedFacilities.map((facility, index) => (
-            <View key={index} style={styles.facilityItem}>
-              <MaterialCommunityIcons
-                name={facilityIcons[facility]}
-                size={32}
-                color="#555"
+            {autocamp.image2 && (
+              <Image
+                source={{ uri: autocamp.image2 }}
+                style={styles.image}
+                resizeMode="cover"
+                onLoadEnd={() => setImageLoading(false)}
               />
-              <Text style={styles.facilityText}>{facility}</Text>
-            </View>
-          ))}
-          {/* 주차 가능 아이콘 추가 */}
-          {isParkingAvailable && (
-            <View style={styles.facilityItem}>
-              <MaterialCommunityIcons name="parking" size={32} color="#555" />
-              <Text style={styles.facilityText}>주차 가능</Text>
-            </View>
-          )}
-          {/* 애견 동반 가능 아이콘 추가 */}
-          {isPetAvailable && (
-            <View style={styles.facilityItem}>
-              <MaterialCommunityIcons name="dog" size={32} color="#555" />
-              <Text style={styles.facilityText}>반려 동물</Text>
-            </View>
-          )}
+            )}
+          </ScrollView>
         </View>
+      )}
 
-        {/* 캠핑장 설명 */}
-        {autocamp.description && (
-          <>
-            <View style={styles.sectionContainer}>
-              <Ionicons
-                name="information-circle-outline"
-                size={24}
-                color="#555"
-                style={styles.icon}
-              />
-              <Text style={styles.sectionTitle}>소개</Text>
-            </View>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{ html: autocamp.description }}
-              tagsStyles={tagsStyles}
-              onLinkPress={(evt, href) => {
-                Linking.openURL(href);
-              }}
+      {/* 캠핑장 이름 */}
+      <Text style={styles.name}>{autocamp.title}</Text>
+
+      {/* 평균 별점 표시 */}
+      <View style={styles.ratingContainer}>
+        {Array.from({ length: 5 }, (_, index) => {
+          const filled = index < Math.round(averageRating);
+          return (
+            <MaterialCommunityIcons
+              key={index}
+              name={filled ? 'star' : 'star-outline'}
+              size={24}
+              color={filled ? '#FFD700' : '#ccc'}
             />
-          </>
-        )}
+          );
+        })}
+        <Text style={styles.averageRatingText}>
+          {averageRating.toFixed(1)}
+        </Text>
+      </View>
 
-        {/* 문의 및 안내 */}
-        {autocamp.infocenterleports && (
+      {/* 탭 버튼 */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === 'detail' && styles.activeTabButton,
+          ]}
+          onPress={() => handleTabPress('detail')}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === 'detail'
+                ? styles.activeTabButtonText
+                : styles.inactiveTabButtonText,
+            ]}
+          >
+            Detail
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === 'review' && styles.activeTabButton,
+          ]}
+          onPress={() => handleTabPress('review')}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === 'review'
+                ? styles.activeTabButtonText
+                : styles.inactiveTabButtonText,
+            ]}
+          >
+            Review
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 탭 내용 */}
+      {activeTab === 'detail' ? (
+        <ScrollView
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          
+          {/* 시설 아이콘 표시 */}
+          <View style={styles.facilityContainer}>
+            {includedFacilities.map((facility, index) => (
+              <View key={index} style={styles.facilityItem}>
+                <MaterialCommunityIcons
+                  name={facilityIcons[facility]}
+                  size={32}
+                  color="#555"
+                />
+                <Text style={styles.facilityText}>{facility}</Text>
+              </View>
+            ))}
+            {/* 주차 가능 아이콘 추가 */}
+            {isParkingAvailable && (
+              <View style={styles.facilityItem}>
+                <MaterialCommunityIcons
+                  name="parking"
+                  size={32}
+                  color="#555"
+                />
+                <Text style={styles.facilityText}>주차 가능</Text>
+              </View>
+            )}
+            {/* 애견 동반 가능 아이콘 추가 */}
+            {isPetAvailable && (
+              <View style={styles.facilityItem}>
+                <MaterialCommunityIcons name="dog" size={32} color="#555" />
+                <Text style={styles.facilityText}>반려 동물</Text>
+              </View>
+            )}
+          </View>
+
+          {/* 캠핑장 주소 */}
           <InfoRow
-            iconName="call-outline"
-            text={autocamp.infocenterleports}
+            iconName="location-outline"
+            text={autocamp.addr || '주소 정보가 없습니다.'}
             onPress={() => {
-              const phoneNumber = autocamp.infocenterleports.match(
-                /(\d{2,3}-\d{3,4}-\d{4})/
-              );
-              if (phoneNumber) {
-                Linking.openURL(`tel:${phoneNumber[0]}`);
+              if (autocamp.addr) {
+                const url = Platform.select({
+                  ios: `maps:0,0?q=${autocamp.addr}`,
+                  android: `geo:0,0?q=${autocamp.addr}`,
+                });
+                Linking.openURL(url);
               }
             }}
           />
-        )}
 
-        {/* 예약 안내 */}
-        {autocamp.reservation && (
-          <>
-            <View style={styles.sectionContainer}>
-              <Ionicons
-                name="document-text-outline"
-                size={24}
-                color="#555"
-                style={styles.icon}
+          {/* 캠핑장 설명 */}
+          {autocamp.description && (
+            <>
+              <View style={styles.sectionContainer}>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={24}
+                  color="#555"
+                  style={styles.icon}
+                />
+                <Text style={styles.sectionTitle}>소개</Text>
+              </View>
+              <RenderHTML
+                contentWidth={width - 32}
+                source={{ html: autocamp.description }}
+                tagsStyles={tagsStyles}
+                onLinkPress={(evt, href) => {
+                  Linking.openURL(href);
+                }}
               />
-              <Text style={styles.sectionTitle}>예약 안내</Text>
-            </View>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{ html: autocamp.reservation }}
-              tagsStyles={tagsStyles}
-              onLinkPress={(evt, href) => {
-                Linking.openURL(href);
+            </>
+          )}
+
+          {/* 문의 및 안내 */}
+          {autocamp.infocenterleports && (
+            <InfoRow
+              iconName="call-outline"
+              text={autocamp.infocenterleports}
+              onPress={() => {
+                const phoneNumber = autocamp.infocenterleports.match(
+                  /(\d{2,3}-\d{3,4}-\d{4})/
+                );
+                if (phoneNumber) {
+                  Linking.openURL(`tel:${phoneNumber[0]}`);
+                }
               }}
             />
-          </>
-        )}
+          )}
 
-        {/* 개장기간 */}
-        {autocamp.openperiod && (
-          <InfoRow
-            iconName="calendar-outline"
-            text={`개장기간: ${autocamp.openperiod}`}
-          />
-        )}
-
-        {/* 이용시간 */}
-        {autocamp.usetimeleports && (
-          <InfoRow
-            iconName="time-outline"
-            text={`이용시간: ${autocamp.usetimeleports}`}
-          />
-        )}
-
-        {/* 쉬는날 */}
-        {autocamp.restdateleports && (
-          <InfoRow
-            iconName="close-circle-outline"
-            text={`쉬는날: ${autocamp.restdateleports}`}
-          />
-        )}
-
-        {/* 이용요금 */}
-        {autocamp.campingfee && (
-          <>
-            <View style={styles.sectionContainer}>
-              <Ionicons
-                name="cash-outline"
-                size={24}
-                color="#555"
-                style={styles.icon}
+          {/* 예약 안내 */}
+          {autocamp.reservation && (
+            <>
+              <View style={styles.sectionContainer}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={24}
+                  color="#555"
+                  style={styles.icon}
+                />
+                <Text style={styles.sectionTitle}>예약 안내</Text>
+              </View>
+              <RenderHTML
+                contentWidth={width - 32}
+                source={{ html: autocamp.reservation }}
+                tagsStyles={tagsStyles}
+                onLinkPress={(evt, href) => {
+                  Linking.openURL(href);
+                }}
               />
-              <Text style={styles.sectionTitle}>이용요금</Text>
-            </View>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{ html: autocamp.campingfee }}
-              tagsStyles={tagsStyles}
-              onLinkPress={(evt, href) => {
-                Linking.openURL(href);
-              }}
-            />
-          </>
-        )}
+            </>
+          )}
 
-        {/* 부대시설 */}
-        {autocamp.facilities && (
-          <>
-            <View style={styles.sectionContainer}>
-              <Ionicons
-                name="construct-outline"
-                size={24}
-                color="#555"
-                style={styles.icon}
-              />
-              <Text style={styles.sectionTitle}>부대시설</Text>
-            </View>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{ html: autocamp.facilities }}
-              tagsStyles={tagsStyles}
-              onLinkPress={(evt, href) => {
-                Linking.openURL(href);
-              }}
+          {/* 개장기간 */}
+          {autocamp.openperiod && (
+            <InfoRow
+              iconName="calendar-outline"
+              text={`개장기간: ${autocamp.openperiod}`}
             />
-          </>
-        )}
+          )}
 
-        {/* 주요시설 */}
-        {autocamp.mainfacilities && (
-          <>
-            <View style={styles.sectionContainer}>
-              <Ionicons
-                name="apps-outline"
-                size={24}
-                color="#555"
-                style={styles.icon}
-              />
-              <Text style={styles.sectionTitle}>주요시설</Text>
-            </View>
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{ html: autocamp.mainfacilities }}
-              tagsStyles={tagsStyles}
-              onLinkPress={(evt, href) => {
-                Linking.openURL(href);
-              }}
+          {/* 이용시간 */}
+          {autocamp.usetimeleports && (
+            <InfoRow
+              iconName="time-outline"
+              text={`이용시간: ${autocamp.usetimeleports}`}
             />
-          </>
-        )}
-      </ScrollView>
+          )}
+
+          {/* 쉬는날 */}
+          {autocamp.restdateleports && (
+            <InfoRow
+              iconName="close-circle-outline"
+              text={`쉬는날: ${autocamp.restdateleports}`}
+            />
+          )}
+
+          {/* 이용요금 */}
+          {autocamp.campingfee && (
+            <>
+              <View style={styles.sectionContainer}>
+                <Ionicons
+                  name="cash-outline"
+                  size={24}
+                  color="#555"
+                  style={styles.icon}
+                />
+                <Text style={styles.sectionTitle}>이용요금</Text>
+              </View>
+              <RenderHTML
+                contentWidth={width - 32}
+                source={{ html: autocamp.campingfee }}
+                tagsStyles={tagsStyles}
+                onLinkPress={(evt, href) => {
+                  Linking.openURL(href);
+                }}
+              />
+            </>
+          )}
+
+          {/* 부대시설 */}
+          {autocamp.facilities && (
+            <>
+              <View style={styles.sectionContainer}>
+                <Ionicons
+                  name="construct-outline"
+                  size={24}
+                  color="#555"
+                  style={styles.icon}
+                />
+                <Text style={styles.sectionTitle}>부대시설</Text>
+              </View>
+              <RenderHTML
+                contentWidth={width - 32}
+                source={{ html: autocamp.facilities }}
+                tagsStyles={tagsStyles}
+                onLinkPress={(evt, href) => {
+                  Linking.openURL(href);
+                }}
+              />
+            </>
+          )}
+
+          {/* 주요시설 */}
+          {autocamp.mainfacilities && (
+            <>
+              <View style={styles.sectionContainer}>
+                <Ionicons
+                  name="apps-outline"
+                  size={24}
+                  color="#555"
+                  style={styles.icon}
+                />
+                <Text style={styles.sectionTitle}>주요시설</Text>
+              </View>
+              <RenderHTML
+                contentWidth={width - 32}
+                source={{ html: autocamp.mainfacilities }}
+                tagsStyles={tagsStyles}
+                onLinkPress={(evt, href) => {
+                  Linking.openURL(href);
+                }}
+              />
+            </>
+          )}
+        </ScrollView>
+      ) : (
+        // Review 내용
+        <ReviewComponent contentType="AutoCamp" contentId={autocamp.id} />
+      )}
     </View>
   );
 }
+
+AutoCampDetail.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      autocamp: PropTypes.object.isRequired,
+    }).isRequired,
+  }).isRequired,
+  navigation: PropTypes.object.isRequired,
+};
 
 const tagsStyles = {
   body: {
@@ -360,6 +477,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 16,
     paddingBottom: 20,
+    marginTop:10,
   },
   backButton: {
     position: 'absolute',
@@ -374,8 +492,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 15,
     height: 250,
-    // 이미지 보더 제거
-    // borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: '#e0f7fa',
   },
@@ -386,7 +502,7 @@ const styles = StyleSheet.create({
     top: '50%',
   },
   image: {
-    width: Dimensions.get('window').width - 32,
+    width: Dimensions.get('window').width,
     height: 250,
   },
   name: {
@@ -396,11 +512,21 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  averageRatingText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#333',
+  },
   facilityContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 5,
   },
   facilityItem: {
     alignItems: 'center',
@@ -427,7 +553,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 16,
-    marginBottom: 8,
   },
   icon: {
     marginRight: 10,
@@ -440,6 +565,31 @@ const styles = StyleSheet.create({
   link: {
     color: '#1e90ff',
     textDecorationLine: 'underline',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderColor: 'transparent',
+  },
+  activeTabButton: {
+    borderColor: '#333',
+  },
+  tabButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  activeTabButtonText: {
+    color: '#333',
+  },
+  inactiveTabButtonText: {
+    color: '#aaa',
   },
 });
 

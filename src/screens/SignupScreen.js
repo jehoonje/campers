@@ -1,5 +1,5 @@
 // src/screens/SignupScreen.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -7,24 +7,27 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator, // 로딩 스피너 추가
+  ActivityIndicator,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import axiosInstance from '../utils/axiosInstance'; // axiosInstance 임포트
+import { AuthContext } from '../AuthContext'; // 필요 시 AuthContext 임포트
 
 const SignupScreen = () => {
-  const [step, setStep] = useState(1); // 현재 스텝을 추적하는 상태
-  const [email, setEmail] = useState(''); // 이메일 상태
-  const [emailError, setEmailError] = useState(''); // 이메일 에러 메시지
-  const [verificationCode, setVerificationCode] = useState(''); // 인증번호 상태
-  const [password, setPassword] = useState(''); // 비밀번호 상태
-  const [passwordError, setPasswordError] = useState(''); // 비밀번호 에러 메시지
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false); // 비밀번호 가시성
-  const [timer, setTimer] = useState(300); // 5분(300초)
-  const [isResendAvailable, setIsResendAvailable] = useState(false); // 재전송 가능 여부
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
-  const intervalRef = useRef(null); // 타이머를 위한 ref
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [timer, setTimer] = useState(300);
+  const [isResendAvailable, setIsResendAvailable] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const intervalRef = useRef(null);
   const navigation = useNavigation();
+  const { setIsLoggedIn } = useContext(AuthContext); // 필요 시
 
   // 이메일 중복 확인 함수
   const checkEmailDuplication = () => {
@@ -40,43 +43,25 @@ const SignupScreen = () => {
       return;
     }
 
-    setIsLoading(true); // 로딩 시작
+    setIsLoading(true);
 
-    // 서버로 이메일 중복 확인 요청
-    fetch('http://10.0.2.2:8080/api/check-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    })
-      .then(async (response) => {
-        const text = await response.text();
-        console.log('서버 응답 상태:', response.status);
-        console.log('서버 응답 내용:', text);
-
-        if (!response.ok) {
-          // HTTP 상태 코드가 200-299가 아닐 때
-          throw new Error(text || '서버 응답이 유효하지 않습니다.');
-        }
-
-        try {
-          const data = JSON.parse(text);
-          if (data.isDuplicate) {
-            setEmailError('이미 사용 중인 이메일입니다.');
-          } else {
-            setEmailError('');
-            handleEmailSubmit(); // 인증번호 요청 함수 호출
-          }
-        } catch (error) {
-          console.error('JSON 파싱 오류:', error);
-          Alert.alert('오류', '서버 응답을 이해할 수 없습니다.');
+    // axiosInstance로 이메일 중복 확인 요청
+    axiosInstance.post('/check-email', { email })
+      .then((response) => {
+        const data = response.data;
+        if (data.isDuplicate) {
+          setEmailError('이미 사용 중인 이메일입니다.');
+        } else {
+          setEmailError('');
+          handleEmailSubmit();
         }
       })
       .catch((error) => {
         console.error(error);
-        Alert.alert('오류', error.message || '이메일 확인 중 오류가 발생했습니다.');
+        Alert.alert('오류', error.response?.data?.message || '이메일 확인 중 오류가 발생했습니다.');
       })
       .finally(() => {
-        setIsLoading(false); // 로딩 종료
+        setIsLoading(false);
       });
   };
 
@@ -126,133 +111,78 @@ const SignupScreen = () => {
   };
 
   const handleEmailSubmit = () => {
-    // 서버로 이메일 전송하여 인증번호 요청
-    setIsLoading(true); // 로딩 시작
+    setIsLoading(true);
 
-    fetch('http://10.0.2.2:8080/api/request-verification-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    })
-      .then(async (response) => {
-        const text = await response.text();
-        console.log('서버 응답 상태:', response.status);
-        console.log('서버 응답 내용:', text);
-
-        if (!response.ok) {
-          // HTTP 상태 코드가 200-299가 아닐 때
-          throw new Error(text || '서버 응답이 유효하지 않습니다.');
-        }
-
-        try {
-          const data = JSON.parse(text);
-          if (data.success) {
-            setVerificationCode(''); // 인증번호 입력 필드 초기화
-            setStep(2); // 다음 스텝으로 이동
-            Alert.alert('인증번호 발송', '입력하신 이메일로 인증번호가 발송되었습니다.');
-          } else {
-            Alert.alert('오류', data.message || '인증번호 발송에 실패했습니다.');
-          }
-        } catch (error) {
-          console.error('JSON 파싱 오류:', error);
-          Alert.alert('오류', '서버 응답을 이해할 수 없습니다.');
+    // axiosInstance로 인증번호 요청
+    axiosInstance.post('/request-verification-code', { email })
+      .then((response) => {
+        const data = response.data;
+        if (data.success) {
+          setVerificationCode('');
+          setStep(2);
+          Alert.alert('인증번호 발송', '입력하신 이메일로 인증번호가 발송되었습니다.');
+        } else {
+          Alert.alert('오류', data.message || '인증번호 발송에 실패했습니다.');
         }
       })
       .catch((error) => {
         console.error(error);
-        Alert.alert('오류', error.message || '인증번호 요청 중 오류가 발생했습니다.');
+        Alert.alert('오류', error.response?.data?.message || '인증번호 요청 중 오류가 발생했습니다.');
       })
       .finally(() => {
-        setIsLoading(false); // 로딩 종료
+        setIsLoading(false);
       });
   };
 
   const handleCodeSubmit = () => {
-    // 인증번호 유효성 검사
     if (!verificationCode) {
       Alert.alert('오류', '인증번호를 입력해주세요.');
       return;
     }
 
-    setIsLoading(true); // 로딩 시작
+    setIsLoading(true);
 
-    // 서버로 인증번호 검증 요청
-    fetch('http://10.0.2.2:8080/api/verify-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code: verificationCode }),
-    })
-      .then(async (response) => {
-        const text = await response.text();
-        console.log('서버 응답 상태:', response.status);
-        console.log('서버 응답 내용:', text);
-
-        if (!response.ok) {
-          // HTTP 상태 코드가 200-299가 아닐 때
-          throw new Error(text || '서버 응답이 유효하지 않습니다.');
-        }
-
-        try {
-          const data = JSON.parse(text);
-          if (data.success) {
-            setStep(3); // 다음 스텝으로 이동
-            Alert.alert('인증 성공', '인증번호가 확인되었습니다.');
-          } else {
-            Alert.alert('오류', data.message || '인증번호가 일치하지 않습니다.');
-          }
-        } catch (error) {
-          console.error('JSON 파싱 오류:', error);
-          Alert.alert('오류', '서버 응답을 이해할 수 없습니다.');
+    // axiosInstance로 인증번호 검증 요청
+    axiosInstance.post('/verify-code', { email, code: verificationCode })
+      .then((response) => {
+        const data = response.data;
+        if (data.success) {
+          setStep(3);
+          Alert.alert('인증 성공', '인증번호가 확인되었습니다.');
+        } else {
+          Alert.alert('오류', data.message || '인증번호가 일치하지 않습니다.');
         }
       })
       .catch((error) => {
         console.error(error);
-        Alert.alert('오류', error.message || '인증번호 확인 중 오류가 발생했습니다.');
+        Alert.alert('오류', error.response?.data?.message || '인증번호 확인 중 오류가 발생했습니다.');
       })
       .finally(() => {
-        setIsLoading(false); // 로딩 종료
+        setIsLoading(false);
       });
   };
 
   const handleResendCode = () => {
-    // 서버로 인증번호 재전송 요청
-    setIsLoading(true); // 로딩 시작
+    setIsLoading(true);
 
-    fetch('http://10.0.2.2:8080/api/resend-verification-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    })
-      .then(async (response) => {
-        const text = await response.text();
-        console.log('서버 응답 상태:', response.status);
-        console.log('서버 응답 내용:', text);
-
-        if (!response.ok) {
-          // HTTP 상태 코드가 200-299가 아닐 때
-          throw new Error(text || '서버 응답이 유효하지 않습니다.');
-        }
-
-        try {
-          const data = JSON.parse(text);
-          if (data.success) {
-            startTimer(); // 타이머 리셋 및 시작
-            setVerificationCode(''); // 인증번호 입력 필드 초기화
-            Alert.alert('인증번호 재전송', '새로운 인증번호가 발송되었습니다.');
-          } else {
-            Alert.alert('오류', data.message || '인증번호 재전송에 실패했습니다.');
-          }
-        } catch (error) {
-          console.error('JSON 파싱 오류:', error);
-          Alert.alert('오류', '서버 응답을 이해할 수 없습니다.');
+    // axiosInstance로 인증번호 재전송 요청
+    axiosInstance.post('/resend-verification-code', { email })
+      .then((response) => {
+        const data = response.data;
+        if (data.success) {
+          startTimer();
+          setVerificationCode('');
+          Alert.alert('인증번호 재전송', '새로운 인증번호가 발송되었습니다.');
+        } else {
+          Alert.alert('오류', data.message || '인증번호 재전송에 실패했습니다.');
         }
       })
       .catch((error) => {
         console.error(error);
-        Alert.alert('오류', error.message || '인증번호 재전송 중 오류가 발생했습니다.');
+        Alert.alert('오류', error.response?.data?.message || '인증번호 재전송 중 오류가 발생했습니다.');
       })
       .finally(() => {
-        setIsLoading(false); // 로딩 종료
+        setIsLoading(false);
       });
   };
 
@@ -281,48 +211,29 @@ const SignupScreen = () => {
   };
 
   const handleSignup = () => {
-    // 비밀번호 유효성 검사
     if (passwordError !== '사용 가능한 비밀번호입니다.') {
       Alert.alert('오류', '비밀번호 조건을 만족하지 않습니다.');
       return;
     }
 
-    setIsLoading(true); // 로딩 시작
+    setIsLoading(true);
 
-    // 서버로 회원가입 요청
-    fetch('http://10.0.2.2:8080/api/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
-      .then(async (response) => {
-        const text = await response.text();
-        console.log('서버 응답 상태:', response.status);
-        console.log('서버 응답 내용:', text);
-
-        if (!response.ok) {
-          // HTTP 상태 코드가 200-299가 아닐 때
-          throw new Error(text || '서버 응답이 유효하지 않습니다.');
-        }
-
-        try {
-          const data = JSON.parse(text);
-          if (data.success) {
-            setStep(4); // 가입 완료 스텝으로 이동
-          } else {
-            Alert.alert('회원가입 실패', data.message || '다시 시도해주세요.');
-          }
-        } catch (error) {
-          console.error('JSON 파싱 오류:', error);
-          Alert.alert('오류', '서버 응답을 이해할 수 없습니다.');
+    // axiosInstance로 회원가입 요청
+    axiosInstance.post('/signup', { email, password })
+      .then((response) => {
+        const data = response.data;
+        if (data.success) {
+          setStep(4);
+        } else {
+          Alert.alert('회원가입 실패', data.message || '다시 시도해주세요.');
         }
       })
       .catch((error) => {
         console.error(error);
-        Alert.alert('오류', error.message || '회원가입 중 오류가 발생했습니다.');
+        Alert.alert('오류', error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
       })
       .finally(() => {
-        setIsLoading(false); // 로딩 종료
+        setIsLoading(false);
       });
   };
 
@@ -347,7 +258,7 @@ const SignupScreen = () => {
             {emailError ? (
               <Text style={styles.errorText}>{emailError}</Text>
             ) : null}
-            <TouchableOpacity style={styles.button} onPress={checkEmailDuplication}>
+            <TouchableOpacity style={styles.button} onPress={checkEmailDuplication} disabled={isLoading}>
               <Text style={styles.buttonText}>인증번호 받기</Text>
             </TouchableOpacity>
             {isLoading && <ActivityIndicator size="large" color="#1e90ff" />}
@@ -368,7 +279,7 @@ const SignupScreen = () => {
             <Text style={styles.timerText}>
               남은 시간: {formatTime(timer)}
             </Text>
-            <TouchableOpacity style={styles.button} onPress={handleCodeSubmit}>
+            <TouchableOpacity style={styles.button} onPress={handleCodeSubmit} disabled={isLoading}>
               <Text style={styles.buttonText}>인증하기</Text>
             </TouchableOpacity>
 
@@ -376,6 +287,7 @@ const SignupScreen = () => {
               <TouchableOpacity
                 style={styles.resendButton}
                 onPress={handleResendCode}
+                disabled={isLoading}
               >
                 <Text style={styles.resendButtonText}>인증번호 재전송</Text>
               </TouchableOpacity>
@@ -394,8 +306,8 @@ const SignupScreen = () => {
                 placeholder="비밀번호"
                 value={password}
                 onChangeText={validatePassword}
-                secureTextEntry={!isPasswordVisible} // 비밀번호 가시성 제어
-                autoCapitalize="none" // 대문자 자동 변환 방지
+                secureTextEntry={!isPasswordVisible}
+                autoCapitalize="none"
               />
               <TouchableOpacity
                 onPress={() => setIsPasswordVisible(!isPasswordVisible)}
@@ -420,7 +332,7 @@ const SignupScreen = () => {
                 {passwordError}
               </Text>
             ) : null}
-            <TouchableOpacity style={styles.button} onPress={handleSignup}>
+            <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={isLoading}>
               <Text style={styles.buttonText}>회원가입</Text>
             </TouchableOpacity>
             {isLoading && <ActivityIndicator size="large" color="#1e90ff" />}
@@ -435,9 +347,11 @@ const SignupScreen = () => {
             <TouchableOpacity
               style={styles.button}
               onPress={() => navigation.navigate('LoginScreen')}
+              disabled={isLoading}
             >
               <Text style={styles.buttonText}>로그인하러 가기</Text>
             </TouchableOpacity>
+            {isLoading && <ActivityIndicator size="large" color="#1e90ff" />}
           </View>
         );
       default:
@@ -500,6 +414,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     marginTop: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
