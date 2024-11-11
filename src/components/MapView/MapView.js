@@ -11,10 +11,10 @@ import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
 import {WebView} from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
 import wifisData from '../../data/wifi.json';
-// 새로운 데이터 임포트
 import countrysideData from '../../data/countryside.json';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // 추가
 import axios from 'axios';
+import axiosInstance from '../../utils/axiosInstance'; 
 import chargingStationsData from '../../data/chargingStations.json';
 import useLocation from '../../hooks/useLocation';
 
@@ -69,18 +69,12 @@ const MapView = forwardRef(
     };
 
     // 각 데이터 가져오기 함수에서 토큰이 없을 경우 처리
+
+    // 노지 캠핑장 데이터 가져오기
     useEffect(() => {
       const fetchCampgroundsData = async () => {
         try {
-          const axiosInstance = await createAxiosInstance();
-          if (!axiosInstance.defaults.headers.Authorization) {
-            // 토큰이 없을 경우 빈 배열 설정 또는 기본 처리
-            setCampgroundsData([]);
-            return;
-          }
-          const response = await axiosInstance.get(
-            'http://10.0.2.2:8080/api/campgrounds',
-          );
+          const response = await axiosInstance.get('/campgrounds');
           setCampgroundsData(response.data);
           console.log('캠핑장 데이터가 성공적으로 로드되었습니다.');
         } catch (error) {
@@ -96,10 +90,7 @@ const MapView = forwardRef(
     useEffect(() => {
       const fetchFishingsData = async () => {
         try {
-          const axiosInstance = await createAxiosInstance();
-          const response = await axiosInstance.get(
-            'http://10.0.2.2:8080/api/fishings',
-          );
+          const response = await axiosInstance.get('/fishings');
           setFishingsData(response.data);
           console.log('낚시터 데이터가 성공적으로 로드되었습니다.');
         } catch (error) {
@@ -111,33 +102,11 @@ const MapView = forwardRef(
       fetchFishingsData();
     }, []);
 
-    // 캠핑장 데이터를 가져오는 부분
-    useEffect(() => {
-      const fetchCampgroundsData = async () => {
-        try {
-          const axiosInstance = await createAxiosInstance();
-          const response = await axiosInstance.get(
-            'http://10.0.2.2:8080/api/campgrounds',
-          );
-          setCampgroundsData(response.data);
-          console.log('캠핑장 데이터가 성공적으로 로드되었습니다.');
-        } catch (error) {
-          console.error('캠핑장 데이터를 가져오는 중 오류 발생:', error);
-          setCampgroundsData([]); // 빈 배열로 설정
-        }
-      };
-
-      fetchCampgroundsData();
-    }, []);
-
     // 해수욕장 데이터를 가져오는 부분
     useEffect(() => {
       const fetchBeachesData = async () => {
         try {
-          const axiosInstance = await createAxiosInstance();
-          const response = await axiosInstance.get(
-            'http://10.0.2.2:8080/api/beaches',
-          );
+          const response = await axiosInstance.get('/beaches');
           setBeachesData(response.data);
           console.log('해수욕장 데이터가 성공적으로 로드되었습니다.');
         } catch (error) {
@@ -153,10 +122,7 @@ const MapView = forwardRef(
     useEffect(() => {
       const fetchCampsitesData = async () => {
         try {
-          const axiosInstance = await createAxiosInstance();
-          const response = await axiosInstance.get(
-            'http://10.0.2.2:8080/api/campsites',
-          );
+          const response = await axiosInstance.get('/campsites');
           setCampsitesData(response.data);
           console.log('야영장 데이터가 성공적으로 로드되었습니다.');
         } catch (error) {
@@ -172,10 +138,7 @@ const MapView = forwardRef(
     useEffect(() => {
       const fetchAutoCampsData = async () => {
         try {
-          const axiosInstance = await createAxiosInstance();
-          const response = await axiosInstance.get(
-            'http://10.0.2.2:8080/api/autocamps',
-          );
+          const response = await axiosInstance.get('/autocamps');
           setAutoCampsData(response.data);
           console.log('오토 캠핑장 데이터가 성공적으로 로드되었습니다.');
         } catch (error) {

@@ -12,7 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import axios from 'axios';
+import axiosInstance from '../../utils/axiosInstance'; // 변경
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PropTypes from 'prop-types';
 
@@ -28,17 +28,18 @@ function ReviewComponent({ contentType, contentId }) {
 
   const fetchReviews = async () => {
     try {
-      const response = await axios.get(
-        `http://10.0.2.2:8080/api/reviews/${contentType}/${contentId}`
+      const response = await axiosInstance.get(
+        `/reviews/${contentType}/${contentId}`
       );
       setReviews(response.data);
     } catch (error) {
       console.error('Error fetching reviews:', error);
+      Alert.alert('오류', '리뷰를 가져오는 중 오류가 발생했습니다.');
     }
   };
 
   const handleAddReview = async () => {
-    const token = await AsyncStorage.getItem('userToken');
+    const token = await AsyncStorage.getItem('accessToken');
     if (!token) {
       Alert.alert('로그인 필요', '리뷰를 작성하려면 로그인이 필요합니다.');
       return;
@@ -50,19 +51,15 @@ function ReviewComponent({ contentType, contentId }) {
     }
 
     try {
-      const response = await axios.post(
-        'http://10.0.2.2:8080/api/reviews',
+      const response = await axiosInstance.post(
+        '/reviews',
         {
           contentType,
           contentId,
           content: newReviewContent,
           rating: newRating,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
+        // Axios 인스턴스가 이미 헤더에 Authorization 포함
       );
 
       setReviews([...reviews, response.data]);
@@ -71,6 +68,7 @@ function ReviewComponent({ contentType, contentId }) {
       setNewRating(0);
     } catch (error) {
       console.error('Error adding review:', error);
+      Alert.alert('오류', '리뷰를 작성하는 중 오류가 발생했습니다.');
     }
   };
 
