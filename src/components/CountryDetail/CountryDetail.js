@@ -1,5 +1,5 @@
 // src/components/CountryDetail/CountryDetail.js
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,12 +13,42 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import Ionicons from 'react-native-vector-icons/Ionicons'; // 변경된 아이콘 라이브러리
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import ReviewComponent from '../ReviewComponent/ReviewComponent';
+import axios from 'axios';
+import PropTypes from 'prop-types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 function CountryDetail({ route, navigation }) {
   const { countryside } = route.params;
+
+  // 탭 상태 관리
+  const [activeTab, setActiveTab] = useState('detail');
+  const [averageRating, setAverageRating] = useState(0);
+
+  // 탭 버튼 클릭 핸들러
+  const handleTabPress = (tab) => {
+    setActiveTab(tab);
+  };
+
+  // 평균 별점 가져오기
+  useEffect(() => {
+    const fetchAverageRating = async () => {
+      try {
+        const response = await axios.get(
+          `http://10.0.2.2:8080/api/reviews/average/Country/${countryside.id}`
+        );
+        setAverageRating(response.data.averageRating);
+      } catch (error) {
+        console.error('Error fetching average rating:', error);
+        setAverageRating(0);
+      }
+    };
+
+    fetchAverageRating();
+  }, [countryside.id]);
 
   // 체험프로그램명을 '+' 기준으로 분리하여 리스트로 변환
   const programList = countryside.체험프로그램명
@@ -54,123 +84,224 @@ function CountryDetail({ route, navigation }) {
   return (
     <View style={styles.container}>
       {/* 닫기 버튼 */}
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.backButton}
+        accessible={true}
+        accessibilityLabel="뒤로 가기"
+      >
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
-
-      <ScrollView
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false} // 전체 스크롤바 숨기기
-      >
-        {/* 이미지 */}
-        <View style={styles.imageContainer}>
-          {imageLoading && (
-            <ActivityIndicator size="large" color="#1e90ff" style={styles.imageLoader} />
-          )}
-          {countryside.이미지url ? (
-            <Image
-              source={{ uri: countryside.이미지url }}
-              style={styles.image}
-              resizeMode="contain" // 이미지가 프레임 내에서 중앙에 위치하도록 설정
-              onLoadEnd={() => setImageLoading(false)}
-              onError={() => setImageLoading(false)}
-            />
-          ) : (
-            <Image
-              source={require('../../assets/placeholder.png')}
-              style={styles.image}
-              resizeMode="contain"
-              onLoadEnd={() => setImageLoading(false)}
-            />
-          )}
-        </View>
-
-        {/* 마을 이름 */}
-        <Text style={styles.name}>{countryside.체험마을명}</Text>
-
-        {/* 프로그램 리스트 */}
-        <Text style={styles.sectionTitle}>체험 프로그램</Text>
-        {programList.length > 0 ? (
-          <View style={styles.programContainer}>
-            {/* 스크롤 힌트 그라데이션 */}
-            <LinearGradient
-              colors={['rgba(224, 247, 250, 1)', 'rgba(224, 247, 250, 0)']}
-              style={styles.gradientTop}
-            />
-
-            {/* 프로그램 리스트 ScrollView */}
-            <Animated.ScrollView
-              contentContainerStyle={styles.programContent}
-              onScroll={Animated.event(
-                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                { useNativeDriver: false }
-              )}
-              scrollEventThrottle={16}
-              showsVerticalScrollIndicator={false} // 기본 스크롤바 숨기기
-              nestedScrollEnabled={true} // 중첩 스크롤 활성화
-              onContentSizeChange={(w, h) => setContentHeight(h)}
-              onLayout={(e) => setScrollViewHeight(e.nativeEvent.layout.height)}
-            >
-              {programList.map((program, index) => (
-                <Text key={index} style={styles.listItem}>
-                  {program}
-                </Text>
-              ))}
-            </Animated.ScrollView>
-
-            {/* 스크롤바 */}
-            {contentHeight > scrollViewHeight && (
-              <View style={styles.scrollbarContainer}>
-                <Animated.View
-                  style={[
-                    styles.scrollbar,
-                    {
-                      height: scrollbarHeight,
-                      transform: [{ translateY: scrollbarTranslateY }],
-                    },
-                  ]}
-                />
-              </View>
+      {/* 이미지 */}
+      <View style={styles.imageContainer}>
+            {imageLoading && (
+              <ActivityIndicator
+                size="large"
+                color="#1e90ff"
+                style={styles.imageLoader}
+              />
             )}
-
-            {/* 스크롤 힌트 그라데이션 */}
-            <LinearGradient
-              colors={['rgba(224, 247, 250, 0)', 'rgba(224, 247, 250, 1)']}
-              style={styles.gradientBottom}
-            />
+            {countryside.이미지url ? (
+              <Image
+                source={{ uri: countryside.이미지url }}
+                style={styles.image}
+                resizeMode="contain"
+                onLoadEnd={() => setImageLoading(false)}
+                onError={() => setImageLoading(false)}
+              />
+            ) : (
+              <Image
+                source={require('../../assets/placeholder.png')}
+                style={styles.image}
+                resizeMode="contain"
+                onLoadEnd={() => setImageLoading(false)}
+              />
+            )}
           </View>
-        ) : (
-          <Text style={styles.description}>프로그램 정보가 없습니다.</Text>
-        )}
 
-        {/* 주소 정보 */}
-        <View style={styles.infoRow}>
-          <Ionicons name="location-outline" size={24} color="#555" style={styles.icon} />
-          <Text style={styles.description}>{countryside.소재지도로명주소 || '주소 정보가 없습니다.'}</Text>
-        </View>
+      {/* 마을 이름 */}
+      <Text style={styles.name}>{countryside.체험마을명}</Text>
 
-        {/* 전화번호 정보 */}
-        <View style={styles.infoRow}>
-          <Ionicons name="call-outline" size={24} color="#555" style={styles.icon} />
-          <Text style={styles.description}>{countryside.대표전화번호 || '전화번호 정보가 없습니다.'}</Text>
-        </View>
+      {/* 평균 별점 표시 */}
+      <View style={styles.ratingContainer}>
+        {Array.from({ length: 5 }, (_, index) => {
+          const filled = index < Math.round(averageRating);
+          return (
+            <MaterialCommunityIcons
+              key={index}
+              name={filled ? 'star' : 'star-outline'}
+              size={24}
+              color={filled ? '#FFD700' : '#ccc'}
+            />
+          );
+        })}
+        <Text style={styles.averageRatingText}>
+          {averageRating.toFixed(1)}
+        </Text>
+      </View>
 
-        {/* 홈페이지 정보 */}
-        {countryside.홈페이지주소 ? (
+      {/* 탭 버튼 */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === 'detail' && styles.activeTabButton,
+          ]}
+          onPress={() => handleTabPress('detail')}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === 'detail'
+                ? styles.activeTabButtonText
+                : styles.inactiveTabButtonText,
+            ]}
+          >
+            Detail
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabButton,
+            activeTab === 'review' && styles.activeTabButton,
+          ]}
+          onPress={() => handleTabPress('review')}
+        >
+          <Text
+            style={[
+              styles.tabButtonText,
+              activeTab === 'review'
+                ? styles.activeTabButtonText
+                : styles.inactiveTabButtonText,
+            ]}
+          >
+            Review
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 탭 내용 */}
+      {activeTab === 'detail' ? (
+        <ScrollView
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+
+          {/* 프로그램 리스트 */}
+          <Text style={styles.sectionTitle}>체험 프로그램</Text>
+          {programList.length > 0 ? (
+            <View style={styles.programContainer}>
+              {/* 스크롤 힌트 그라데이션 */}
+              <LinearGradient
+                colors={['rgba(224, 247, 250, 1)', 'rgba(224, 247, 250, 0)']}
+                style={styles.gradientTop}
+              />
+
+              {/* 프로그램 리스트 ScrollView */}
+              <Animated.ScrollView
+                contentContainerStyle={styles.programContent}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                  { useNativeDriver: false }
+                )}
+                scrollEventThrottle={16}
+                showsVerticalScrollIndicator={false} // 기본 스크롤바 숨기기
+                nestedScrollEnabled={true} // 중첩 스크롤 활성화
+                onContentSizeChange={(w, h) => setContentHeight(h)}
+                onLayout={(e) => setScrollViewHeight(e.nativeEvent.layout.height)}
+              >
+                {programList.map((program, index) => (
+                  <Text key={index} style={styles.listItem}>
+                    {program}
+                  </Text>
+                ))}
+              </Animated.ScrollView>
+
+              {/* 스크롤바 */}
+              {contentHeight > scrollViewHeight && (
+                <View style={styles.scrollbarContainer}>
+                  <Animated.View
+                    style={[
+                      styles.scrollbar,
+                      {
+                        height: scrollbarHeight,
+                        transform: [{ translateY: scrollbarTranslateY }],
+                      },
+                    ]}
+                  />
+                </View>
+              )}
+
+              {/* 스크롤 힌트 그라데이션 */}
+              <LinearGradient
+                colors={['rgba(224, 247, 250, 0)', 'rgba(224, 247, 250, 1)']}
+                style={styles.gradientBottom}
+              />
+            </View>
+          ) : (
+            <Text style={styles.description}>프로그램 정보가 없습니다.</Text>
+          )}
+
+          {/* 주소 정보 */}
           <View style={styles.infoRow}>
-            <Ionicons name="link-outline" size={24} color="#555" style={styles.icon} />
-            <Text
-              style={[styles.description, styles.link]}
-              onPress={() => Linking.openURL(countryside.홈페이지주소)}
-            >
-              {countryside.홈페이지주소}
+            <Ionicons
+              name="location-outline"
+              size={24}
+              color="#555"
+              style={styles.icon}
+            />
+            <Text style={styles.description}>
+              {countryside.소재지도로명주소 || '주소 정보가 없습니다.'}
             </Text>
           </View>
-        ) : null}
-      </ScrollView>
+
+          {/* 전화번호 정보 */}
+          <View style={styles.infoRow}>
+            <Ionicons
+              name="call-outline"
+              size={24}
+              color="#555"
+              style={styles.icon}
+            />
+            <Text style={styles.description}>
+              {countryside.대표전화번호 || '전화번호 정보가 없습니다.'}
+            </Text>
+          </View>
+
+          {/* 홈페이지 정보 */}
+          {countryside.홈페이지주소 ? (
+            <View style={styles.infoRow}>
+              <Ionicons
+                name="link-outline"
+                size={24}
+                color="#555"
+                style={styles.icon}
+              />
+              <Text
+                style={[styles.description, styles.link]}
+                onPress={() => Linking.openURL(countryside.홈페이지주소)}
+              >
+                {countryside.홈페이지주소}
+              </Text>
+            </View>
+          ) : null}
+        </ScrollView>
+      ) : (
+        // Review 내용
+        <ReviewComponent contentType="Country" contentId={countryside.id} />
+      )}
     </View>
   );
 }
+
+CountryDetail.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      countryside: PropTypes.object.isRequired,
+    }).isRequired,
+  }).isRequired,
+  navigation: PropTypes.object.isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -212,8 +343,18 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 16,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  averageRatingText: {
+    marginLeft: 8,
+    fontSize: 16,
     color: '#333',
   },
   sectionTitle: {
@@ -285,10 +426,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 16,
-    marginBottom: 8,
   },
   icon: {
     marginRight: 10,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderColor: 'transparent',
+  },
+  activeTabButton: {
+    borderColor: '#333',
+  },
+  tabButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  activeTabButtonText: {
+    color: '#333',
+  },
+  inactiveTabButtonText: {
+    color: '#aaa',
   },
 });
 
