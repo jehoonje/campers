@@ -1,4 +1,4 @@
-// src/components/CampingDetail/components/RatingDisplay.js
+// src/components/Shared/components/RatingDisplay.js
 import React from 'react';
 import { View, Text } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';

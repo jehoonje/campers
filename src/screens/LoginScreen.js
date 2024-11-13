@@ -19,7 +19,7 @@ const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-  const { setIsLoggedIn } = useContext(AuthContext);
+  const { login } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -41,10 +41,8 @@ const LoginScreen = () => {
       const { accessToken, refreshToken, message } = response.data;
 
       if (accessToken && refreshToken) {
-        await AsyncStorage.setItem('accessToken', accessToken);
-        await AsyncStorage.setItem('refreshToken', refreshToken);
+        await login(accessToken, refreshToken); 
         Alert.alert('로그인 성공', '환영합니다!');
-        setIsLoggedIn(true);
         navigation.navigate('AppContent');
       } else if (message) {
         Alert.alert('로그인 실패', message);
