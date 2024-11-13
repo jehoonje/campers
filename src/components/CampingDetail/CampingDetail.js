@@ -1,5 +1,5 @@
 // src/components/CampingDetail/CampingDetail.js
-import React, { useMemo, useState, useEffect } from 'react';
+import React, {useMemo, useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,18 +12,22 @@ import {
   Linking,
   Modal,
 } from 'react-native';
-import RenderHTML from 'react-native-render-html';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 
-import FacilityIcon from './components/FacilityIcon';
-import InfoRow from './components/InfoRow';
-import TabButton from './components/TabButton';
-import RatingDisplay from './components/RatingDisplay';
-import ReviewComponent from '../ReviewComponent/ReviewComponent';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
+import sharedStyles from '../Shared/styles';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import FacilityIcon from '../Shared/components/FacilityIcon';
+import InfoRow from '../Shared/components/InfoRow';
+import TabButton from '../Shared/components/TabButton';
+import RatingDisplay from '../Shared/components/RatingDisplay';
+import ImageSlider from '../Shared/components/ImageSlider';
+import TabSection from './components/TabSection';
+import LoadingIndicator from '../Shared/components/LoadingIndicator';
+import ReviewComponent from '../ReviewComponent/ReviewComponent';
 
 // Define keyword categories and their corresponding icons
 const FACILITY_KEYWORDS = [
@@ -64,15 +68,15 @@ const FACILITY_KEYWORDS = [
   },
 ];
 
-function CampingDetail({ route, navigation }) {
-  const { campground } = route.params;
-  const { width } = useWindowDimensions();
+function CampingDetail({route, navigation}) {
+  const {campground} = route.params;
+  const {width} = useWindowDimensions();
 
-  const [activeTab, setActiveTab] = useState('detail'); 
+  const [activeTab, setActiveTab] = useState('detail');
   const [averageRating, setAverageRating] = useState(0);
 
   // 탭 버튼 클릭 핸들러
-  const handleTabPress = (tab) => {
+  const handleTabPress = tab => {
     setActiveTab(tab);
   };
 
@@ -81,7 +85,7 @@ function CampingDetail({ route, navigation }) {
     const fetchAverageRating = async () => {
       try {
         const response = await axios.get(
-          `http://10.0.2.2:8080/api/reviews/average/Campground/${campground.id}`
+          `http://10.0.2.2:8080/api/reviews/average/Campground/${campground.id}`,
         );
         setAverageRating(response.data.averageRating);
       } catch (error) {
@@ -102,8 +106,8 @@ function CampingDetail({ route, navigation }) {
 
   // Determine which facilities to display based on keywords
   const matchedFacilities = useMemo(() => {
-    return FACILITY_KEYWORDS.filter((facility) =>
-      facility.keywords.some((keyword) => combinedText.includes(keyword))
+    return FACILITY_KEYWORDS.filter(facility =>
+      facility.keywords.some(keyword => combinedText.includes(keyword)),
     );
   }, [combinedText]);
 
@@ -114,13 +118,14 @@ function CampingDetail({ route, navigation }) {
 
   // If campground data is not available, show a loading indicator
   if (!campground) {
-    return (
-      <View style={styles.loadingContainer}>
-        <MaterialCommunityIcons name="loading" size={48} color="#0000ff" />
-        <Text>Loading...</Text>
-      </View>
-    );
+    return <LoadingIndicator />;
   }
+
+  const includedFacilities = matchedFacilities.map(facility => facility.label);
+  const facilityIconsMapped = matchedFacilities.reduce((acc, facility) => {
+    acc[facility.label] = facility.icon;
+    return acc;
+  }, {});
 
   return (
     <View style={styles.container}>
@@ -129,15 +134,17 @@ function CampingDetail({ route, navigation }) {
         onPress={handleGoBack}
         style={styles.backButton}
         accessible={true}
-        accessibilityLabel="뒤로 가기"
-      >
+        accessibilityLabel="뒤로 가기">
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
       {/* 캠핑장 이미지 */}
-      {campground.imageUrl && (
-        <Image source={{ uri: campground.imageUrl }} style={styles.image} />
-      )}
+      <ImageSlider
+        images={[campground.imageUrl]}
+        imageLoading={false}
+        setImageLoading={() => {}}
+        defaultImage={require('../../assets/campsite.png')}
+      />
 
       {/* 캠핑장 이름 */}
       <Text style={styles.name}>{campground.name}</Text>
@@ -146,7 +153,7 @@ function CampingDetail({ route, navigation }) {
       <RatingDisplay averageRating={averageRating} />
 
       {/* 탭 버튼 */}
-      <View style={styles.tabContainer}>
+      <View style={sharedStyles.tabContainer}>
         <TabButton
           title="Detail"
           active={activeTab === 'detail'}
@@ -162,69 +169,21 @@ function CampingDetail({ route, navigation }) {
       {/* 탭 내용 */}
       {activeTab === 'detail' ? (
         // Detail 내용
-        <ScrollView
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* 시설 아이콘 표시 */}
-          {matchedFacilities.length > 0 && (
-            <View style={styles.facilityContainer}>
-              {matchedFacilities.map((facility, index) => (
-                <FacilityIcon
-                  key={index}
-                  iconName={facility.icon}
-                  label={facility.label}
-                />
-              ))}
-            </View>
-          )}
-
-          {/* 주소 정보 */}
-          <InfoRow
-            iconName="location-outline"
-            text={campground.address || '주소 정보가 없습니다.'}
-            onPress={() => {
-              if (campground.address) {
-                const url = Platform.select({
-                  ios: `maps:0,0?q=${campground.address}`,
-                  android: `geo:0,0?q=${campground.address}`,
-                });
-                Linking.openURL(url);
-              }
-            }}
-          />
-
-          {/* 소개 정보 */}
-          <View style={styles.sectionContainer}>
-            <Ionicons
-              name="information-outline"
-              size={24}
-              color="#555"
-              style={styles.icon}
-            />
-            <Text style={styles.sectionTitle}>소개</Text>
-          </View>
-          {campground.description && (
-            <RenderHTML
-              contentWidth={width - 32}
-              source={{ html: campground.description }}
-              tagsStyles={tagsStyles}
-              accessible={true}
-              onLinkPress={(evt, href) => {
-                Linking.openURL(href);
-              }}
-            />
-          )}
-
-          {/* 홈페이지 정보 */}
-          {campground.website && (
-            <InfoRow
-              iconName="link-outline"
-              text={campground.website}
-              onPress={() => Linking.openURL(campground.website)}
-            />
-          )}
-        </ScrollView>
+        <TabSection
+          width={width}
+          includedFacilities={includedFacilities}
+          facilityIcons={facilityIconsMapped}
+          isParkingAvailable={
+            campground.parkingleports &&
+            campground.parkingleports.includes('가능')
+          }
+          isPetAvailable={
+            campground.chkpetleports &&
+            campground.chkpetleports.includes('가능')
+          }
+          campground={campground}
+          tagsStyles={styles.tagsStyles}
+        />
       ) : (
         // Review 내용
         <ReviewComponent contentType="Campground" contentId={campground.id} />
@@ -240,18 +199,6 @@ CampingDetail.propTypes = {
     }).isRequired,
   }).isRequired,
   navigation: PropTypes.object.isRequired,
-};
-
-const tagsStyles = {
-  body: {
-    whiteSpace: 'normal',
-    color: '#666',
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  p: {
-    marginVertical: 8,
-  },
 };
 
 export default React.memo(CampingDetail);

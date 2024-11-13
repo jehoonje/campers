@@ -1,6 +1,6 @@
 // src/components/ReviewComponent/ReviewComponent.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
   Text,
@@ -12,36 +12,67 @@ import {
   Alert,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import axiosInstance from '../../utils/axiosInstance'; // 변경
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import axiosInstance from '../../utils/axiosInstance';
 import PropTypes from 'prop-types';
+import { AuthContext } from '../../AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 
 function ReviewComponent({ contentType, contentId }) {
   const [reviews, setReviews] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [newReviewContent, setNewReviewContent] = useState('');
+  const { userId, isLoggedIn } = useContext(AuthContext); // `isLoggedIn` 사용
   const [newRating, setNewRating] = useState(0);
+  const [hasReviewed, setHasReviewed] = useState(false);
+  
 
-  useEffect(() => {
-    fetchReviews();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchReviews();
+    }, [userId])
+  );
+
+  // // 로그인 상태 변화 또는 화면 포커스 변화 시 상태 업데이트
+  // useEffect(() => {
+  //   const unsubscribe = navigation.addListener('focus', () => {
+  //     fetchReviews();
+  //   });
+
+  //   return unsubscribe;
+  // }, [navigation, userId]);
 
   const fetchReviews = async () => {
     try {
+      console.log('Current userId:', userId);
       const response = await axiosInstance.get(
         `/reviews/${contentType}/${contentId}`
       );
       setReviews(response.data);
+
+      if (userId) {
+        const userReview = response.data.find(
+          (review) => review.userId === userId
+        );
+        setHasReviewed(!!userReview);
+      } else {
+        setHasReviewed(false);
+      }
     } catch (error) {
       console.error('Error fetching reviews:', error);
       Alert.alert('오류', '리뷰를 가져오는 중 오류가 발생했습니다.');
     }
   };
 
+
   const handleAddReview = async () => {
-    const token = await AsyncStorage.getItem('accessToken');
-    if (!token) {
+    if (!isLoggedIn) {
       Alert.alert('로그인 필요', '리뷰를 작성하려면 로그인이 필요합니다.');
+      return;
+    }
+
+    if (hasReviewed) {
+      Alert.alert('알림', '이미 이 컨텐츠에 리뷰를 작성하셨습니다.');
       return;
     }
 
@@ -51,24 +82,25 @@ function ReviewComponent({ contentType, contentId }) {
     }
 
     try {
-      const response = await axiosInstance.post(
-        '/reviews',
-        {
-          contentType,
-          contentId,
-          content: newReviewContent,
-          rating: newRating,
-        }
-        // Axios 인스턴스가 이미 헤더에 Authorization 포함
-      );
+      const response = await axiosInstance.post('/reviews', {
+        contentType,
+        contentId,
+        content: newReviewContent,
+        rating: newRating,
+      });
 
       setReviews([...reviews, response.data]);
       setModalVisible(false);
       setNewReviewContent('');
       setNewRating(0);
+      setHasReviewed(true); // 작성 완료 후 다시 작성 못하도록
     } catch (error) {
       console.error('Error adding review:', error);
-      Alert.alert('오류', '리뷰를 작성하는 중 오류가 발생했습니다.');
+      if (error.response && error.response.status === 400) {
+        Alert.alert('오류', '이미 이 컨텐츠에 리뷰를 작성하셨습니다.');
+      } else {
+        Alert.alert('오류', '리뷰를 작성하는 중 오류가 발생했습니다.');
+      }
     }
   };
 
@@ -76,39 +108,52 @@ function ReviewComponent({ contentType, contentId }) {
     <View style={styles.container}>
       {/* 리뷰 추가 버튼 */}
       <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => setModalVisible(true)}
+        style={[styles.addButton, (hasReviewed || !isLoggedIn) && styles.disabledButton]}
+        onPress={() => {
+          if (!isLoggedIn) {
+            Alert.alert('로그인 필요', '리뷰를 작성하려면 로그인이 필요합니다.');
+          } else if (hasReviewed) {
+            Alert.alert('알림', '이미 이 컨텐츠에 리뷰를 작성하셨습니다.');
+          } else {
+            setModalVisible(true);
+          }
+        }}
+        disabled={hasReviewed || !isLoggedIn}
       >
         <Text style={styles.addButtonText}>Add Review</Text>
       </TouchableOpacity>
 
       {/* 리뷰 목록 */}
-      <FlatList
-        data={reviews}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.reviewItem}>
-            <View style={styles.reviewHeader}>
-              <Text style={styles.reviewAuthor}>{item.userName}</Text>
-              {/* 별점 표시 */}
-              <View style={styles.reviewRating}>
-                {Array.from({ length: 5 }, (_, index) => {
-                  const filled = index < item.rating;
-                  return (
-                    <MaterialCommunityIcons
-                      key={index}
-                      name={filled ? 'star' : 'star-outline'}
-                      size={16}
-                      color={filled ? '#FFD700' : '#ccc'}
-                    />
-                  );
-                })}
+      {reviews.length === 0 ? (
+        <Text style={styles.noReviewsText}>No reviews</Text>
+      ) : (
+        <FlatList
+          data={reviews}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.reviewItem}>
+              <View style={styles.reviewHeader}>
+                <Text style={styles.reviewAuthor}>{item.userName}</Text>
+                {/* 별점 표시 */}
+                <View style={styles.reviewRating}>
+                  {Array.from({ length: 5 }, (_, index) => {
+                    const filled = index < item.rating;
+                    return (
+                      <MaterialCommunityIcons
+                        key={index}
+                        name={filled ? 'star' : 'star-outline'}
+                        size={16}
+                        color={filled ? '#FFD700' : '#ccc'}
+                      />
+                    );
+                  })}
+                </View>
               </View>
+              <Text style={styles.reviewContent}>{item.content}</Text>
             </View>
-            <Text style={styles.reviewContent}>{item.content}</Text>
-          </View>
-        )}
-      />
+          )}
+        />
+      )}
 
       {/* 리뷰 작성 모달 */}
       <Modal
@@ -185,6 +230,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  disabledButton: {
+    backgroundColor: '#ccc',
+  },
   addButtonText: {
     color: '#fff',
     fontSize: 16,
@@ -210,6 +258,12 @@ const styles = StyleSheet.create({
   reviewContent: {
     fontSize: 14,
     color: '#333',
+  },
+  noReviewsText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+    marginTop: 20,
   },
   modalContainer: {
     flex: 1,
