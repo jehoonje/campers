@@ -1,4 +1,4 @@
-// src/components/CampingDetail/components/FacilityIcon.js
+// src/components/Shared/components/FacilityIcon.js
 import React from 'react';
 import { View, Text } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';

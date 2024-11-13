@@ -1,11 +1,13 @@
 // src/AppContent.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { SafeAreaView, View, StyleSheet } from 'react-native';
 import Header from './components/Header';
 import MainContent from './screens/MainContent';
 import RightDrawer from './components/RightDrawer/RightDrawer';
 import { useDrawerStatus } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
+import { AuthContext } from './AuthContext';
 
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
@@ -21,6 +23,13 @@ const AppContent = () => {
   const [showAllMarkers, setShowAllMarkers] = useState(false);
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
+  const { checkAuthStatus } = useContext(AuthContext);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      checkAuthStatus();
+    }, [])
+  );
 
   const toggleRightDrawer = () => {
     setIsRightDrawerOpen(prev => !prev);

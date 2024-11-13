@@ -54,20 +54,6 @@ const MapView = forwardRef(
       },
     }));
 
-    // createAxiosInstance 함수 내에 콘솔 로그 추가
-    const createAxiosInstance = async () => {
-      const token = await AsyncStorage.getItem('userToken');
-      console.log('Retrieved token:', token); // 토큰 값 출력
-    
-      // 토큰이 존재하는 경우에만 Authorization 헤더를 추가
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      
-      const axiosInstance = axios.create({
-        headers: headers,
-      });
-      return axiosInstance;
-    };
-
     // 각 데이터 가져오기 함수에서 토큰이 없을 경우 처리
 
     // 노지 캠핑장 데이터 가져오기

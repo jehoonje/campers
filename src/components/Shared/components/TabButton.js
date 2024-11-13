@@ -1,4 +1,4 @@
-// src/components/CampingDetail/components/TabButton.js
+// src/components/Shared/components/TabButton.js
 import React from 'react';
 import { TouchableOpacity, Text } from 'react-native';
 import PropTypes from 'prop-types';

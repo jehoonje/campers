@@ -9,12 +9,7 @@ import { AuthContext } from '../AuthContext';
 
 const LeftDrawerContent = () => {
   const navigation = useNavigation();
-  const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
-
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('userToken');
-    setIsLoggedIn(false);
-  };
+  const { isLoggedIn, logout } = useContext(AuthContext);
 
   return (
     <DrawerContentScrollView>
@@ -37,7 +32,7 @@ const LeftDrawerContent = () => {
           // 로그인된 경우에만 로그아웃 버튼 표시
           <TouchableOpacity
             style={styles.logoutButton}
-            onPress={handleLogout}
+            onPress={logout}
           >
             <Ionicons name="log-out-outline" size={24} color="#333" style={styles.icon} />
             <Text style={styles.logoutText}>로그아웃</Text>
