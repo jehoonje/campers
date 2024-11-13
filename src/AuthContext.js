@@ -1,29 +1,67 @@
 // src/AuthContext.js
-import React, { createContext, useState } from 'react';
+
+import React, { createContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import jwt_decode from 'jwt-decode';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [authTokens, setAuthTokens] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const login = async (accessToken, refreshToken) => {
     await AsyncStorage.setItem('accessToken', accessToken);
     await AsyncStorage.setItem('refreshToken', refreshToken);
-    setAuthTokens({ accessToken, refreshToken });
     setIsLoggedIn(true);
+    const id = parseIdFromToken(accessToken);
+    setUserId(id);
   };
 
   const logout = async () => {
     await AsyncStorage.removeItem('accessToken');
     await AsyncStorage.removeItem('refreshToken');
-    setAuthTokens(null);
     setIsLoggedIn(false);
+    setUserId(null);
   };
 
+  const checkAuthStatus = async () => {
+    const token = await AsyncStorage.getItem('accessToken');
+    if (token) {
+      setIsLoggedIn(true);
+      const id = parseIdFromToken(token);
+      setUserId(id);
+    } else {
+      setIsLoggedIn(false);
+      setUserId(null);
+    }
+  };
+
+  const parseIdFromToken = (token) => {
+    try {
+      const decoded = jwt_decode(token);
+      console.log('Decoded token:', decoded); // 디코딩된 토큰 출력
+      return decoded.userId;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, authTokens, setAuthTokens, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        login,
+        logout,
+        userId,
+        checkAuthStatus,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

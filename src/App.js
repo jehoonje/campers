@@ -79,15 +79,13 @@ const App = () => {
 };
 
 const AppContainer = () => {
+  const { checkAuthStatus } = useContext(AuthContext);
   const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
 
   useEffect(() => {
-    const checkToken = async () => {
-      const token = await AsyncStorage.getItem('userToken');
-      setIsLoggedIn(!!token);
-    };
-    checkToken();
+    checkAuthStatus(); // 앱 시작 시 로그인 상태 확인
   }, []);
+  
 
   useEffect(() => {
     RNBootSplash.hide({ fade: true });

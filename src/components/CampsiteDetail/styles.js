@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 26,
+    marginBottom: 16,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 24,
-    marginBottom: 6,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 20,
