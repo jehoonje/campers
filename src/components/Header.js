@@ -24,7 +24,7 @@ const Header = ({ toggleRightDrawer, onPressLogo }) => {
       </TouchableOpacity>
 
       {/* 헤더 로고 */}
-      <TouchableOpacity onPress={onPressLogo} style={styles.logoContainer}>
+      <TouchableOpacity onPress={() => navigation.navigate('AppContent')} style={styles.logoContainer}>
         <Image
           source={require('../assets/logo.png')}
           style={styles.logo}

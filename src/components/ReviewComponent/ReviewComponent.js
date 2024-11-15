@@ -33,15 +33,6 @@ function ReviewComponent({ contentType, contentId }) {
     }, [userId])
   );
 
-  // // 로그인 상태 변화 또는 화면 포커스 변화 시 상태 업데이트
-  // useEffect(() => {
-  //   const unsubscribe = navigation.addListener('focus', () => {
-  //     fetchReviews();
-  //   });
-
-  //   return unsubscribe;
-  // }, [navigation, userId]);
-
   const fetchReviews = async () => {
     try {
       console.log('Current userId:', userId);
@@ -120,7 +111,7 @@ function ReviewComponent({ contentType, contentId }) {
         }}
         disabled={hasReviewed || !isLoggedIn}
       >
-        <Text style={styles.addButtonText}>Add Review</Text>
+        <Text style={styles.addButtonText}>Reply</Text>
       </TouchableOpacity>
 
       {/* 리뷰 목록 */}
@@ -164,7 +155,7 @@ function ReviewComponent({ contentType, contentId }) {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Write a Review</Text>
+            <Text style={styles.modalTitle}>Review</Text>
             {/* 별점 선택 */}
             <View style={styles.ratingSelection}>
               {Array.from({ length: 5 }, (_, index) => {
@@ -187,7 +178,7 @@ function ReviewComponent({ contentType, contentId }) {
             <TextInput
               style={styles.textInput}
               multiline
-              placeholder="Write your review..."
+              placeholder="내용을 작성해주세요."
               value={newReviewContent}
               onChangeText={setNewReviewContent}
             />
@@ -197,13 +188,13 @@ function ReviewComponent({ contentType, contentId }) {
                 style={styles.submitButton}
                 onPress={handleAddReview}
               >
-                <Text style={styles.submitButtonText}>Submit</Text>
+                <Text style={styles.submitButtonText}>작성</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>취소</Text>
               </TouchableOpacity>
             </View>
           </View>
