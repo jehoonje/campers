@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     // 안드로이드 그림자
-    elevation: 4,
+    elevation: 2,
     // iOS 그림자
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
