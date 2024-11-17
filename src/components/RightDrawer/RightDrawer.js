@@ -18,6 +18,7 @@ const {height} = Dimensions.get('window');
 const RightDrawer = ({
   isOpen,
   onClose,
+  toggleFavorites,
   toggleAllMarkers,
   toggleCampsites,
   toggleAutoCamps,
@@ -100,6 +101,8 @@ const RightDrawer = ({
                   toggleBeaches(); // 해수욕장 버튼 클릭시 마커 토글
                 } else if (item.name === '낚시터') {
                   toggleFishings(); // 낚시터 버튼 클릭시 마커 토글
+                } else if (item.name === '즐겨찾기') {
+                  toggleFavorites(); // 즐겨찾기 버튼 클릭시 마커 토글
                 }
                 onClose(); // 버튼 클릭 시 드로어 닫기
               }}
@@ -129,7 +132,7 @@ const styles = StyleSheet.create({
     width: '60%',
     top: 0,
     right: 0,
-    height: '90%',
+    height: '81%',
     backgroundColor: '#f8f8f8',
     // paddingTop: 20,
   },

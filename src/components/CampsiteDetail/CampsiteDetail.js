@@ -1,5 +1,5 @@
 // src/components/CampsiteDetail/CampsiteDetail.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,10 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import axios from 'axios';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import styles from './styles';
 import sharedStyles from '../Shared/styles';
-
 import FacilityIcon from '../Shared/components/FacilityIcon';
 import InfoRow from '../Shared/components/InfoRow';
 import TabButton from '../Shared/components/TabButton';
@@ -25,6 +23,9 @@ import ImageSlider from '../Shared/components/ImageSlider';
 import TabSection from './components/TabSection';
 import LoadingIndicator from '../Shared/components/LoadingIndicator';
 import ReviewComponent from '../ReviewComponent/ReviewComponent';
+import FavoriteButton from '../Shared/FavoriteButton'; // 추가
+import useFavorite from '../../hooks/useFavorite'; // 추가
+import {AuthContext} from '../../AuthContext'; // AuthContext 임포트 추가
 
 // 검색할 단어 목록
 const facilityWords = [
@@ -63,6 +64,12 @@ function CampsiteDetail({ route, navigation }) {
   const [activeTab, setActiveTab] = useState('detail');
   const [averageRating, setAverageRating] = useState(0);
   const [imageLoading, setImageLoading] = useState(true);
+
+  // AuthContext에서 userId 가져오기
+  const { userId } = useContext(AuthContext);
+
+  // 즐겨찾기 훅 사용
+  const { isFavorite, toggleFavorite, loading } = useFavorite('CAMPSITE', campsite.contentId);
 
   // 탭 버튼 클릭 핸들러
   const handleTabPress = (tab) => {
@@ -129,6 +136,10 @@ function CampsiteDetail({ route, navigation }) {
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
+      {/* 즐겨찾기 토글 버튼 추가 */}
+      <FavoriteButton isFavorite={isFavorite || false} toggleFavorite={toggleFavorite} loading={loading} />
+
+
       {/* 이미지 슬라이더 */}
       <ImageSlider
         images={[campsite.image1, campsite.image2]}
@@ -181,7 +192,11 @@ CampsiteDetail.propTypes = {
       campsite: PropTypes.object.isRequired,
     }).isRequired,
   }).isRequired,
+  isFavorite: PropTypes.bool,
   navigation: PropTypes.object.isRequired,
+};
+FavoriteButton.defaultProps = {
+  isFavorite: false, // 기본값
 };
 
 export default React.memo(CampsiteDetail);

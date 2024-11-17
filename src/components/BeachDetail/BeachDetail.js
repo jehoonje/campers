@@ -1,5 +1,5 @@
 // src/components/BeachDetail/BeachDetail.js
-import React, { useState } from 'react';
+import React, {useState, useContext} from 'react';
 import {
   View,
   Text,
@@ -9,24 +9,35 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useWindowDimensions } from 'react-native'; // 화면 너비를 가져오기 위해 사용
+import {useWindowDimensions} from 'react-native'; // 화면 너비를 가져오기 위해 사용
 import RenderHTML from 'react-native-render-html';
+import FavoriteButton from '../Shared/FavoriteButton'; // 추가
 import Ionicons from 'react-native-vector-icons/Ionicons'; // 아이콘 라이브러리 추가
+import useFavorite from '../../hooks/useFavorite'; // useFavorite 훅 임포트
+import {AuthContext} from '../../AuthContext'; // AuthContext 임포트 추가
 
-const BeachDetail = ({ route, navigation }) => {
-  const { beach } = route.params;
-  const { width } = useWindowDimensions();
+const BeachDetail = ({route, navigation}) => {
+  const {beach} = route.params;
+  const {width} = useWindowDimensions();
+
+  // AuthContext에서 userId 가져오기
+  const {userId} = useContext(AuthContext);
+
+  // 즐겨찾기 훅 사용
+  const {isFavorite, toggleFavorite, loading} = useFavorite(
+    'BEACH',
+    beach.contentId,
+  );
 
   // 이미지 로딩 상태 관리
   const [imageLoading, setImageLoading] = useState(true);
 
   // 재사용 가능한 InfoRow 컴포넌트
-  const InfoRow = ({ iconName, text, onPress }) => (
+  const InfoRow = ({iconName, text, onPress}) => (
     <TouchableOpacity
       style={styles.infoRow}
       onPress={onPress}
-      disabled={!onPress}
-    >
+      disabled={!onPress}>
       <Ionicons name={iconName} size={24} color="#555" style={styles.icon} />
       <Text style={[styles.infoText, onPress && styles.link]}>{text}</Text>
     </TouchableOpacity>
@@ -37,10 +48,16 @@ const BeachDetail = ({ route, navigation }) => {
       {/* 뒤로가기 버튼 */}
       <TouchableOpacity
         onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
+        style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
+
+      {/* 즐겨찾기 토글 버튼 추가 */}
+      <FavoriteButton
+        isFavorite={isFavorite || false}
+        toggleFavorite={toggleFavorite}
+        loading={loading}
+      />
 
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {/* 이미지 */}
@@ -54,7 +71,7 @@ const BeachDetail = ({ route, navigation }) => {
           )}
           {beach.image1 ? (
             <Image
-              source={{ uri: beach.image1 }}
+              source={{uri: beach.image1}}
               style={styles.image}
               resizeMode="cover"
               onLoadEnd={() => setImageLoading(false)}
@@ -106,7 +123,7 @@ const BeachDetail = ({ route, navigation }) => {
             </View>
             <RenderHTML
               contentWidth={width - 32} // 패딩을 고려하여 너비 조정
-              source={{ html: beach.description }}
+              source={{html: beach.description}}
               tagsStyles={tagsStyles}
             />
           </>

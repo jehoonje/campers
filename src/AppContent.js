@@ -8,6 +8,8 @@ import { useDrawerStatus } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from './AuthContext';
+import useFavorite from './hooks/useFavorite'; // 이미 만들어진 훅 사용
+
 
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
@@ -18,12 +20,14 @@ const AppContent = () => {
   const [showCountrysides, setShowCountrysides] = useState(false);
   const [showCampsites, setShowCampsites] = useState(true);
   const [showAutoCamps, setShowAutoCamps] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
   const [showWifis, setShowWifis] = useState(false);
   const [showBeaches, setShowBeaches] = useState(false);
   const [showAllMarkers, setShowAllMarkers] = useState(false);
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
   const { checkAuthStatus } = useContext(AuthContext);
+  
 
   useFocusEffect(
     React.useCallback(() => {
@@ -42,6 +46,7 @@ const AppContent = () => {
   // 모든 마커를 토글하는 함수
   const toggleAllMarkersFunc = () => {
     const allMarkers = [
+      showFavorites,
       showRestStops,
       showChargingStations,
       showCampgrounds,
@@ -57,6 +62,7 @@ const AppContent = () => {
     if (areAllMarkersTrue) {
       // 모든 마커가 true일 경우 모두 false로 설정
       setShowAllMarkers(false);
+      setShowFavorites(false);
       setShowRestStops(false);
       setShowChargingStations(false);
       setShowCampgrounds(false);
@@ -74,6 +80,7 @@ const AppContent = () => {
       setShowChargingStations(true);
       setShowCampgrounds(true);
       setShowCountrysides(true);
+      setShowFavorites(true);
       setShowWifis(true);
       setShowFishings(true);
       setShowBeaches(true);
@@ -87,6 +94,11 @@ const AppContent = () => {
   const toggleCampgroundsFunc = () => {
     setShowCampgrounds(prev => !prev);
     console.log('캠핑 마커 토글:', !showCampgrounds);
+  };
+
+  const toggleFavoritesFunc = () => {
+    setShowFavorites(prev => !prev);
+    console.log('즐겨찾기 마커 토글:', !showFavorites);
   };
 
   const toggleWifisFunc = () => {
@@ -138,6 +150,7 @@ const AppContent = () => {
       showCountrysides,
       showFishings,
       showWifis,
+      showFavorites,
       showBeaches,
       showCampsites,
       showAutoCamps,
@@ -155,6 +168,7 @@ const AppContent = () => {
     showCampgrounds,
     showCountrysides,
     showWifis,
+    showFavorites,
     showFishings,
     showBeaches,
     showCampsites,
@@ -190,6 +204,7 @@ const AppContent = () => {
       <View style={{ flex: 1 }}>
         <MainContent
           ref={mainContentRef}
+          showFavorites={showFavorites}
           showAllMarkers={showAllMarkers}
           showRestStops={showRestStops}
           showChargingStations={showChargingStations}
@@ -200,6 +215,7 @@ const AppContent = () => {
           showWifis={showWifis}
           showCampsites={showCampsites}
           showAutoCamps={showAutoCamps}
+          toggleFavorites={toggleFavoritesFunc}
           toggleAllMarkers={toggleAllMarkersFunc}
           toggleRestStops={toggleRestStopsFunc}
           toggleFishings={toggleFishingsFunc}
@@ -218,6 +234,7 @@ const AppContent = () => {
       <RightDrawer
         isOpen={isRightDrawerOpen}
         onClose={closeRightDrawer}
+        toggleFavorites={toggleFavoritesFunc}
         toggleAllMarkers={toggleAllMarkersFunc}
         toggleRestStops={toggleRestStopsFunc}
         toggleFishings={toggleFishingsFunc}
