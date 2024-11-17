@@ -45,6 +45,12 @@
 
       (function () {
         // 마커 클러스터 그룹 생성
+
+        var favoriteMarkers = L.markerClusterGroup({
+          chunkedLoading: true,
+          chunkDelay: 50,
+        });
+
         var restStopMarkers = L.markerClusterGroup({
           chunkedLoading: true, // 청크 로딩 활성화
           chunkDelay: 50,
@@ -66,12 +72,12 @@
           chunkedLoading: true,
           chunkDelay: 50,
         });
-        
+
         var fishingMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
         });
-        
+
         var autocampMarkers = L.markerClusterGroup({
           chunkedLoading: true,
           chunkDelay: 50,
@@ -101,8 +107,10 @@
         var countrysides = [];
         var wifis = [];
         var beaches = [];
+        var favorites = [];
         var userLocation = [0, 0];
 
+        var favoritesAdded = false;
         var restStopsAdded = false;
         var chargingStationsAdded = false;
         var campgroundsAdded = false;
@@ -174,6 +182,9 @@
             })
             .addTo(map);
 
+          // 즐겨찾기 레이어 추가
+          map.addLayer(favoriteMarkers);
+
           // 현재 위치로 이동하는 커스텀 버튼 추가
           var locateButton = L.control({position: 'bottomleft'});
           locateButton.onAdd = function (map) {
@@ -195,6 +206,73 @@
             JSON.stringify({type: 'mapReady'}),
           );
         }
+
+        // 각 마커 타입별 기본 아이콘 정의
+        const favoriteIcons = {
+          Campground: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/594b1178-e803-4e55-8c36-2c0dc2544deb',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+          Campsite: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/60d95381-b364-45c2-8164-1ac0d347498a',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+          Autocamp: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/3e5b77df-0042-461d-b3fe-56cb1648c372',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+          RestStop: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/40453fd1-c914-4c1d-a6df-aa06d4de81ad',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+          Fishing: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/d7479207-be30-4321-a520-15428e262f89',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+          Countryside: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/1fde8d4a-5d26-42a1-8d9f-57cbad6b43bc',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+          Beach: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/f0748579-7246-4ede-9c78-6a753a035144',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+          ChargingStation: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/82536bae-e9aa-4ce5-9eb5-bb46a5da7aa3',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+          Wifi: L.icon({
+            iconUrl:
+              'https://github.com/user-attachments/assets/46f39e43-edc9-4834-b9e8-1dd116f11bf8',
+            iconSize: [70, 70],
+            iconAnchor: [35, 35],
+            popupAnchor: [0, -35],
+          }),
+        };
 
         // 아이콘 정의
         const campgroundIcon = L.icon({
@@ -232,7 +310,7 @@
         const fishingIcon = L.icon({
           iconUrl:
             'https://github.com/user-attachments/assets/d7479207-be30-4321-a520-15428e262f89', //  아이콘 URL
-          
+
           iconSize: [70, 70], // 아이콘 크기
           iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
@@ -241,22 +319,6 @@
         const countrysideIcon = L.icon({
           iconUrl:
             'https://github.com/user-attachments/assets/1fde8d4a-5d26-42a1-8d9f-57cbad6b43bc', //  아이콘 URL
-          iconSize: [70, 70], // 아이콘 크기
-          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
-          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
-        });
-
-        const petrolIcon = L.icon({
-          iconUrl:
-            'https://github.com/user-attachments/assets/8651e7a2-a374-494d-bfd1-8c6fcaac8bfe', //  아이콘 URL
-          iconSize: [70, 70], // 아이콘 크기
-          iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
-          popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
-        });
-
-        const toiletIcon = L.icon({
-          iconUrl:
-            'https://github.com/user-attachments/assets/9a08c556-0198-45f5-bd50-160cc50b03bf', //  아이콘 URL
           iconSize: [70, 70], // 아이콘 크기
           iconAnchor: [35, 35], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -35], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
@@ -288,6 +350,160 @@
 
         function updateVisibleMarkers() {
           var bounds = map.getBounds();
+
+          // 즐겨찾기 마커 처리
+          if (favoritesAdded) {
+            favoriteMarkers.clearLayers(); // 기존 즐겨찾기 마커 제거
+
+            favorites.forEach(function (favorite) {
+              var markerType = favorite.markerType;
+              var markerId = favorite.markerId;
+              var data;
+
+              // markerType과 markerId에 따라 해당 데이터를 가져옴
+              switch (markerType) {
+                case 'Campground':
+                  data = campgrounds.find(
+                    campground => campground.id === markerId,
+                  );
+                  break;
+                case 'Campsite':
+                  data = campsites.find(
+                    campsite => campsite.contentId === markerId,
+                  );
+                  break;
+                case 'Autocamp':
+                  data = autocamps.find(
+                    autocamp => autocamp.contentId === markerId,
+                  );
+                  break;
+                case 'Fishing':
+                  data = fishings.find(
+                    fishing => fishing.contentId === markerId,
+                  );
+                  break;
+                case 'Beach':
+                  data = beaches.find(beach => beach.contentId === markerId);
+                  break;
+                default:
+                  data = null;
+              }
+
+              if (data) {
+                var lat, lng, icon, popupContent;
+
+                switch (markerType) {
+                  case 'Campground':
+                    lat = parseFloat(data.latitude || data.location.lat);
+                    lng = parseFloat(data.longitude || data.location.lng);
+                    icon = favoriteIcons['Campground'];
+                    popupContent = `
+            <div class="popup-content">
+              <img src="${
+                data.imageUrl ||
+                'https://via.placeholder.com/200x100.png?text=No+Image'
+              }" alt="이미지">
+              <div class="name">${data.name || '캠핑장 이름 없음'}</div>
+              <div class="details">주소: ${data.address || '주소 없음'}</div>
+            </div>
+          `;
+                    break;
+                  case 'Campsite':
+                    lat = parseFloat(data.lat);
+                    lng = parseFloat(data.lng);
+                    icon = favoriteIcons['Campsite'];
+                    popupContent = `
+            <div class="popup-content">
+              <img src="${
+                data.image1 && data.image1 !== '문의'
+                  ? data.image1
+                  : 'https://via.placeholder.com/200x100.png?text=No+Image'
+              }" alt="이미지">
+              <div class="name">${data.title || '야영장 이름 없음'}</div>
+              <div class="details">주소: ${data.address || '주소 없음'}</div>
+            </div>
+          `;
+                    break;
+                  case 'Autocamp':
+                    lat = parseFloat(data.lat);
+                    lng = parseFloat(data.lng);
+                    icon = favoriteIcons['Autocamp'];
+                    popupContent = `
+            <div class="popup-content">
+              <img src="${
+                data.image1 && data.image1 !== '문의'
+                  ? data.image1
+                  : 'https://via.placeholder.com/200x100.png?text=No+Image'
+              }" alt="이미지">
+              <div class="name">${data.title || '오토캠핑장 이름 없음'}</div>
+              <div class="details">주소: ${data.address || '주소 없음'}</div>
+            </div>
+          `;
+                    break;
+                  case 'Fishing':
+                    lat = parseFloat(data.lat);
+                    lng = parseFloat(data.lng);
+                    icon = favoriteIcons['Fishing'];
+                    popupContent = `
+            <div class="popup-content">
+              <img src="${
+                data.image1 ||
+                'https://via.placeholder.com/200x100.png?text=No+Image'
+              }" alt="이미지">
+              <div class="name">${data.title || '낚시터 이름 없음'}</div>
+              <div class="details">주소: ${data.address || '주소 없음'}</div>
+            </div>
+          `;
+                    break;
+                  case 'Beach':
+                    lat = parseFloat(data.lat);
+                    lng = parseFloat(data.lng);
+                    icon = favoriteIcons['Beach'];
+                    popupContent = `
+            <div class="popup-content">
+              <img src="${
+                data.image1 ||
+                'https://via.placeholder.com/200x100.png?text=No+Image'
+              }" alt="이미지">
+              <div class="name">${data.title || '해수욕장 이름 없음'}</div>
+              <div class="details">주소: ${data.address || '주소 없음'}</div>
+            </div>
+          `;
+                    break;
+                  default:
+                    lat = 0;
+                    lng = 0;
+                }
+
+                if (lat && lng) {
+                  var marker = L.marker([lat, lng], {icon: icon});
+
+                  marker.bindPopup(popupContent, {
+                    closeButton: false,
+                    className: 'custom-popup',
+                  });
+
+                  // 마커 클릭 시 상세 화면으로 이동
+                  marker.on('popupopen', function (e) {
+                    var popupNode = e.popup._contentNode;
+                    if (popupNode) {
+                      popupNode.style.cursor = 'pointer';
+                      popupNode.addEventListener('click', function () {
+                        window.ReactNativeWebView.postMessage(
+                          JSON.stringify({
+                            type: markerType.toLowerCase() + 'Selected',
+                            data: data,
+                          }),
+                        );
+                      });
+                    }
+                  });
+
+                  favoriteMarkers.addLayer(marker);
+                }
+              }
+            });
+          }
 
           if (restStopsAdded) {
             restStopMarkers.clearLayers();
@@ -932,6 +1148,20 @@
           countrysidesAdded = false;
         }
 
+        // 즐겨찾기 마커 추가/제거 함수 정의
+        function addFavoriteMarkers() {
+          if (favoritesAdded) return; // 이미 추가된 경우 중단
+          favoritesAdded = true; // 플래그 설정
+          updateVisibleMarkers(); // 가시 영역 내의 즐겨찾기 마커 추가
+        }
+
+        function removeFavoriteMarkers() {
+          if (!favoritesAdded) return; // 추가되지 않은 경우 중단
+          map.removeLayer(favoriteMarkers);
+          favoriteMarkers.clearLayers();
+          favoritesAdded = false; // 플래그 해제
+        }
+
         // 스크립트 로드 시점에 지도 초기화
         initializeMap();
 
@@ -939,6 +1169,19 @@
         document.addEventListener('message', function (event) {
           try {
             var message = JSON.parse(event.data);
+
+            // showFavorites 기본값 설정
+            const showFavorites = message.showFavorites ?? false;
+
+            if (message.type === 'toggleLayers') {
+              console.log('Toggling favorites:', showFavorites);
+              if (showFavorites) {
+                addFavoriteMarkers();
+              } else {
+                removeFavoriteMarkers();
+              }
+            }
+
             // console.log('Received message:', message);
             if (message.type === 'updateLocation') {
               // 사용자 위치 업데이트
@@ -978,6 +1221,7 @@
               countrysides = message.countrysideData || [];
               beaches = message.beachesData || [];
               wifis = message.wifisData || [];
+              favorites = message.favoritesData || [];
 
               console.log('Initial Data Received:');
               console.log('User Location:', userLocation);
@@ -1019,6 +1263,7 @@
               if (message.showBeaches) addBeachMarkers();
               if (message.showFishings) addFishingMarkers();
               if (message.showWifis) addWifiMarkers();
+              if (message.showFavorites) addFavoriteMarkers();
             } else if (message.type === 'toggleLayers') {
               // 레이어 토글
               if (message.showRestStops) {
@@ -1073,6 +1318,13 @@
                 addCampgroundMarkers();
               } else {
                 removeCampgroundMarkers();
+              }
+
+              // 즐겨찾기 레이어 토글
+              if (message.showFavorites) {
+                addFavoriteMarkers();
+              } else {
+                removeFavoriteMarkers();
               }
             } else if (message.type === 'resetMap') {
               if (message.userLocation) {

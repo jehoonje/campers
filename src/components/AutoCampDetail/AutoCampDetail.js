@@ -1,5 +1,5 @@
 // src/components/AutoCampDetail/AutoCampDetail.js
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {useState, useEffect, useMemo, useContext} from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,10 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import axios from 'axios';
-
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import styles from './styles';
 import sharedStyles from '../Shared/styles';
-
 import FacilityIcon from '../Shared/components/FacilityIcon';
 import InfoRow from '../Shared/components/InfoRow';
 import TabButton from '../Shared/components/TabButton';
@@ -25,6 +23,9 @@ import ImageSlider from '../Shared/components/ImageSlider';
 import TabSection from './components/TabSection';
 import LoadingIndicator from '../Shared/components/LoadingIndicator';
 import ReviewComponent from '../ReviewComponent/ReviewComponent';
+import FavoriteButton from '../Shared/FavoriteButton'; // 추가
+import useFavorite from '../../hooks/useFavorite'; // useFavorite 훅 임포트
+import {AuthContext} from '../../AuthContext'; // AuthContext 임포트 추가
 
 // 검색할 단어 목록
 const facilityWords = [
@@ -56,16 +57,25 @@ const facilityIcons = {
   애견: 'dog',
 };
 
-function AutoCampDetail({ route, navigation }) {
-  const { autocamp } = route.params;
-  const { width } = useWindowDimensions();
+function AutoCampDetail({route, navigation}) {
+  const {autocamp} = route.params;
+  const {width} = useWindowDimensions();
 
   const [activeTab, setActiveTab] = useState('detail');
   const [averageRating, setAverageRating] = useState(0);
   const [imageLoading, setImageLoading] = useState(true);
 
+  // AuthContext에서 userId 가져오기
+  const {userId} = useContext(AuthContext);
+
+  // 즐겨찾기 훅 사용
+  const {isFavorite, toggleFavorite, loading} = useFavorite(
+    'AUTOCAMP',
+    autocamp.contentId,
+  );
+
   // 탭 버튼 클릭 핸들러
-  const handleTabPress = (tab) => {
+  const handleTabPress = tab => {
     setActiveTab(tab);
   };
 
@@ -73,8 +83,8 @@ function AutoCampDetail({ route, navigation }) {
   useEffect(() => {
     const fetchAverageRating = async () => {
       try {
-        const response = await axios.get(
-          `http://10.0.2.2:8080/api/reviews/average/autocamp/${autocamp.contentId}`
+        const response = await axiosInstance.get(
+          `/reviews/average/autocamp/${autocamp.contentId}`,
         );
         setAverageRating(response.data.averageRating);
       } catch (error) {
@@ -87,11 +97,13 @@ function AutoCampDetail({ route, navigation }) {
   }, [autocamp.contentId]);
 
   // 시설 정보를 합쳐서 단어를 검색합니다.
-  const facilitiesText = `${autocamp.facilities || ''} ${autocamp.mainfacilities || ''}`;
+  const facilitiesText = `${autocamp.facilities || ''} ${
+    autocamp.mainfacilities || ''
+  }`;
 
   // 포함된 시설 단어 목록
   const includedFacilities = useMemo(() => {
-    return facilityWords.filter((word) => facilitiesText.includes(word));
+    return facilityWords.filter(word => facilitiesText.includes(word));
   }, [facilitiesText]);
 
   // 주차 가능 여부 확인
@@ -128,6 +140,13 @@ function AutoCampDetail({ route, navigation }) {
         accessibilityLabel="뒤로 가기">
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
+
+      {/* 즐겨찾기 토글 버튼 추가 */}
+      <FavoriteButton
+        isFavorite={isFavorite || false}
+        toggleFavorite={toggleFavorite}
+        loading={loading}
+      />
 
       {/* 이미지 슬라이더 */}
       <ImageSlider
@@ -169,7 +188,10 @@ function AutoCampDetail({ route, navigation }) {
           tagsStyles={styles.tagsStyles}
         />
       ) : (
-        <ReviewComponent contentType="Autocamp" contentId={autocamp.contentId} />
+        <ReviewComponent
+          contentType="Autocamp"
+          contentId={autocamp.contentId}
+        />
       )}
     </View>
   );
@@ -181,7 +203,12 @@ AutoCampDetail.propTypes = {
       autocamp: PropTypes.object.isRequired,
     }).isRequired,
   }).isRequired,
+  isFavorite: PropTypes.bool,
   navigation: PropTypes.object.isRequired,
+};
+
+FavoriteButton.defaultProps = {
+  isFavorite: false, // 기본값
 };
 
 export default React.memo(AutoCampDetail);
