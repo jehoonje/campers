@@ -16,7 +16,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; // 추가
 import axios from 'axios';
 import axiosInstance from '../../utils/axiosInstance'; 
 import chargingStationsData from '../../data/chargingStations.json';
-import useLocation from '../../hooks/useLocation';
+import useLocation from '../../hooks/useLocation'; 
+import useFavorites from '../../hooks/useFavorite';
+
 
 const MapView = forwardRef(
   (
@@ -31,18 +33,23 @@ const MapView = forwardRef(
       showAutoCamps,
       showBeaches,
       showWifis,
+      showFavorites,
       navigation,
     },
     ref,
   ) => {
     const {userLocation, heading, error} = useLocation();
     const [mapReady, setMapReady] = useState(false);
+    const { favorites, addFavorite, removeFavorite } = useFavorites(); // 즐겨찾기 훅 사용
     const webviewRef = useRef(null);
     const [campgroundsData, setCampgroundsData] = useState([]);
     const [beachesData, setBeachesData] = useState([]);
     const [campsitesData, setCampsitesData] = useState([]);
     const [autocampsData, setAutoCampsData] = useState([]);
     const [fishingsData, setFishingsData] = useState([]);
+    const [favoritesData, setFavoritesData] = useState([]);
+
+
 
     const initialToggleSent = useRef(false);
 
@@ -55,6 +62,26 @@ const MapView = forwardRef(
     }));
 
     // 각 데이터 가져오기 함수에서 토큰이 없을 경우 처리
+
+    // 사용자 즐겨찾기 데이터 가져오기
+    useEffect(() => {
+      const fetchFavoritesData = async () => {
+        try {
+          const storedUserId = await AsyncStorage.getItem('userId');
+          if (storedUserId) {
+            const response = await axiosInstance.get(`/api/favorites/user/${storedUserId}`);
+            setFavoritesData(response.data);
+            console.log('즐겨찾기 데이터가 성공적으로 로드되었습니다.');
+          }
+        } catch (error) {
+          console.error('즐겨찾기 데이터를 가져오는 중 오류 발생:', error);
+          setFavoritesData([]); // 빈 배열로 설정
+        }
+      };
+
+      fetchFavoritesData();
+    }, []);
+
 
     // 노지 캠핑장 데이터 가져오기
     useEffect(() => {
@@ -175,7 +202,9 @@ const MapView = forwardRef(
                   campsitesData: campsitesData || [],
                   autocampsData: autocampsData || [],
                   beachesData: beachesData || [],
+                  favoritesData: favoritesData || [],
                   showAllMarkers,
+                  showFavorites: showFavorites || false,
                   showRestStops,
                   showChargingStations,
                   showCountrysides,
@@ -185,6 +214,7 @@ const MapView = forwardRef(
                   showCampsites,
                   showBeaches,
                   showWifis,
+                  favorites,
                 }),
               );
 
@@ -208,13 +238,14 @@ const MapView = forwardRef(
           } else if (data.type === 'fishingSelected') {
             // 낚시터 선택 시 처리
             navigation.navigate('FishingDetail', {fishing: data.data});
-          }
+          } 
         } catch (error) {
           console.error('Error parsing message from WebView:', error);
         }
       },
       [
         navigation,
+        showFavorites,
         showAllMarkers,
         showCampgrounds,
         showCampsites,
@@ -230,8 +261,12 @@ const MapView = forwardRef(
         campsitesData,
         fishingsData,
         autocampsData,
+        favoritesData,
+        addFavorite,
+        removeFavorite,
         beachesData,
         userLocation,
+        favorites,
       ],
     );
 
@@ -246,11 +281,14 @@ const MapView = forwardRef(
             showCampsites,
             showAutoCamps,
             showCountrysides,
+            showFavorites,
             showFishings,
             showBeaches,
             showRestStops,
             showWifis,
             showChargingStations,
+            favoritesData: favorites,
+            
           }),
         );
       }
@@ -263,9 +301,11 @@ const MapView = forwardRef(
       showFishings,
       showBeaches,
       showRestStops,
+      showFavorites,
       showWifis,
       showChargingStations,
       mapReady,
+      favorites,
     ]);
 
     // 위치 및 방향 데이터가 변경될 때마다 WebView에 업데이트 메시지 전송
@@ -280,6 +320,19 @@ const MapView = forwardRef(
         );
       }
     }, [userLocation, heading, mapReady]);
+
+    // 즐겨찾기 데이터가 변경될 때마다 WebView에 업데이트 메시지 전송
+    useEffect(() => {
+      if (mapReady && webviewRef.current) {
+        webviewRef.current.postMessage(
+          JSON.stringify({
+            type: 'updateFavorites',
+            favoritesData: favoritesData || [],
+            showFavorites,
+          }),
+        );
+      }
+    }, [favoritesData, showFavorites, mapReady]);
 
     if (error) {
       return (
