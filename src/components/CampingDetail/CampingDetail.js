@@ -1,5 +1,5 @@
 // src/components/CampingDetail/CampingDetail.js
-import React, {useMemo, useState, useEffect} from 'react';
+import React, {useMemo, useContext, useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from './styles';
 import sharedStyles from '../Shared/styles';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import FavoriteButton from '../Shared/FavoriteButton'; // 추가
 import FacilityIcon from '../Shared/components/FacilityIcon';
 import InfoRow from '../Shared/components/InfoRow';
 import TabButton from '../Shared/components/TabButton';
@@ -28,6 +28,8 @@ import ImageSlider from '../Shared/components/ImageSlider';
 import TabSection from './components/TabSection';
 import LoadingIndicator from '../Shared/components/LoadingIndicator';
 import ReviewComponent from '../ReviewComponent/ReviewComponent';
+import useFavorite from '../../hooks/useFavorite'; // useFavorite 훅 임포트
+import {AuthContext} from '../../AuthContext'; // AuthContext 임포트 추가
 
 // Define keyword categories and their corresponding icons
 const FACILITY_KEYWORDS = [
@@ -74,6 +76,15 @@ function CampingDetail({route, navigation}) {
 
   const [activeTab, setActiveTab] = useState('detail');
   const [averageRating, setAverageRating] = useState(0);
+
+  // AuthContext에서 userId 가져오기
+  const {userId} = useContext(AuthContext);
+
+  // 즐겨찾기 훅 사용
+  const {isFavorite, toggleFavorite, loading} = useFavorite(
+    'CAMPGROUND',
+    campground.id,
+  );
 
   // 탭 버튼 클릭 핸들러
   const handleTabPress = tab => {
@@ -138,6 +149,13 @@ function CampingDetail({route, navigation}) {
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
+      {/* 즐겨찾기 토글 버튼 추가 */}
+      <FavoriteButton
+        isFavorite={isFavorite || false}
+        toggleFavorite={toggleFavorite}
+        loading={loading}
+      />
+
       {/* 캠핑장 이미지 */}
       <ImageSlider
         images={[campground.imageUrl]}
@@ -198,7 +216,12 @@ CampingDetail.propTypes = {
       campground: PropTypes.object.isRequired,
     }).isRequired,
   }).isRequired,
+  isFavorite: PropTypes.bool,
   navigation: PropTypes.object.isRequired,
+};
+
+FavoriteButton.defaultProps = {
+  isFavorite: false, // 기본값
 };
 
 export default React.memo(CampingDetail);
