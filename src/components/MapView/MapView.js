@@ -1,6 +1,7 @@
 // src/components/MapView/MapView.js
 import React, {
   useEffect,
+  useContext,
   useState,
   useRef,
   useCallback,
@@ -12,13 +13,12 @@ import {WebView} from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
 import wifisData from '../../data/wifi.json';
 import countrysideData from '../../data/countryside.json';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // 추가
-import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from '../../utils/axiosInstance'; 
 import chargingStationsData from '../../data/chargingStations.json';
 import useLocation from '../../hooks/useLocation'; 
 import useFavorites from '../../hooks/useFavorite';
-
+import { AuthContext } from '../../AuthContext';
 
 const MapView = forwardRef(
   (
@@ -61,18 +61,24 @@ const MapView = forwardRef(
       },
     }));
 
-    // 각 데이터 가져오기 함수에서 토큰이 없을 경우 처리
+    // AuthContext에서 userId 가져오기
+    const { userId } = useContext(AuthContext);
+    console.log('MapView - userId from AuthContext:', userId); // 추가: userId 확인
 
     // 사용자 즐겨찾기 데이터 가져오기
     useEffect(() => {
+      if (!userId) {
+        console.warn('userId가 존재하지 않습니다. 즐겨찾기 데이터를 가져올 수 없습니다.');
+        return;
+      }
+
       const fetchFavoritesData = async () => {
         try {
-          const storedUserId = await AsyncStorage.getItem('userId');
-          if (storedUserId) {
-            const response = await axiosInstance.get(`/api/favorites/user/${storedUserId}`);
-            setFavoritesData(response.data);
-            console.log('즐겨찾기 데이터가 성공적으로 로드되었습니다.');
-          }
+          console.log('Fetching favorites for userId:', userId); // 추가
+          const response = await axiosInstance.get(`/favorites/user/${userId}`);
+          console.log('Favorites API Response:', response.data); // 추가
+          setFavoritesData(response.data);
+          console.log('즐겨찾기 데이터가 성공적으로 로드되었습니다.', response.data);
         } catch (error) {
           console.error('즐겨찾기 데이터를 가져오는 중 오류 발생:', error);
           setFavoritesData([]); // 빈 배열로 설정
@@ -80,8 +86,7 @@ const MapView = forwardRef(
       };
 
       fetchFavoritesData();
-    }, []);
-
+    }, [userId]);
 
     // 노지 캠핑장 데이터 가져오기
     useEffect(() => {
@@ -287,8 +292,7 @@ const MapView = forwardRef(
             showRestStops,
             showWifis,
             showChargingStations,
-            favoritesData: favorites,
-            
+            favoritesData: favoritesData,          
           }),
         );
       }
@@ -305,7 +309,7 @@ const MapView = forwardRef(
       showWifis,
       showChargingStations,
       mapReady,
-      favorites,
+      favoritesData,
     ]);
 
     // 위치 및 방향 데이터가 변경될 때마다 WebView에 업데이트 메시지 전송
