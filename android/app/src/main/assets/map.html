@@ -362,27 +362,27 @@
 
               // markerType과 markerId에 따라 해당 데이터를 가져옴
               switch (markerType) {
-                case 'Campground':
+                case 'CAMPGROUND':
                   data = campgrounds.find(
                     campground => campground.id === markerId,
                   );
                   break;
-                case 'Campsite':
+                case 'CAMPSITE':
                   data = campsites.find(
                     campsite => campsite.contentId === markerId,
                   );
                   break;
-                case 'Autocamp':
+                case 'AUTOCAMP':
                   data = autocamps.find(
                     autocamp => autocamp.contentId === markerId,
                   );
                   break;
-                case 'Fishing':
+                case 'FISHING':
                   data = fishings.find(
                     fishing => fishing.contentId === markerId,
                   );
                   break;
-                case 'Beach':
+                case 'BEACH':
                   data = beaches.find(beach => beach.contentId === markerId);
                   break;
                 default:
@@ -393,7 +393,7 @@
                 var lat, lng, icon, popupContent;
 
                 switch (markerType) {
-                  case 'Campground':
+                  case 'CAMPGROUND':
                     lat = parseFloat(data.latitude || data.location.lat);
                     lng = parseFloat(data.longitude || data.location.lng);
                     icon = favoriteIcons['Campground'];
@@ -408,7 +408,7 @@
             </div>
           `;
                     break;
-                  case 'Campsite':
+                  case 'CAMPSITE':
                     lat = parseFloat(data.lat);
                     lng = parseFloat(data.lng);
                     icon = favoriteIcons['Campsite'];
@@ -424,7 +424,7 @@
             </div>
           `;
                     break;
-                  case 'Autocamp':
+                  case 'AUTOCAMP':
                     lat = parseFloat(data.lat);
                     lng = parseFloat(data.lng);
                     icon = favoriteIcons['Autocamp'];
@@ -440,7 +440,7 @@
             </div>
           `;
                     break;
-                  case 'Fishing':
+                  case 'FISHING':
                     lat = parseFloat(data.lat);
                     lng = parseFloat(data.lng);
                     icon = favoriteIcons['Fishing'];
@@ -455,7 +455,7 @@
             </div>
           `;
                     break;
-                  case 'Beach':
+                  case 'BEACH':
                     lat = parseFloat(data.lat);
                     lng = parseFloat(data.lng);
                     icon = favoriteIcons['Beach'];
@@ -1175,6 +1175,10 @@
 
             if (message.type === 'toggleLayers') {
               console.log('Toggling favorites:', showFavorites);
+              
+              favorites = message.favoritesData || [];
+              console.log('Received favoritesData:', favorites);
+
               if (showFavorites) {
                 addFavoriteMarkers();
               } else {
