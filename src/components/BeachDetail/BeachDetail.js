@@ -1,8 +1,8 @@
 // src/components/BeachDetail/BeachDetail.js
 import React, {useState, useContext} from 'react';
+import CustomText from '../CustomText';
 import {
   View,
-  Text,
   Image,
   ScrollView,
   StyleSheet,
@@ -39,7 +39,7 @@ const BeachDetail = ({route, navigation}) => {
       onPress={onPress}
       disabled={!onPress}>
       <Ionicons name={iconName} size={24} color="#555" style={styles.icon} />
-      <Text style={[styles.infoText, onPress && styles.link]}>{text}</Text>
+      <CustomText style={[styles.infoText, onPress && styles.link]}>{text}</CustomText>
     </TouchableOpacity>
   );
 
@@ -88,7 +88,7 @@ const BeachDetail = ({route, navigation}) => {
         </View>
 
         {/* 해수욕장 이름 */}
-        <Text style={styles.title}>{beach.title || '해수욕장 이름 없음'}</Text>
+        <CustomText style={styles.title}>{beach.title || '해수욕장 이름 없음'}</CustomText>
 
         {/* 주소 */}
         {beach.addr && (
@@ -119,7 +119,7 @@ const BeachDetail = ({route, navigation}) => {
                 color="#555"
                 style={styles.icon}
               />
-              <Text style={styles.sectionTitle}>소개</Text>
+              <CustomText style={styles.sectionTitle}>소개</CustomText>
             </View>
             <RenderHTML
               contentWidth={width - 32} // 패딩을 고려하여 너비 조정

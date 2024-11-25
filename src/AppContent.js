@@ -5,7 +5,7 @@ import Header from './components/Header';
 import MainContent from './screens/MainContent';
 import RightDrawer from './components/RightDrawer/RightDrawer';
 import { useDrawerStatus } from '@react-navigation/drawer';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from './AuthContext';
 import useFavorite from './hooks/useFavorite'; // 이미 만들어진 훅 사용
@@ -46,7 +46,6 @@ const AppContent = () => {
   // 모든 마커를 토글하는 함수
   const toggleAllMarkersFunc = () => {
     const allMarkers = [
-      showFavorites,
       showRestStops,
       showChargingStations,
       showCampgrounds,
@@ -97,6 +96,7 @@ const AppContent = () => {
   };
 
   const toggleFavoritesFunc = () => {
+    setShowAllMarkers(false);
     setShowFavorites(prev => !prev);
     console.log('즐겨찾기 마커 토글:', !showFavorites);
   };
@@ -150,7 +150,6 @@ const AppContent = () => {
       showCountrysides,
       showFishings,
       showWifis,
-      showFavorites,
       showBeaches,
       showCampsites,
       showAutoCamps,
@@ -168,7 +167,6 @@ const AppContent = () => {
     showCampgrounds,
     showCountrysides,
     showWifis,
-    showFavorites,
     showFishings,
     showBeaches,
     showCampsites,
@@ -186,10 +184,7 @@ const AppContent = () => {
 
   // 메인 화면으로 돌아가는 함수
   const goToMainScreen = () => {
-    console.log('CAMPERS 클릭됨: 메인 화면으로 돌아갑니다.');
-    if (mainContentRef.current) {
-      mainContentRef.current.resetMap(); // MainContent의 resetMap 호출
-    }
+    console.log('로고 클릭됨: 메인 화면으로 돌아갑니다.');
   };
 
   return (
