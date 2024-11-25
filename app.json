@@ -1,4 +1,7 @@
 {
   "name": "campers",
-  "displayName": "campers"
+  "displayName": "campers",
+  "plugins": [
+    "expo-font"
+  ]
 }

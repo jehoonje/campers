@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   drawerContainer: {
     position: 'absolute',
     width: '100%',
-    top: 60, // 헤더 높이만큼 아래에서 시작
+    top: 50, // 헤더 높이만큼 아래에서 시작
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0,0,0,0)', // 드로어 배경

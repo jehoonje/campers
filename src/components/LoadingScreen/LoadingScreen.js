@@ -7,7 +7,7 @@ const LoadingScreen = ({ navigation }) => {
     const loadResources = async () => {
       try {
         // Replace the following line with actual resource loading
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 13000));
 
         // Navigate to Main after loading
         navigation.replace('Main');
@@ -22,11 +22,6 @@ const LoadingScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../assets/campers.png')}
-        style={styles.logo}
-        resizeMode="contain"
-      />
       <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
     </View>
   );

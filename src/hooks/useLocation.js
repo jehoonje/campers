@@ -13,22 +13,58 @@ const useLocation = () => {
   const [heading, setHeading] = useState(0);
 
   useEffect(() => {
+    let watchId = null;
+    let subscription = null;
+
+    const startWatchingPosition = async () => {
+      const hasPermission = await requestLocationPermission();
+      if (!hasPermission) {
+        return;
+      }
+
+      watchId = Geolocation.watchPosition(
+        position => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        error => {
+          setError('위치 정보를 가져오는 중 오류 발생: ' + error.message);
+        },
+        {
+          enableHighAccuracy: true,
+          distanceFilter: 1,
+          interval: 1000,
+          fastestInterval: 500,
+        },
+      );
+
+      // 방향(방위각) 데이터 수집
+      setUpdateIntervalForType(SensorTypes.gyroscope, 100); // 밀리초 단위
+      subscription = gyroscope.subscribe(({ x, y, z }) => {
+        // 간단한 방위각 계산 (예제)
+        const angle = Math.atan2(y, x) * (180 / Math.PI);
+        setHeading(angle);
+      });
+    };
+
     const requestLocationPermission = async () => {
       try {
+        let hasPermission = false;
         if (Platform.OS === 'ios') {
           const status = await Geolocation.requestAuthorization('whenInUse');
-          if (status !== 'granted') {
-            setError('위치 권한이 거부되었습니다.');
-            return false;
-          }
+          hasPermission = status === 'granted';
         } else {
           const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
           );
-          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            setError('위치 권한이 거부되었습니다.');
-            return false;
-          }
+          hasPermission = granted === PermissionsAndroid.RESULTS.GRANTED;
+        }
+
+        if (!hasPermission) {
+          setError('위치 권한이 거부되었습니다.');
+          return false;
         }
         return true;
       } catch (error) {
@@ -37,48 +73,20 @@ const useLocation = () => {
       }
     };
 
-    const startWatchingPosition = async () => {
-      const hasPermission = await requestLocationPermission();
-      if (!hasPermission) {
-        return;
-      }
+    // 즉시 실행 함수로 비동기 함수 호출
+    (async () => {
+      await startWatchingPosition();
+    })();
 
-      const watchId = Geolocation.watchPosition(
-        position => {
-          setUserLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        error => {
-          setError(error.message);
-        },
-        {
-          enableHighAccuracy: true,
-          distanceFilter: 1,
-          interval: 1000,
-          fastestInterval: 500,
-          showsBackgroundLocationIndicator: true,
-        },
-      );
-
-      // 방향(방위각) 데이터 수집
-      setUpdateIntervalForType(SensorTypes.gyroscope, 100); // 밀리초 단위
-      const subscription = gyroscope.subscribe(({ x, y, z }) => {
-        // 간단한 방위각 계산 (예제)
-        const angle = Math.atan2(y, x) * (180 / Math.PI);
-        setHeading(angle);
-      });
-
-      // 클린업 함수에서 watchId와 subscription을 정리합니다.
-      return () => {
+    // 클린업 함수에서 watchId와 subscription을 정리합니다.
+    return () => {
+      if (watchId !== null) {
         Geolocation.clearWatch(watchId);
+      }
+      if (subscription) {
         subscription.unsubscribe();
-      };
+      }
     };
-
-    // 위치 추적 시작
-    startWatchingPosition();
   }, []);
 
   return { userLocation, error, heading };

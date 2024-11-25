@@ -87,9 +87,9 @@ const AppContainer = () => {
   }, []);
   
 
-  useEffect(() => {
-    RNBootSplash.hide({ fade: true });
-  }, []);
+  // useEffect(() => {
+  //   RNBootSplash.hide({ fade: true });
+  // }, []);
 
   return (
     <NavigationContainer>
@@ -99,7 +99,7 @@ const AppContainer = () => {
           headerShown: false,
           drawerType: 'front',
           drawerStyle: {
-            marginTop: 60,
+            marginTop: 50,
             width: 250,
           },
           overlayColor: 'transparent',

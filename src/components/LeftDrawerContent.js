@@ -1,11 +1,12 @@
 // src/components/LeftDrawerContent.js
 import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Share, Linking } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Share, Linking } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../AuthContext';
+import CustomText from './CustomText';
 
 const LeftDrawerContent = () => {
   const navigation = useNavigation();
@@ -23,7 +24,7 @@ const LeftDrawerContent = () => {
           }}
         >
           <Ionicons name="person-outline" size={24} color="#333" style={styles.icon} />
-          <Text style={styles.menuText}>마이프로필</Text>
+          <CustomText style={styles.menuText}>마이프로필</CustomText>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -38,7 +39,7 @@ const LeftDrawerContent = () => {
           }}
         >
           <Ionicons name="share-social-outline" size={24} color="#333" style={styles.icon} />
-          <Text style={styles.menuText}>앱 공유하기</Text>
+          <CustomText style={styles.menuText}>앱 공유하기</CustomText>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -49,7 +50,7 @@ const LeftDrawerContent = () => {
           }}
         >
           <Ionicons name="mail-outline" size={24} color="#333" style={styles.icon} />
-          <Text style={styles.menuText}>이메일 피드백</Text>
+          <CustomText style={styles.menuText}>이메일 피드백</CustomText>
         </TouchableOpacity>
 
         {/* 구분선 */}
@@ -62,7 +63,7 @@ const LeftDrawerContent = () => {
             onPress={() => navigation.navigate('LoginScreen')}
           >
             <Ionicons name="log-in-outline" size={24} color="#333" style={styles.icon} />
-            <Text style={styles.loginText}>Login</Text>
+            <CustomText style={styles.loginText}>Login</CustomText>
           </TouchableOpacity>
         )}
 
@@ -72,15 +73,15 @@ const LeftDrawerContent = () => {
             onPress={logout}
           >
             <Ionicons name="log-out-outline" size={24} color="#333" style={styles.icon} />
-            <Text style={styles.logoutText}>Logout</Text>
+            <CustomText style={styles.logoutText}>Logout</CustomText>
           </TouchableOpacity>
         )}
       </View>
 
       {/* 하단 텍스트 */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>made by jehoon</Text>
-        <Text style={styles.versionText}>Version 0.0.1</Text>
+        <CustomText style={styles.footerText}>made by jehoon</CustomText>
+        <CustomText style={styles.versionText}>Version 0.0.1</CustomText>
       </View>
     </DrawerContentScrollView>
   );
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   drawerContainer: {
     flexGrow: 1,
     justifyContent: 'space-between',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#F5F7F8',
     paddingVertical: 10,
   },
   content: {
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 18,
     marginLeft: 10,
-    color: '#333',
+    color: '#495E57',
   },
   divider: {
     marginVertical: 16,
@@ -120,7 +121,7 @@ const styles = StyleSheet.create({
   loginText: {
     fontSize: 18,
     marginLeft: 10,
-    color: '#333',
+    color: '#495E57',
   },
   logoutButton: {
     flexDirection: 'row',
@@ -130,7 +131,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 18,
     marginLeft: 10,
-    color: '#333',
+    color: '#495E57',
   },
   icon: {
     marginRight: 10,
@@ -144,11 +145,11 @@ const styles = StyleSheet.create({
     marginBottom:2,
     alignSelf: 'flex-end',
     paddingRight: 10,
-    color: '#c1c1c1',
+    color: '#F5F7F8',
   },
   versionText: {
     fontSize: 12,
-    color: '#333',
+    color: '#495E57',
     alignSelf: 'flex-end',
     paddingRight: 10,
   },
