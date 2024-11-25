@@ -3,12 +3,12 @@ import { StyleSheet, Platform } from 'react-native';
 
 const styles = StyleSheet.create({
   header: {
-    height: 60,
-    backgroundColor: '#ffffff',
+    height: 50,
+    backgroundColor: '#757574',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 6,
     // 안드로이드 그림자
     elevation: 2,
     // iOS 그림자
@@ -19,22 +19,27 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   leftButton: {
-    padding: 8,
+    padding: 6,
+    paddingHorizontal: 2,
   },
   rightButton: {
-    padding: 8,
+    padding: 6,
   },
   icon: {
-    color: '#333',
+    color: '#FFF',
   },
   logoContainer: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'right',
     justifyContent: 'center',
+    
   },
   logo: {
-    width: 120, // 로고의 너비 조정
-    height: 40, // 로고의 높이 조정
+    width: 160, // 로고의 너비 조정
+    height: 50, // 로고의 높이 조정
+    
+    
+    
   },
 });
 

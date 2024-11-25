@@ -2,7 +2,15 @@
 
     <style name="BootSplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@drawable/bootsplash</item>
+        <item name="android:windowAnimationStyle">@style/BootSplashWindowAnimation</item>
+        <item name="bootsplashAutoHide">false</item>
     </style>
+
+    <style name="BootSplashWindowAnimation">
+        <item name="android:windowEnterAnimation">@anim/bootsplash_fade_in</item>
+        <item name="android:windowExitAnimation">@anim/bootsplash_fade_out</item> <!-- 필요 시 추가 -->
+    </style>
+    
     <!-- Base application theme. -->
     <!-- <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         

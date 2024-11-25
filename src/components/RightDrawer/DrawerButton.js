@@ -1,9 +1,10 @@
 // src/components/RightDrawer/DrawerButton.js
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Fontisto from 'react-native-vector-icons/Fontisto';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import CustomText from '../CustomText';
 
 const DrawerButton = ({ name, icon, lib, onPress }) => {
   const renderIcon = () => {
@@ -28,7 +29,7 @@ const DrawerButton = ({ name, icon, lib, onPress }) => {
       activeOpacity={0.7} // 버튼 눌림 시 투명도 변경
     >
       <View style={styles.iconContainer}>{renderIcon()}</View>
-      <Text style={styles.buttonText}>{name}</Text>
+      <CustomText style={styles.buttonText}>{name}</CustomText>
     </TouchableOpacity>
   );
 };
@@ -39,12 +40,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
     paddingHorizontal: 10,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#F5F7F8',
     justifyContent: 'flex-start',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    borderBottomWidth:0.2,
+    borderBottomColor:'#c5c5c5',
     // marginBottom: 10, // 각 버튼 사이 간격 추가
   },
   iconContainer: {
@@ -54,7 +53,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    color: '#333',
+    color:'#184035',
     marginLeft: 10,
   },
 });
