@@ -28,12 +28,11 @@
         font-weight: normal;
         font-style: normal;
       }
-      
+
       body {
         font-family: 'Pretendard', sans-serif;
       }
     </style>
-    
   </head>
   <body>
     <div id="map"></div>
@@ -167,8 +166,11 @@
           // 파스텔톤 효과 적용 - CSS를 통해 타일 스타일 변경
           var style = document.createElement('style');
           style.type = 'text/css';
-          style.innerHTML =
-            '.leaflet-tile { filter: saturate(0.7) brightness(1.0) hue-rotate(700deg); }';
+          style.innerHTML = `
+              .leaflet-tile { filter: saturate(0.7) brightness(1.0) hue-rotate(700deg); }
+              .custom-locate-button { transform: translateY(-50px); } /* 현재 위치 버튼을 위로 10px 이동 */
+              .custom-zoom-control { transform: translateY(-30px); } /* 확대/축소 버튼을 위로 10px 이동 */
+            `;
           document.getElementsByTagName('head')[0].appendChild(style);
 
           // 현재 위치 마커 (초기에는 표시하지 않음)
@@ -189,12 +191,24 @@
             rotationOrigin: 'center center', // 회전 기준점 설정
           }).addTo(map);
 
-          // 하단에 확대/축소 버튼 추가
-          L.control
+          // 확대/축소 버튼 추가 및 커스텀 클래스 적용
+          var zoomControl = L.control
             .zoom({
               position: 'bottomright',
             })
             .addTo(map);
+
+          // 확대/축소 컨트롤에 커스텀 클래스 추가
+          // Leaflet은 DOM 요소를 제공하므로, 해당 요소에 접근하여 클래스를 추가해야 합니다.
+          setTimeout(() => {
+            // Leaflet이 컨트롤을 추가한 후에 접근
+            var zoomControlElement = document.querySelector(
+              '.leaflet-control-zoom',
+            );
+            if (zoomControlElement) {
+              zoomControlElement.classList.add('custom-zoom-control');
+            }
+          }, 0);
 
           // 즐겨찾기 레이어 추가
           map.addLayer(favoriteMarkers);
@@ -202,7 +216,10 @@
           // 현재 위치로 이동하는 커스텀 버튼 추가
           var locateButton = L.control({position: 'bottomleft'});
           locateButton.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'leaflet-bar');
+            var div = L.DomUtil.create(
+              'div',
+              'leaflet-bar custom-locate-button',
+            ); // 커스텀 클래스 추가
             div.innerHTML =
               '<a href="#" title="현재 위치로 이동"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-crosshair"><circle cx="12" cy="12" r="10"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></a>';
             div.onclick = function () {
@@ -292,7 +309,7 @@
         const campgroundIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/campground-removebg-preview.png?raw=true', //  아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -300,7 +317,7 @@
         const campsiteIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/campsite-removebg-preview.png?raw=true', //  아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -308,7 +325,7 @@
         const autocampIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/autocamp-removebg-preview.png?raw=true', //  아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -316,7 +333,7 @@
         const restareaIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/restarea-removebg-preview.png?raw=true', //  아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -324,7 +341,7 @@
         const fishingIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/cutlery-removebg-preview.png?raw=true', //  아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -332,7 +349,7 @@
         const countrysideIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/countryside-removebg-preview.png?raw=true', //  아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -340,7 +357,7 @@
         const chargingstationIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/volt-removebg-preview.png?raw=true', // 충전소 아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -348,7 +365,7 @@
         const beachIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/beach-removebg-preview.png?raw=true', // 해수욕장 아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -356,7 +373,7 @@
         const wifiIcon = L.icon({
           iconUrl:
             'https://github.com/jehoonje/jehoonje/blob/main/images/wifi-removebg-preview.png?raw=true', //  아이콘 URL
-            iconSize: [60, 60], // 아이콘 크기
+          iconSize: [60, 60], // 아이콘 크기
           iconAnchor: [30, 30], // 아이콘 중앙을 기준점으로 설정
           popupAnchor: [0, -30], // 팝업이 아이콘 중앙 위쪽에 표시되도록 설정
         });
@@ -375,11 +392,10 @@
 
               // markerType과 markerId에 따라 해당 데이터를 가져옴
               switch (markerType) {
-                
                 case 'CAMPGROUND':
                   data = campgrounds.find(
                     campground => campground.id === markerId,
-                  ); 
+                  );
                   break;
                 case 'CAMPSITE':
                   data = campsites.find(
@@ -405,7 +421,7 @@
 
               if (data) {
                 var lat, lng, icon, popupContent;
-                console.log("data : ", data);
+                console.log('data : ', data);
                 switch (markerType) {
                   case 'CAMPGROUND':
                     lat = parseFloat(data.latitude || data.location.lat);
@@ -417,9 +433,7 @@
                 data.imageUrl ||
                 'https://via.placeholder.com/200x100.png?text=No+Image'
               }" alt="이미지">
-              <div class="name">${
-                      campground.name || '야영장 이름 없음'
-                    }</div>
+              <div class="name">${data.name || '야영장 이름 없음'}</div>
             </div>
           `;
                     break;
@@ -434,9 +448,7 @@
                   ? data.image1
                   : 'https://via.placeholder.com/200x100.png?text=No+Image'
               }" alt="이미지">
-              <div class="name">${
-                      campsite.title || '야영장 이름 없음'
-                    }</div>
+              <div class="name">${data.title || '야영장 이름 없음'}</div>
             </div>
           `;
                     break;
@@ -452,8 +464,8 @@
                   : 'https://via.placeholder.com/200x100.png?text=No+Image'
               }" alt="이미지">
               <div class="name">${
-                      autocamp.title || '오토캠핑장 이름 없음'
-                    }</div>
+                data.title || '오토캠핑장 이름 없음'
+              }</div>
             </div>
           `;
                     break;
@@ -467,9 +479,7 @@
                 data.image1 ||
                 'https://via.placeholder.com/200x100.png?text=No+Image'
               }" alt="이미지">
-              <div class="name">${
-                      fishing.title || '낚시터 이름 없음'
-                    }</div>
+              <div class="name">${data.title || '낚시터 이름 없음'}</div>
             </div>
           `;
                     break;
@@ -483,9 +493,7 @@
                 data.image1 ||
                 'https://via.placeholder.com/200x100.png?text=No+Image'
               }" alt="이미지">
-              <div class="name">${
-                      beach.title || '해수욕장 이름 없음'
-                    }</div>
+              <div class="name">${data.title || '해수욕장 이름 없음'}</div>
             </div>
           `;
                     break;
@@ -1158,7 +1166,7 @@
         function addFavoriteMarkers() {
           if (favoritesAdded) return; // 이미 추가된 경우 중단
           favoritesAdded = true; // 플래그 설정
-          map.addLayer(favoriteMarkers); 
+          map.addLayer(favoriteMarkers);
           updateVisibleMarkers(); // 가시 영역 내의 즐겨찾기 마커 추가
         }
 
@@ -1182,10 +1190,10 @@
 
             if (message.type === 'toggleLayers') {
               console.log('Toggling favorites:', showFavorites);
-              
+
               favorites = message.favoritesData || [];
               console.log('Received favoritesData:', favorites);
-              
+
               if (showFavorites) {
                 addFavoriteMarkers();
               } else {
@@ -1229,8 +1237,6 @@
                 removeFavoriteMarkers();
               }
             }
-
-            
 
             if (message.type === 'initialData') {
               // 초기 데이터 설정
