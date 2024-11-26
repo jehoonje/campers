@@ -9,7 +9,7 @@ import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from './AuthContext';
 import useFavorite from './hooks/useFavorite'; // 이미 만들어진 훅 사용
-
+import Footer from './components/Footer';
 
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
@@ -224,6 +224,9 @@ const AppContent = () => {
           navigation={navigation} // navigation 객체 전달
         />
       </View>
+
+      {/* Footer */}
+      <Footer />
 
       {/* 오른쪽 드로어 */}
       <RightDrawer
