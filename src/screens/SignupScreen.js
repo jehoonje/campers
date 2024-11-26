@@ -12,7 +12,6 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import axiosInstance from '../utils/axiosInstance'; // axiosInstance 임포트
-import { AuthContext } from '../AuthContext'; // 필요 시 AuthContext 임포트
 
 const SignupScreen = () => {
   const [step, setStep] = useState(1);
@@ -27,7 +26,6 @@ const SignupScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const intervalRef = useRef(null);
   const navigation = useNavigation();
-  const { setIsLoggedIn } = useContext(AuthContext); // 필요 시
 
   // 이메일 중복 확인 함수
   const checkEmailDuplication = () => {

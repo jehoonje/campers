@@ -175,7 +175,7 @@ const MapView = forwardRef(
     useEffect(() => {
       if (mapReady) {
         RNBootSplash.hide({ fade: true }); // 페이드아웃 효과로 부트스플래시 숨기기
-        if (dataLoaded && !initialDataSent) {
+        if (dataLoaded && !initialDataSent.current) {
           sendInitialData();
         }
       }
