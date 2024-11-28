@@ -1,5 +1,6 @@
 // src/components/MapView/MapView.js
 import React, {
+  memo,
   useEffect,
   useContext,
   useState,
@@ -70,109 +71,117 @@ const MapView = forwardRef(
     const {userId} = useContext(AuthContext);
     // console.log('MapView - userId from AuthContext:', userId); // 추가: userId 확인
 
+    const dataFetchedRef = useRef(false);
+
     // 모든 데이터를 가져오는 함수
     useEffect(() => {
-      const fetchAllData = async () => {
-        try {
-          const promises = [];
+      if (!dataFetchedRef.current) {
+        dataFetchedRef.current = true;
+        const fetchAllData = async () => {
+          try {
+            const promises = [];
 
-          // 노지 캠핑장 데이터 가져오기
-          const fetchCampgroundsData = axiosInstance
-            .get('/campgrounds')
-            .then(response => {
-              setCampgroundsData(response.data);
-              console.log('캠핑장 데이터가 성공적으로 로드되었습니다.');
-            })
-            .catch(error => {
-              console.error('캠핑장 데이터를 가져오는 중 오류 발생:', error);
-              setCampgroundsData([]); // 빈 배열로 설정
-            });
-          promises.push(fetchCampgroundsData);
+            // 노지 캠핑장 데이터 가져오기
+            const fetchCampgroundsData = axiosInstance
+              .get('/campgrounds')
+              .then(response => {
+                setCampgroundsData(response.data);
+                console.log('캠핑장 데이터가 성공적으로 로드되었습니다.');
+              })
+              .catch(error => {
+                console.error('캠핑장 데이터를 가져오는 중 오류 발생:', error);
+                setCampgroundsData([]); // 빈 배열로 설정
+              });
+            promises.push(fetchCampgroundsData);
 
-          // 낚시터 데이터 가져오기
-          const fetchFishingsData = axiosInstance
-            .get('/fishings')
-            .then(response => {
-              setFishingsData(response.data);
-              console.log('낚시터 데이터가 성공적으로 로드되었습니다.');
-            })
-            .catch(error => {
-              console.error('낚시터 데이터를 가져오는 중 오류 발생:', error);
-              setFishingsData([]); // 빈 배열로 설정
-            });
-          promises.push(fetchFishingsData);
+            // 낚시터 데이터 가져오기
+            const fetchFishingsData = axiosInstance
+              .get('/fishings')
+              .then(response => {
+                setFishingsData(response.data);
+                console.log('낚시터 데이터가 성공적으로 로드되었습니다.');
+              })
+              .catch(error => {
+                console.error('낚시터 데이터를 가져오는 중 오류 발생:', error);
+                setFishingsData([]); // 빈 배열로 설정
+              });
+            promises.push(fetchFishingsData);
 
-          // 해수욕장 데이터 가져오기
-          const fetchBeachesData = axiosInstance
-            .get('/beaches')
-            .then(response => {
-              setBeachesData(response.data);
-              console.log('해수욕장 데이터가 성공적으로 로드되었습니다.');
-            })
-            .catch(error => {
-              console.error('해수욕장 데이터를 가져오는 중 오류 발생:', error);
-              setBeachesData([]); // 빈 배열로 설정
-            });
-          promises.push(fetchBeachesData);
+            // 해수욕장 데이터 가져오기
+            const fetchBeachesData = axiosInstance
+              .get('/beaches')
+              .then(response => {
+                setBeachesData(response.data);
+                console.log('해수욕장 데이터가 성공적으로 로드되었습니다.');
+              })
+              .catch(error => {
+                console.error(
+                  '해수욕장 데이터를 가져오는 중 오류 발생:',
+                  error,
+                );
+                setBeachesData([]); // 빈 배열로 설정
+              });
+            promises.push(fetchBeachesData);
 
-          // 야영장 데이터 가져오기
-          const fetchCampsitesData = axiosInstance
-            .get('/campsites')
-            .then(response => {
-              setCampsitesData(response.data);
-              console.log('야영장 데이터가 성공적으로 로드되었습니다.');
-            })
-            .catch(error => {
-              console.error('야영장 데이터를 가져오는 중 오류 발생:', error);
-              setCampsitesData([]); // 빈 배열로 설정
-            });
-          promises.push(fetchCampsitesData);
+            // 야영장 데이터 가져오기
+            const fetchCampsitesData = axiosInstance
+              .get('/campsites')
+              .then(response => {
+                setCampsitesData(response.data);
+                console.log('야영장 데이터가 성공적으로 로드되었습니다.');
+              })
+              .catch(error => {
+                console.error('야영장 데이터를 가져오는 중 오류 발생:', error);
+                setCampsitesData([]); // 빈 배열로 설정
+              });
+            promises.push(fetchCampsitesData);
 
-          // 오토 캠핑장 데이터 가져오기
-          const fetchAutoCampsData = axiosInstance
-            .get('/autocamps')
-            .then(response => {
-              setAutoCampsData(response.data);
-              console.log('오토 캠핑장 데이터가 성공적으로 로드되었습니다.');
-            })
-            .catch(error => {
-              console.error(
-                '오토 캠핑장 데이터를 가져오는 중 오류 발생:',
-                error,
-              );
-              setAutoCampsData([]); // 빈 배열로 설정
-            });
-          promises.push(fetchAutoCampsData);
+            // 오토 캠핑장 데이터 가져오기
+            const fetchAutoCampsData = axiosInstance
+              .get('/autocamps')
+              .then(response => {
+                setAutoCampsData(response.data);
+                console.log('오토 캠핑장 데이터가 성공적으로 로드되었습니다.');
+              })
+              .catch(error => {
+                console.error(
+                  '오토 캠핑장 데이터를 가져오는 중 오류 발생:',
+                  error,
+                );
+                setAutoCampsData([]); // 빈 배열로 설정
+              });
+            promises.push(fetchAutoCampsData);
 
-          // 사용자 즐겨찾기 데이터 가져오기
-          const fetchFavoritesData = userId
-            ? axiosInstance
-                .get(`/favorites/user/${userId}`)
-                .then(response => {
-                  setFavoritesData(response.data);
-                  console.log(
-                    '즐겨찾기 데이터가 성공적으로 로드되었습니다.',
-                    response.data,
-                  );
-                })
-                .catch(error => {
-                  console.error(
-                    '즐겨찾기 데이터를 가져오는 중 오류 발생:',
-                    error,
-                  );
-                  setFavoritesData([]); // 빈 배열로 설정
-                })
-            : Promise.resolve();
-          promises.push(fetchFavoritesData);
+            // 사용자 즐겨찾기 데이터 가져오기
+            const fetchFavoritesData = userId
+              ? axiosInstance
+                  .get(`/favorites/user/${userId}`)
+                  .then(response => {
+                    setFavoritesData(response.data);
+                    console.log(
+                      '즐겨찾기 데이터가 성공적으로 로드되었습니다.',
+                      response.data,
+                    );
+                  })
+                  .catch(error => {
+                    console.error(
+                      '즐겨찾기 데이터를 가져오는 중 오류 발생:',
+                      error,
+                    );
+                    setFavoritesData([]); // 빈 배열로 설정
+                  })
+              : Promise.resolve();
+            promises.push(fetchFavoritesData);
 
-          await Promise.all(promises);
-          setDataLoaded(true); // 모든 데이터 로드 완료
-        } catch (error) {
-          console.error('데이터를 가져오는 중 오류 발생:', error);
-        }
-      };
+            await Promise.all(promises);
+            setDataLoaded(true); // 모든 데이터 로드 완료
+          } catch (error) {
+            console.error('데이터를 가져오는 중 오류 발생:', error);
+          }
+        };
 
-      fetchAllData();
+        fetchAllData();
+      }
     }, []);
 
     // 사용자 위치가 설정되면 WebView 로드
@@ -448,4 +457,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MapView;
+export default memo(MapView);
