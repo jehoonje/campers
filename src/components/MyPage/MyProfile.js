@@ -1,10 +1,9 @@
 // src/screens/MyProfile.js
 import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { AuthContext } from '../contexts/AuthContext';
-import axiosInstance from '../utils/axiosInstance'; // axios 설정
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, TouchableOpacity, Image, Alert, StyleSheet } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { AuthContext } from '../../AuthContext';
+import axiosInstance from '../../utils/axiosInstance';
 
 const MyProfile = ({ navigation }) => {
   const { isLoggedIn, userId, logout } = useContext(AuthContext);
@@ -13,9 +12,9 @@ const MyProfile = ({ navigation }) => {
   // 유저 정보 로드
   useEffect(() => {
     if (isLoggedIn) {
-      axiosInstance.get(`/user/${userId}`)
+      axiosInstance.get(`/users/${userId}`)
         .then(response => {
-          setProfileImage(response.data.profileImage); // 유저의 프로필 사진 경로 받아오기
+          setProfileImage(response.data.profileImage);
         })
         .catch(error => console.error(error));
     }
@@ -32,17 +31,10 @@ const MyProfile = ({ navigation }) => {
           text: '확인', 
           onPress: async () => {
             try {
-              const token = await AsyncStorage.getItem('accessToken');
-              if (token) {
-                await axiosInstance.delete(`/users/${userId}/delete`, {
-                  headers: { Authorization: `Bearer ${token}` },
-                });
-                await AsyncStorage.removeItem('accessToken');
-                await AsyncStorage.removeItem('refreshToken');
-                Alert.alert('회원탈퇴 완료', '회원 탈퇴가 완료되었습니다.');
-                logout(); // 로그아웃 호출
-                navigation.navigate('Login'); // 로그인 화면으로 이동
-              }
+              await axiosInstance.delete(`/users/${userId}/delete`);
+              Alert.alert('회원탈퇴 완료', '회원 탈퇴가 완료되었습니다.');
+              logout(); // 로그아웃 호출
+              navigation.navigate('LoginScreen'); // 로그인 화면으로 이동
             } catch (error) {
               console.error(error);
               Alert.alert('회원탈퇴 실패', '회원 탈퇴에 실패했습니다. 다시 시도해주세요.');
@@ -55,19 +47,19 @@ const MyProfile = ({ navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <View style={styles.container}>
       <Ionicons
         name="arrow-back"
         size={24}
         color="#333"
         onPress={() => navigation.goBack()}
-        style={{ position: 'absolute', top: 20, left: 20 }}
+        style={styles.backIcon}
       />
       {/* 프로필 이미지 */}
-      <View style={{ marginBottom: 20 }}>
+      <View style={styles.profileContainer}>
         <Image
-          source={{ uri: profileImage }}
-          style={{ width: 100, height: 100, borderRadius: 50 }}
+          source={profileImage ? { uri: profileImage } : require('../../assets/placeholder.png')}
+          style={styles.profileImage}
         />
       </View>
 
@@ -89,5 +81,26 @@ const MyProfile = ({ navigation }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backIcon: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+  },
+  profileContainer: {
+    marginBottom: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+});
 
 export default MyProfile;

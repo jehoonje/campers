@@ -14,6 +14,8 @@ import CampsiteDetail from './components/CampsiteDetail/CampsiteDetail';
 import FishingDetail from './components/FishingDetail/FishingDetail';
 import BeachDetail from './components/BeachDetail/BeachDetail';
 import LoginScreen from './screens/LoginScreen';
+import MyProfile from './components/MyPage/MyProfile';
+import EditProfile from './components/MyPage/EditProfile';
 import SignupScreen from './screens/SignupScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -65,6 +67,16 @@ const MainStack = () => (
     <Stack.Screen
       name="SignupScreen"
       component={SignupScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="MyProfile" // MyProfile 추가
+      component={MyProfile}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="EditProfile" // MyProfile 추가
+      component={EditProfile}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>

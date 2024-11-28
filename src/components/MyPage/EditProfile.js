@@ -1,10 +1,11 @@
 // src/screens/EditProfile.js
 import React, { useContext, useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { AuthContext } from '../contexts/AuthContext';
-import axiosInstance from '../utils/axiosInstance'; // axios 설정
+import Ionicons from 'react-native-vector-icons/Ionicons'; 
+import { AuthContext } from '../../AuthContext';
+import axiosInstance from '../../utils/axiosInstance'; // axios 설정
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const EditProfile = ({ navigation }) => {
   const { userId, isLoggedIn } = useContext(AuthContext);
@@ -15,7 +16,7 @@ const EditProfile = ({ navigation }) => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      axiosInstance.get(`/user/${userId}`)
+      axiosInstance.get(`/users/${userId}`)
         .then(response => {
           setUserName(response.data.userName);
           setEmail(response.data.email);
@@ -44,7 +45,7 @@ const EditProfile = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem('accessToken');
       if (token) {
-        await axiosInstance.put(`/user/${userId}/update`, formData, {
+        await axiosInstance.put(`/users/${userId}/update`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
