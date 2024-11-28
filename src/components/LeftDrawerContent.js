@@ -1,36 +1,56 @@
 // src/components/LeftDrawerContent.js
-import React, { useContext } from 'react';
-import { View, TouchableOpacity, StyleSheet, Share, Linking } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import { View, TouchableOpacity, StyleSheet, Share, Linking, Image } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../AuthContext';
 import CustomText from './CustomText';
+import axiosInstance from '../utils/axiosInstance';
 
 const LeftDrawerContent = () => {
   const navigation = useNavigation();
-  const { isLoggedIn, logout } = useContext(AuthContext);
+  const { isLoggedIn, logout, userId } = useContext(AuthContext);
+  const [profileImage, setProfileImage] = useState('');
+
+  useEffect(() => {
+    if (isLoggedIn && userId) {
+      axiosInstance.get(`/users/${userId}`)
+        .then(response => {
+          setProfileImage(response.data.profileImage || null);
+        })
+        .catch(error => console.error(error));
+    } else {
+      setProfileImage(null);
+    }
+  }, [isLoggedIn, userId]);
 
   return (
     <DrawerContentScrollView contentContainerStyle={styles.drawerContainer}>
       <View style={styles.content}>
-        {/* 새로운 버튼들 */}
+        {/* 프로필 이미지 */}
+        <View style={styles.profileContainer}>
+          <Image
+            source={profileImage ? { uri: profileImage } : require('../assets/placeholder.png')}
+            style={styles.profileImage}
+          />
+        </View>
+
+        {/* 마이프로필 버튼 */}
         <TouchableOpacity
           style={styles.menuButton}
           onPress={() => {
-            // 마이프로필 버튼 클릭 시 동작 (추후 구현 예정)
-            navigation.navigate('ProfileScreen'); // ProfileScreen은 추후 생성
+            navigation.navigate('MyProfile'); // MyProfile 페이지로 이동
           }}
         >
           <Ionicons name="person-outline" size={24} color="#333" style={styles.icon} />
           <CustomText style={styles.menuText}>마이프로필</CustomText>
         </TouchableOpacity>
 
+        {/* 기타 버튼들 */}
         <TouchableOpacity
           style={styles.menuButton}
           onPress={() => {
-            // 앱 공유하기 버튼 클릭 시 동작
             Share.share({
               message: '이 앱을 확인해보세요!',
               url: 'http://example.com', // 실제 앱 링크로 교체
@@ -45,7 +65,6 @@ const LeftDrawerContent = () => {
         <TouchableOpacity
           style={styles.menuButton}
           onPress={() => {
-            // 이메일 피드백 버튼 클릭 시 동작
             Linking.openURL('mailto:limjhoon8@gmail.com');
           }}
         >
@@ -97,11 +116,21 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
   },
+  profileContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop:20,
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
   menuButton: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 18,
-    marginBottom:10,
+    marginBottom: 10,
   },
   menuText: {
     fontSize: 18,
@@ -142,7 +171,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 16,
-    marginBottom:2,
+    marginBottom: 2,
     alignSelf: 'flex-end',
     paddingRight: 10,
     color: '#F5F7F8',
