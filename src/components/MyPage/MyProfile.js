@@ -1,19 +1,28 @@
 // src/screens/MyProfile.js
-import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, Alert, StyleSheet } from 'react-native';
+import React, {useContext, useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Alert,
+  StyleSheet,
+} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { AuthContext } from '../../AuthContext';
+import {AuthContext} from '../../AuthContext';
 import axiosInstance from '../../utils/axiosInstance';
 
-const MyProfile = ({ navigation }) => {
-  const { isLoggedIn, userId, logout } = useContext(AuthContext);
+const MyProfile = ({navigation}) => {
+  const {isLoggedIn, userId, logout} = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState('');
 
   // 유저 정보 로드
   useEffect(() => {
     if (isLoggedIn) {
-      axiosInstance.get(`/users/${userId}`)
+      axiosInstance
+        .get(`/users/${userId}`)
         .then(response => {
+          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
           setProfileImage(response.data.profileImage);
         })
         .catch(error => console.error(error));
@@ -26,9 +35,9 @@ const MyProfile = ({ navigation }) => {
       '정말 탈퇴하시겠습니까?',
       '회원 탈퇴는 되돌릴 수 없습니다.',
       [
-        { text: '취소' },
-        { 
-          text: '확인', 
+        {text: '취소'},
+        {
+          text: '확인',
           onPress: async () => {
             try {
               await axiosInstance.delete(`/users/${userId}/delete`);
@@ -37,12 +46,15 @@ const MyProfile = ({ navigation }) => {
               navigation.navigate('LoginScreen'); // 로그인 화면으로 이동
             } catch (error) {
               console.error(error);
-              Alert.alert('회원탈퇴 실패', '회원 탈퇴에 실패했습니다. 다시 시도해주세요.');
+              Alert.alert(
+                '회원탈퇴 실패',
+                '회원 탈퇴에 실패했습니다. 다시 시도해주세요.',
+              );
             }
           },
         },
       ],
-      { cancelable: false }
+      {cancelable: false},
     );
   };
 
@@ -58,7 +70,11 @@ const MyProfile = ({ navigation }) => {
       {/* 프로필 이미지 */}
       <View style={styles.profileContainer}>
         <Image
-          source={profileImage ? { uri: profileImage } : require('../../assets/placeholder.png')}
+          source={
+            profileImage && profileImage !== ''
+              ? {uri: profileImage}
+              : require('../../assets/placeholder.png')
+          }
           style={styles.profileImage}
         />
       </View>

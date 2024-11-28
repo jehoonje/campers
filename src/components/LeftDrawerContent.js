@@ -1,22 +1,31 @@
 // src/components/LeftDrawerContent.js
-import React, { useContext, useState, useEffect } from 'react';
-import { View, TouchableOpacity, StyleSheet, Share, Linking, Image } from 'react-native';
-import { DrawerContentScrollView } from '@react-navigation/drawer';
+import React, {useContext, useState, useEffect} from 'react';
+import {
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Share,
+  Linking,
+  Image,
+} from 'react-native';
+import {DrawerContentScrollView} from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
-import { AuthContext } from '../AuthContext';
+import {useNavigation} from '@react-navigation/native';
+import {AuthContext} from '../AuthContext';
 import CustomText from './CustomText';
 import axiosInstance from '../utils/axiosInstance';
 
 const LeftDrawerContent = () => {
   const navigation = useNavigation();
-  const { isLoggedIn, logout, userId } = useContext(AuthContext);
+  const {isLoggedIn, logout, userId} = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState('');
 
   useEffect(() => {
     if (isLoggedIn && userId) {
-      axiosInstance.get(`/users/${userId}`)
+      axiosInstance
+        .get(`/users/${userId}`)
         .then(response => {
+          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
           setProfileImage(response.data.profileImage || null);
         })
         .catch(error => console.error(error));
@@ -31,7 +40,11 @@ const LeftDrawerContent = () => {
         {/* 프로필 이미지 */}
         <View style={styles.profileContainer}>
           <Image
-            source={profileImage ? { uri: profileImage } : require('../assets/placeholder.png')}
+            source={
+              profileImage && profileImage !== ''
+                ? {uri: profileImage}
+                : require('../assets/placeholder.png')
+            }
             style={styles.profileImage}
           />
         </View>
@@ -41,9 +54,13 @@ const LeftDrawerContent = () => {
           style={styles.menuButton}
           onPress={() => {
             navigation.navigate('MyProfile'); // MyProfile 페이지로 이동
-          }}
-        >
-          <Ionicons name="person-outline" size={24} color="#333" style={styles.icon} />
+          }}>
+          <Ionicons
+            name="person-outline"
+            size={24}
+            color="#333"
+            style={styles.icon}
+          />
           <CustomText style={styles.menuText}>마이프로필</CustomText>
         </TouchableOpacity>
 
@@ -56,9 +73,13 @@ const LeftDrawerContent = () => {
               url: 'http://example.com', // 실제 앱 링크로 교체
               title: '앱 제목',
             });
-          }}
-        >
-          <Ionicons name="share-social-outline" size={24} color="#333" style={styles.icon} />
+          }}>
+          <Ionicons
+            name="share-social-outline"
+            size={24}
+            color="#333"
+            style={styles.icon}
+          />
           <CustomText style={styles.menuText}>앱 공유하기</CustomText>
         </TouchableOpacity>
 
@@ -66,9 +87,13 @@ const LeftDrawerContent = () => {
           style={styles.menuButton}
           onPress={() => {
             Linking.openURL('mailto:limjhoon8@gmail.com');
-          }}
-        >
-          <Ionicons name="mail-outline" size={24} color="#333" style={styles.icon} />
+          }}>
+          <Ionicons
+            name="mail-outline"
+            size={24}
+            color="#333"
+            style={styles.icon}
+          />
           <CustomText style={styles.menuText}>이메일 피드백</CustomText>
         </TouchableOpacity>
 
@@ -79,19 +104,25 @@ const LeftDrawerContent = () => {
         {!isLoggedIn && (
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={() => navigation.navigate('LoginScreen')}
-          >
-            <Ionicons name="log-in-outline" size={24} color="#333" style={styles.icon} />
+            onPress={() => navigation.navigate('LoginScreen')}>
+            <Ionicons
+              name="log-in-outline"
+              size={24}
+              color="#333"
+              style={styles.icon}
+            />
             <CustomText style={styles.loginText}>Login</CustomText>
           </TouchableOpacity>
         )}
 
         {isLoggedIn && (
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={logout}
-          >
-            <Ionicons name="log-out-outline" size={24} color="#333" style={styles.icon} />
+          <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+            <Ionicons
+              name="log-out-outline"
+              size={24}
+              color="#333"
+              style={styles.icon}
+            />
             <CustomText style={styles.logoutText}>Logout</CustomText>
           </TouchableOpacity>
         )}
@@ -119,7 +150,7 @@ const styles = StyleSheet.create({
   profileContainer: {
     alignItems: 'center',
     marginBottom: 20,
-    marginTop:20,
+    marginTop: 20,
   },
   profileImage: {
     width: 50,
