@@ -14,7 +14,6 @@ const useFavorite = (markerType, markerId) => {
     const checkFavoriteStatus = async () => {
 
       if (!userId || !markerType || !markerId) {
-        console.error('필수 값 누락: ', { userId, markerType, markerId });
         setLoading(false);
         return;
       }

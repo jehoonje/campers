@@ -8,8 +8,8 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
-import { WebView } from 'react-native-webview';
+import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
+import {WebView} from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
 import wifisData from '../../data/wifi.json';
 import countrysideData from '../../data/countryside.json';
@@ -18,7 +18,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import chargingStationsData from '../../data/chargingStations.json';
 import useLocation from '../../hooks/useLocation';
 import useFavorites from '../../hooks/useFavorite';
-import { AuthContext } from '../../AuthContext';
+import {AuthContext} from '../../AuthContext';
 import RNBootSplash from 'react-native-bootsplash';
 import Spinner from 'react-native-spinkit';
 
@@ -40,9 +40,9 @@ const MapView = forwardRef(
     },
     ref,
   ) => {
-    const { userLocation, heading, error } = useLocation();
+    const {userLocation, heading, error} = useLocation();
     const [mapReady, setMapReady] = useState(false);
-    const { favorites, addFavorite, removeFavorite } = useFavorites(); // 즐겨찾기 훅 사용
+    const {favorites, addFavorite, removeFavorite} = useFavorites(); // 즐겨찾기 훅 사용
     const webviewRef = useRef(null);
     const [campgroundsData, setCampgroundsData] = useState([]);
     const [beachesData, setBeachesData] = useState([]);
@@ -53,21 +53,22 @@ const MapView = forwardRef(
     const [dataLoaded, setDataLoaded] = useState(false); // 모든 데이터 로드 상태
     const initialDataSent = useRef(false); // useRef로 복원
 
+    // 사용자 위치가 없을 때 기본 위치를 설정
+    const defaultLocation = {latitude: 37.5665, longitude: 126.978}; // 예: 서울 시청 좌표
+
     // const initialDataSent = useRef(false);
 
     useImperativeHandle(ref, () => ({
       resetMap: () => {
         if (webviewRef.current) {
-          webviewRef.current.postMessage(JSON.stringify({ type: 'resetMap' }));
+          webviewRef.current.postMessage(JSON.stringify({type: 'resetMap'}));
         }
       },
     }));
 
     // AuthContext에서 userId 가져오기
-    const { userId } = useContext(AuthContext);
-    console.log('MapView - userId from AuthContext:', userId); // 추가: userId 확인
-
-
+    const {userId} = useContext(AuthContext);
+    // console.log('MapView - userId from AuthContext:', userId); // 추가: userId 확인
 
     // 모든 데이터를 가져오는 함수
     useEffect(() => {
@@ -135,7 +136,10 @@ const MapView = forwardRef(
               console.log('오토 캠핑장 데이터가 성공적으로 로드되었습니다.');
             })
             .catch(error => {
-              console.error('오토 캠핑장 데이터를 가져오는 중 오류 발생:', error);
+              console.error(
+                '오토 캠핑장 데이터를 가져오는 중 오류 발생:',
+                error,
+              );
               setAutoCampsData([]); // 빈 배열로 설정
             });
           promises.push(fetchAutoCampsData);
@@ -146,10 +150,16 @@ const MapView = forwardRef(
                 .get(`/favorites/user/${userId}`)
                 .then(response => {
                   setFavoritesData(response.data);
-                  console.log('즐겨찾기 데이터가 성공적으로 로드되었습니다.', response.data);
+                  console.log(
+                    '즐겨찾기 데이터가 성공적으로 로드되었습니다.',
+                    response.data,
+                  );
                 })
                 .catch(error => {
-                  console.error('즐겨찾기 데이터를 가져오는 중 오류 발생:', error);
+                  console.error(
+                    '즐겨찾기 데이터를 가져오는 중 오류 발생:',
+                    error,
+                  );
                   setFavoritesData([]); // 빈 배열로 설정
                 })
             : Promise.resolve();
@@ -163,23 +173,26 @@ const MapView = forwardRef(
       };
 
       fetchAllData();
-    }, [userId]);
+    }, []);
 
     // 사용자 위치가 설정되면 WebView 로드
     useEffect(() => {
       if (userLocation) {
         setMapReady(true);
+      } else {
+        // 위치 권한이 거부되었거나 위치 정보를 가져올 수 없는 경우 처리
+        setMapReady(false);
       }
     }, [userLocation]);
 
     useEffect(() => {
       if (mapReady) {
-        RNBootSplash.hide({ fade: true }); // 페이드아웃 효과로 부트스플래시 숨기기
+        RNBootSplash.hide({fade: true}); // 페이드아웃 효과로 부트스플래시 숨기기
         if (dataLoaded && !initialDataSent.current) {
           sendInitialData();
         }
       }
-    }, [mapReady,dataLoaded,initialDataSent, sendInitialData]);
+    }, [mapReady, dataLoaded, initialDataSent, sendInitialData]);
 
     // 초기 데이터를 WebView에 전송하는 함수
     const sendInitialData = useCallback(() => {
@@ -188,7 +201,7 @@ const MapView = forwardRef(
         webviewRef.current.postMessage(
           JSON.stringify({
             type: 'initialData',
-            userLocation: userLocation || { latitude: 0, longitude: 0 },
+            userLocation: userLocation || defaultLocation,
             heading: heading || 0, // 초기 방위각 포함
             restStopsData: restStopsData || [],
             wifisData: wifisData || [],
@@ -273,22 +286,22 @@ const MapView = forwardRef(
             }
           } else if (data.type === 'campgroundSelected') {
             // 캠핑장 선택 메시지 처리
-            navigation.navigate('CampingDetail', { campground: data.data });
+            navigation.navigate('CampingDetail', {campground: data.data});
           } else if (data.type === 'countrysideSelected') {
             // 농어촌체험마을 선택 시 처리
-            navigation.navigate('CountryDetail', { countryside: data.data });
+            navigation.navigate('CountryDetail', {countryside: data.data});
           } else if (data.type === 'beachSelected') {
             // 해수욕장 선택 시 처리
-            navigation.navigate('BeachDetail', { beach: data.data });
+            navigation.navigate('BeachDetail', {beach: data.data});
           } else if (data.type === 'campsiteSelected') {
             // 야영장 선택 시 처리
-            navigation.navigate('CampsiteDetail', { campsite: data.data });
+            navigation.navigate('CampsiteDetail', {campsite: data.data});
           } else if (data.type === 'autocampSelected') {
             // 오토캠핑장 선택 시 처리
-            navigation.navigate('AutoCampDetail', { autocamp: data.data });
+            navigation.navigate('AutoCampDetail', {autocamp: data.data});
           } else if (data.type === 'fishingSelected') {
             // 낚시터 선택 시 처리
-            navigation.navigate('FishingDetail', { fishing: data.data });
+            navigation.navigate('FishingDetail', {fishing: data.data});
           }
         } catch (error) {
           console.error('Error parsing message from WebView:', error);
@@ -373,8 +386,8 @@ const MapView = forwardRef(
         {mapReady ? (
           <WebView
             originWhitelist={['*']}
-            source={{ uri: 'file:///android_asset/map.html' }} // 로컬 HTML 파일 로드
-            style={{ flex: 1 }}
+            source={{uri: 'file:///android_asset/map.html'}} // 로컬 HTML 파일 로드
+            style={{flex: 1}}
             javaScriptEnabled={true}
             ref={webviewRef}
             onMessage={onMessage}
@@ -395,7 +408,7 @@ const MapView = forwardRef(
               />
             )}
             onError={syntheticEvent => {
-              const { nativeEvent } = syntheticEvent;
+              const {nativeEvent} = syntheticEvent;
               console.error('WebView error: ', nativeEvent);
             }}
           />
