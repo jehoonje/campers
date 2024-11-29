@@ -1,4 +1,3 @@
-// src/screens/EditProfile.js
 import React, {useContext, useState, useEffect} from 'react';
 import {
   View,
@@ -7,6 +6,7 @@ import {
   Image,
   Alert,
   Platform,
+  StyleSheet,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {AuthContext} from '../../AuthContext';
@@ -91,16 +91,16 @@ const EditProfile = ({navigation}) => {
   };
 
   return (
-    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+    <View style={styles.container}>
       <Ionicons
         name="arrow-back"
         size={24}
         color="#333"
         onPress={() => navigation.goBack()}
-        style={{position: 'absolute', top: 20, left: 20}}
+        style={styles.backIcon}
       />
       {/* 프로필 이미지 */}
-      <View style={{marginBottom: 20}}>
+      <View style={styles.profileContainer}>
         <TouchableOpacity onPress={handleProfileImageChange}>
           <Image
             source={
@@ -110,7 +110,7 @@ const EditProfile = ({navigation}) => {
                 ? {uri: profileImage}
                 : placeholderImage
             }
-            style={{width: 100, height: 100, borderRadius: 50}}
+            style={styles.profileImage}
           />
         </TouchableOpacity>
       </View>
@@ -120,22 +120,60 @@ const EditProfile = ({navigation}) => {
         value={userName}
         onChangeText={setUserName}
         placeholder={userName}
-        style={{borderBottomWidth: 1, marginBottom: 20}}
+        style={styles.input}
       />
       {/* 이메일 */}
       <TextInput
         value={email}
         editable={false}
         placeholder={email}
-        style={{borderBottomWidth: 1, marginBottom: 20}}
+        style={styles.input}
       />
 
       {/* 저장 버튼 */}
-      <TouchableOpacity onPress={handleSaveChanges}>
-        <Ionicons name="checkmark" size={24} color="#333" />
+      <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
+        <Ionicons name="checkmark" size={24} color="#fff" />
       </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  backIcon: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+  },
+  profileContainer: {
+    marginBottom: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  input: {
+    width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    fontSize: 16,
+  },
+  saveButton: {
+    backgroundColor: '#2F2F2F',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
 export default EditProfile;

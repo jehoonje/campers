@@ -21,16 +21,21 @@ const LeftDrawerContent = () => {
   const [profileImage, setProfileImage] = useState('');
 
   useEffect(() => {
-    if (isLoggedIn && userId) {
+    if (isLoggedIn) {
       axiosInstance
         .get(`/users/${userId}`)
         .then(response => {
-          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
-          setProfileImage(response.data.profileImage || null);
+          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage); // 서버에서 받은 값 확인
+          if (response.data.profileImage) {
+            setProfileImage(response.data.profileImage); // 유효한 이미지 URL 설정
+          } else {
+            setProfileImage(null); // 유효하지 않으면 null로 설정
+          }
         })
-        .catch(error => console.error(error));
-    } else {
-      setProfileImage(null);
+        .catch(error => {
+          console.error("Error fetching profile image:", error);
+          setProfileImage(null); // 에러가 나면 null로 설정하여 placeholder 표시
+        });
     }
   }, [isLoggedIn, userId]);
 
