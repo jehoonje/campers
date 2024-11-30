@@ -1,16 +1,31 @@
 // src/components/Footer.js
-import React, { useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AuthContext } from '../AuthContext'; 
+import axiosInstance from '../utils/axiosInstance';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Footer = () => {
-  const { isLoggedIn, userId, userName } = useContext(AuthContext);
+  const { isLoggedIn, userId } = useContext(AuthContext);
+  const [userName, setUserName] = useState('');
+
+  // 유저 정보 로드
+  useFocusEffect(
+    React.useCallback(() => {
+      if (isLoggedIn) {
+        axiosInstance
+          .get(`/users/${userId}`)
+          .then(response => {
+            setUserName(response.data.userName);            
+          })
+      }
+    }, [isLoggedIn, userId])
+  );
 
   return (
     <View style={styles.footer}>
       <Text style={styles.footerText}>
-        {isLoggedIn && userName ? `Welcome ${userName}!` : 'Welcome!'}
-      </Text>
+        Welcome {userName}      </Text>
     </View>
   );
 };

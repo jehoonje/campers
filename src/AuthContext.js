@@ -47,7 +47,6 @@ export const AuthProvider = ({ children }) => {
   const parseIdFromToken = (token) => {
     try {
       const decoded = jwt_decode(token);
-      console.log('Decoded token:', decoded); // 디코딩된 토큰 출력
       return decoded.userId;
     } catch (error) {
       console.error('Error decoding token:', error);
@@ -58,7 +57,6 @@ export const AuthProvider = ({ children }) => {
   const parseUserNameFromToken = (token) => {
     try {
       const decoded = jwt_decode(token);
-      console.log('Decoded token:', decoded); // 디코딩된 토큰 출력
       return decoded.userName;
     } catch (error) {
       console.error('Error decoding token:', error);

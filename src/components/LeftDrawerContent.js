@@ -60,7 +60,7 @@ const LeftDrawerContent = () => {
         <TouchableOpacity
           style={styles.menuButton}
           onPress={() => {
-            navigation.navigate('MyProfile'); // MyProfile 페이지로 이동
+            navigation.navigate('MyProfile'); 
           }}>
           <Ionicons
             name="person-outline"
@@ -160,9 +160,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
   },
   menuButton: {
     flexDirection: 'row',
