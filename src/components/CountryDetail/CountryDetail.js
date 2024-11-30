@@ -123,66 +123,7 @@ function CountryDetail({ route, navigation }) {
       {/* 마을 이름 */}
       <Text style={styles.name}>{countryside.체험마을명}</Text>
 
-      {/* 평균 별점 표시 */}
-      <View style={styles.ratingContainer}>
-        {Array.from({ length: 5 }, (_, index) => {
-          const filled = index < Math.round(averageRating);
-          return (
-            <MaterialCommunityIcons
-              key={index}
-              name={filled ? 'star' : 'star-outline'}
-              size={24}
-              color={filled ? '#FFD700' : '#ccc'}
-            />
-          );
-        })}
-        <Text style={styles.averageRatingText}>
-          {averageRating.toFixed(1)}
-        </Text>
-      </View>
-
-      {/* 탭 버튼 */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === 'detail' && styles.activeTabButton,
-          ]}
-          onPress={() => handleTabPress('detail')}
-        >
-          <Text
-            style={[
-              styles.tabButtonText,
-              activeTab === 'detail'
-                ? styles.activeTabButtonText
-                : styles.inactiveTabButtonText,
-            ]}
-          >
-            Detail
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === 'review' && styles.activeTabButton,
-          ]}
-          onPress={() => handleTabPress('review')}
-        >
-          <Text
-            style={[
-              styles.tabButtonText,
-              activeTab === 'review'
-                ? styles.activeTabButtonText
-                : styles.inactiveTabButtonText,
-            ]}
-          >
-            Review
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       {/* 탭 내용 */}
-      {activeTab === 'detail' ? (
         <ScrollView
           contentContainerStyle={styles.contentContainer}
           showsVerticalScrollIndicator={false}
@@ -287,10 +228,6 @@ function CountryDetail({ route, navigation }) {
             </View>
           ) : null}
         </ScrollView>
-      ) : (
-        // Review 내용
-        <ReviewComponent contentType="Country" contentId={countryside.id} />
-      )}
     </View>
   );
 }

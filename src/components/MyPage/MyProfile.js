@@ -10,23 +10,26 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {AuthContext} from '../../AuthContext';
 import axiosInstance from '../../utils/axiosInstance';
+import { useFocusEffect } from '@react-navigation/native';
 
 const MyProfile = ({navigation}) => {
   const {isLoggedIn, userId, logout} = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState('');
 
   // 유저 정보 로드
-  useEffect(() => {
-    if (isLoggedIn) {
-      axiosInstance
-        .get(`/users/${userId}`)
-        .then(response => {
-          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
-          setProfileImage(response.data.profileImage);
-        })
-        .catch(error => console.error(error));
-    }
-  }, [isLoggedIn, userId]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (isLoggedIn) {
+        axiosInstance
+          .get(`/users/${userId}`)
+          .then(response => {
+            console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
+            setProfileImage(response.data.profileImage);
+          })
+          .catch(error => console.error(error));
+      }
+    }, [isLoggedIn, userId])
+  );
 
   // 회원 탈퇴
   const deleteAccount = async () => {
