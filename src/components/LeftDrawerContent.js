@@ -11,6 +11,7 @@ import {
 import {DrawerContentScrollView} from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
+import { useDrawerStatus } from '@react-navigation/drawer';
 import {AuthContext} from '../AuthContext';
 import CustomText from './CustomText';
 import axiosInstance from '../utils/axiosInstance';
@@ -19,25 +20,26 @@ const LeftDrawerContent = () => {
   const navigation = useNavigation();
   const {isLoggedIn, logout, userId} = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState('');
+  const isDrawerOpen = useDrawerStatus() === 'open';
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isDrawerOpen && isLoggedIn) {
       axiosInstance
         .get(`/users/${userId}`)
         .then(response => {
-          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage); // 서버에서 받은 값 확인
+          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
           if (response.data.profileImage) {
-            setProfileImage(response.data.profileImage); // 유효한 이미지 URL 설정
+            setProfileImage(response.data.profileImage);
           } else {
-            setProfileImage(null); // 유효하지 않으면 null로 설정
+            setProfileImage(null);
           }
         })
         .catch(error => {
-          console.error("Error fetching profile image:", error);
-          setProfileImage(null); // 에러가 나면 null로 설정하여 placeholder 표시
+          console.error('Error fetching profile image:', error);
+          setProfileImage(null);
         });
     }
-  }, [isLoggedIn, userId]);
+  }, [isDrawerOpen, isLoggedIn, userId]);
 
   return (
     <DrawerContentScrollView contentContainerStyle={styles.drawerContainer}>
