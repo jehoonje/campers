@@ -1,6 +1,6 @@
 // src/components/ReviewComponent/ReviewComponent.js
 
-import React, { useState, useEffect, useContext } from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import {
   View,
   Text,
@@ -14,36 +14,38 @@ import {
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import axiosInstance from '../../utils/axiosInstance';
 import PropTypes from 'prop-types';
-import { AuthContext } from '../../AuthContext';
-import { useNavigation } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
+import {AuthContext} from '../../AuthContext';
+import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
+import Spinner from 'react-native-spinkit';
 
-function ReviewComponent({ contentType, contentId }) {
+function ReviewComponent({contentType, contentId}) {
   const [reviews, setReviews] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [newReviewContent, setNewReviewContent] = useState('');
-  const { userId, isLoggedIn } = useContext(AuthContext); // `isLoggedIn` 사용
+  const {userId, userName, isLoggedIn} = useContext(AuthContext); // `isLoggedIn` 사용
   const [newRating, setNewRating] = useState(0);
   const [hasReviewed, setHasReviewed] = useState(false);
-  
+  const [isLoading, setIsLoading] = useState(true);
 
   useFocusEffect(
     React.useCallback(() => {
       fetchReviews();
-    }, [userId])
+    }, [userId]),
   );
 
   const fetchReviews = async () => {
+    setIsLoading(true); // 로딩 시작
     try {
       console.log('Current userId:', userId);
       const response = await axiosInstance.get(
-        `/reviews/${contentType}/${contentId}`
+        `/reviews/${contentType}/${contentId}`,
       );
       setReviews(response.data);
 
       if (userId) {
         const userReview = response.data.find(
-          (review) => review.userId === userId
+          review => review.userId === userId,
         );
         setHasReviewed(!!userReview);
       } else {
@@ -52,9 +54,10 @@ function ReviewComponent({ contentType, contentId }) {
     } catch (error) {
       console.error('Error fetching reviews:', error);
       Alert.alert('오류', '리뷰를 가져오는 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false); // 로딩 종료
     }
   };
-
 
   const handleAddReview = async () => {
     if (!isLoggedIn) {
@@ -78,6 +81,7 @@ function ReviewComponent({ contentType, contentId }) {
         contentId,
         content: newReviewContent,
         rating: newRating,
+        userName: userName,
       });
 
       setReviews([...reviews, response.data]);
@@ -85,6 +89,8 @@ function ReviewComponent({ contentType, contentId }) {
       setNewReviewContent('');
       setNewRating(0);
       setHasReviewed(true); // 작성 완료 후 다시 작성 못하도록
+      
+
     } catch (error) {
       console.error('Error adding review:', error);
       if (error.response && error.response.status === 400) {
@@ -97,109 +103,120 @@ function ReviewComponent({ contentType, contentId }) {
 
   return (
     <View style={styles.container}>
-      {/* 리뷰 추가 버튼 */}
-      <TouchableOpacity
-        style={[styles.addButton, (hasReviewed || !isLoggedIn) && styles.disabledButton]}
-        onPress={() => {
-          if (!isLoggedIn) {
-            Alert.alert('로그인 필요', '리뷰를 작성하려면 로그인이 필요합니다.');
-          } else if (hasReviewed) {
-            Alert.alert('알림', '이미 이 컨텐츠에 리뷰를 작성하셨습니다.');
-          } else {
-            setModalVisible(true);
-          }
-        }}
-        disabled={hasReviewed || !isLoggedIn}
-      >
-        <Text style={styles.addButtonText}>Reply</Text>
-      </TouchableOpacity>
-
-      {/* 리뷰 목록 */}
-      {reviews.length === 0 ? (
-        <Text style={styles.noReviewsText}>No reviews</Text>
+      {isLoading ? (
+        <Spinner
+          isVisible={true}
+          size={50}
+          type="WanderingCubes"
+          color="#184035"
+          style={styles.loading}
+        />
       ) : (
-        <FlatList
-          data={reviews}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.reviewItem}>
-              <View style={styles.reviewHeader}>
-                <Text style={styles.reviewAuthor}>{item.userName}</Text>
-                {/* 별점 표시 */}
-                <View style={styles.reviewRating}>
-                  {Array.from({ length: 5 }, (_, index) => {
-                    const filled = index < item.rating;
+        <>
+          {/* 리뷰 추가 버튼 */}
+          <TouchableOpacity
+            style={[
+              styles.addButton,
+              (hasReviewed || !isLoggedIn) && styles.disabledButton,
+            ]}
+            onPress={() => {
+              if (!isLoggedIn) {
+                Alert.alert(
+                  '로그인 필요',
+                  '리뷰를 작성하려면 로그인이 필요합니다.',
+                );
+              } else if (hasReviewed) {
+                Alert.alert('알림', '이미 이 컨텐츠에 리뷰를 작성하셨습니다.');
+              } else {
+                setModalVisible(true);
+              }
+            }}
+            disabled={hasReviewed || !isLoggedIn}>
+            <Text style={styles.addButtonText}>Reply</Text>
+          </TouchableOpacity>
+          {/* 리뷰 목록 */}
+          {reviews.length === 0 ? (
+            <Text style={styles.noReviewsText}>No reviews</Text>
+          ) : (
+            <FlatList
+              data={reviews}
+              keyExtractor={item => item.id.toString()}
+              renderItem={({item}) => (
+                <View style={styles.reviewItem}>
+                  <View style={styles.reviewHeader}>
+                    <Text style={styles.reviewAuthor}>{item.userName}</Text>
+                    {/* 별점 표시 */}
+                    <View style={styles.reviewRating}>
+                      {Array.from({length: 5}, (_, index) => {
+                        const filled = index < item.rating;
+                        return (
+                          <MaterialCommunityIcons
+                            key={index}
+                            name={filled ? 'star' : 'star-outline'}
+                            size={16}
+                            color={filled ? '#FFD700' : '#ccc'}
+                          />
+                        );
+                      })}
+                    </View>
+                  </View>
+                  <Text style={styles.reviewContent}>{item.content}</Text>
+                </View>
+              )}
+            />
+          )}
+          {/* 리뷰 작성 모달 */}
+          <Modal
+            visible={isModalVisible}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setModalVisible(false)}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Review</Text>
+                {/* 별점 선택 */}
+                <View style={styles.ratingSelection}>
+                  {Array.from({length: 5}, (_, index) => {
+                    const filled = index < newRating;
                     return (
-                      <MaterialCommunityIcons
+                      <TouchableOpacity
                         key={index}
-                        name={filled ? 'star' : 'star-outline'}
-                        size={16}
-                        color={filled ? '#FFD700' : '#ccc'}
-                      />
+                        onPress={() => setNewRating(index + 1)}>
+                        <MaterialCommunityIcons
+                          name={filled ? 'star' : 'star-outline'}
+                          size={32}
+                          color={filled ? '#FFD700' : '#ccc'}
+                        />
+                      </TouchableOpacity>
                     );
                   })}
                 </View>
-              </View>
-              <Text style={styles.reviewContent}>{item.content}</Text>
-            </View>
-          )}
-        />
-      )}
-
-      {/* 리뷰 작성 모달 */}
-      <Modal
-        visible={isModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Review</Text>
-            {/* 별점 선택 */}
-            <View style={styles.ratingSelection}>
-              {Array.from({ length: 5 }, (_, index) => {
-                const filled = index < newRating;
-                return (
+                {/* 리뷰 내용 입력 */}
+                <TextInput
+                  style={styles.textInput}
+                  multiline
+                  placeholder="내용을 작성해주세요."
+                  value={newReviewContent}
+                  onChangeText={setNewReviewContent}
+                />
+                {/* 버튼들 */}
+                <View style={styles.modalButtons}>
                   <TouchableOpacity
-                    key={index}
-                    onPress={() => setNewRating(index + 1)}
-                  >
-                    <MaterialCommunityIcons
-                      name={filled ? 'star' : 'star-outline'}
-                      size={32}
-                      color={filled ? '#FFD700' : '#ccc'}
-                    />
+                    style={styles.submitButton}
+                    onPress={handleAddReview}>
+                    <Text style={styles.submitButtonText}>작성</Text>
                   </TouchableOpacity>
-                );
-              })}
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setModalVisible(false)}>
+                    <Text style={styles.cancelButtonText}>취소</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-            {/* 리뷰 내용 입력 */}
-            <TextInput
-              style={styles.textInput}
-              multiline
-              placeholder="내용을 작성해주세요."
-              value={newReviewContent}
-              onChangeText={setNewReviewContent}
-            />
-            {/* 버튼들 */}
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleAddReview}
-              >
-                <Text style={styles.submitButtonText}>작성</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>취소</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+          </Modal>
+        </>
+      )}
     </View>
   );
 }
@@ -213,6 +230,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  loading: {
+    alignSelf: 'center',
+    marginTop: '25%',
   },
   addButton: {
     padding: 12,

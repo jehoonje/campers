@@ -4,12 +4,12 @@ import { View, Text, StyleSheet } from 'react-native';
 import { AuthContext } from '../AuthContext'; 
 
 const Footer = () => {
-  const { isLoggedIn, userId } = useContext(AuthContext);
+  const { isLoggedIn, userId, userName } = useContext(AuthContext);
 
   return (
     <View style={styles.footer}>
       <Text style={styles.footerText}>
-        {isLoggedIn && userId ? `Welcome ${userId}!` : 'Welcome!'}
+        {isLoggedIn && userName ? `Welcome ${userName}!` : 'Welcome!'}
       </Text>
     </View>
   );

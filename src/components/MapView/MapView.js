@@ -53,6 +53,7 @@ const MapView = forwardRef(
     const [favoritesData, setFavoritesData] = useState([]);
     const [dataLoaded, setDataLoaded] = useState(false); // 모든 데이터 로드 상태
     const initialDataSent = useRef(false); // useRef로 복원
+    const [isLoading, setIsLoading] = useState(true); 
 
     // 사용자 위치가 없을 때 기본 위치를 설정
     const defaultLocation = {latitude: 37.5665, longitude: 126.978}; // 예: 서울 시청 좌표
@@ -186,6 +187,7 @@ const MapView = forwardRef(
 
     // 사용자 위치가 설정되면 WebView 로드
     useEffect(() => {
+      console.log('userLocation:', userLocation);
       if (userLocation) {
         setMapReady(true);
       } else {
@@ -195,13 +197,21 @@ const MapView = forwardRef(
     }, [userLocation]);
 
     useEffect(() => {
+      console.log(
+        'useEffect called: mapReady:',
+        mapReady,
+        ', dataLoaded:',
+        dataLoaded,
+        ', initialDataSent.current:',
+        initialDataSent.current,
+      );
       if (mapReady) {
-        RNBootSplash.hide({fade: true}); // 페이드아웃 효과로 부트스플래시 숨기기
+        RNBootSplash.hide({ fade: true });
         if (dataLoaded && !initialDataSent.current) {
           sendInitialData();
         }
       }
-    }, [mapReady, dataLoaded, initialDataSent, sendInitialData]);
+    }, [mapReady, dataLoaded, sendInitialData]);
 
     // 초기 데이터를 WebView에 전송하는 함수
     const sendInitialData = useCallback(() => {
@@ -237,6 +247,7 @@ const MapView = forwardRef(
           }),
         );
         initialDataSent.current = true;
+        setIsLoading(false);
       }
     }, [
       userLocation,
@@ -392,40 +403,29 @@ const MapView = forwardRef(
 
     return (
       <View style={styles.container}>
-        {mapReady ? (
-          <WebView
-            originWhitelist={['*']}
-            source={{uri: 'file:///android_asset/map.html'}} // 로컬 HTML 파일 로드
-            style={{flex: 1}}
-            javaScriptEnabled={true}
-            ref={webviewRef}
-            onMessage={onMessage}
-            javaScriptCanOpenWindowsAutomatically={false}
-            domStorageEnabled={true}
-            startInLoadingState={true}
-            allowFileAccess={true}
-            allowFileAccessFromFileURLs={true}
-            allowUniversalAccessFromFileURLs={true}
-            mixedContentMode="always"
-            renderLoading={() => (
-              <Spinner
-                isVisible={true}
-                size={50}
-                type="WanderingCubes" // 사각형 형태의 스피너 타입
-                color="#184035"
-                style={styles.loading}
-              />
-            )}
-            onError={syntheticEvent => {
-              const {nativeEvent} = syntheticEvent;
-              console.error('WebView error: ', nativeEvent);
-            }}
-          />
-        ) : (
+        <WebView
+          originWhitelist={['*']}
+          source={{ uri: 'file:///android_asset/map.html' }}
+          style={{ flex: 1 }}
+          javaScriptEnabled={true}
+          ref={webviewRef}
+          onMessage={onMessage}
+          javaScriptCanOpenWindowsAutomatically={false}
+          domStorageEnabled={true}
+          allowFileAccess={true}
+          allowFileAccessFromFileURLs={true}
+          allowUniversalAccessFromFileURLs={true}
+          mixedContentMode="always"
+          onError={syntheticEvent => {
+            const { nativeEvent } = syntheticEvent;
+            console.error('WebView error: ', nativeEvent);
+          }}
+        />
+        {isLoading && (
           <Spinner
             isVisible={true}
             size={50}
-            type="WanderingCubes" // 사각형 형태의 스피너 타입
+            type="WanderingCubes"
             color="#184035"
             style={styles.loading}
           />
@@ -441,10 +441,10 @@ const styles = StyleSheet.create({
   },
   loading: {
     position: 'absolute',
-    top: '46%',
+    top: '50%',
     left: '50%',
-    marginTop: -25,
-    marginLeft: -25,
+    marginTop: -25, // 스피너 높이의 절반을 음수로 설정
+    marginLeft: -25, // 스피너 너비의 절반을 음수로 설정
   },
   errorContainer: {
     flex: 1,
