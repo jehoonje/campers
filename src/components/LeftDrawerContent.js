@@ -11,6 +11,7 @@ import {
 import {DrawerContentScrollView} from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
+import { useDrawerStatus } from '@react-navigation/drawer';
 import {AuthContext} from '../AuthContext';
 import CustomText from './CustomText';
 import axiosInstance from '../utils/axiosInstance';
@@ -19,20 +20,26 @@ const LeftDrawerContent = () => {
   const navigation = useNavigation();
   const {isLoggedIn, logout, userId} = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState('');
+  const isDrawerOpen = useDrawerStatus() === 'open';
 
   useEffect(() => {
-    if (isLoggedIn && userId) {
+    if (isDrawerOpen && isLoggedIn) {
       axiosInstance
         .get(`/users/${userId}`)
         .then(response => {
           console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
-          setProfileImage(response.data.profileImage || null);
+          if (response.data.profileImage) {
+            setProfileImage(response.data.profileImage);
+          } else {
+            setProfileImage(null);
+          }
         })
-        .catch(error => console.error(error));
-    } else {
-      setProfileImage(null);
+        .catch(error => {
+          console.error('Error fetching profile image:', error);
+          setProfileImage(null);
+        });
     }
-  }, [isLoggedIn, userId]);
+  }, [isDrawerOpen, isLoggedIn, userId]);
 
   return (
     <DrawerContentScrollView contentContainerStyle={styles.drawerContainer}>

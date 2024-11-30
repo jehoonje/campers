@@ -9,13 +9,16 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [userName, setUserName] = useState(null);
 
   const login = async (accessToken, refreshToken) => {
     await AsyncStorage.setItem('accessToken', accessToken);
     await AsyncStorage.setItem('refreshToken', refreshToken);
     setIsLoggedIn(true);
     const id = parseIdFromToken(accessToken);
+    const name = parseUserNameFromToken(accessToken);
     setUserId(id);
+    setUserName(name);
   };
 
   const logout = async () => {
@@ -23,6 +26,7 @@ export const AuthProvider = ({ children }) => {
     await AsyncStorage.removeItem('refreshToken');
     setIsLoggedIn(false);
     setUserId(null);
+    setUserName(null);
   };
 
   const checkAuthStatus = async () => {
@@ -30,10 +34,13 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       setIsLoggedIn(true);
       const id = parseIdFromToken(token);
+      const name = parseUserNameFromToken(token);
       setUserId(id);
+      setUserName(name);
     } else {
       setIsLoggedIn(false);
       setUserId(null);
+      setUserName(null);
     }
   };
 
@@ -42,6 +49,17 @@ export const AuthProvider = ({ children }) => {
       const decoded = jwt_decode(token);
       console.log('Decoded token:', decoded); // 디코딩된 토큰 출력
       return decoded.userId;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  };
+
+  const parseUserNameFromToken = (token) => {
+    try {
+      const decoded = jwt_decode(token);
+      console.log('Decoded token:', decoded); // 디코딩된 토큰 출력
+      return decoded.userName;
     } catch (error) {
       console.error('Error decoding token:', error);
       return null;
@@ -59,6 +77,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         userId,
+        userName,
         checkAuthStatus,
       }}
     >

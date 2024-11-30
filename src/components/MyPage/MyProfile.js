@@ -1,4 +1,3 @@
-// src/screens/MyProfile.js
 import React, {useContext, useState, useEffect} from 'react';
 import {
   View,
@@ -11,23 +10,26 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {AuthContext} from '../../AuthContext';
 import axiosInstance from '../../utils/axiosInstance';
+import { useFocusEffect } from '@react-navigation/native';
 
 const MyProfile = ({navigation}) => {
   const {isLoggedIn, userId, logout} = useContext(AuthContext);
   const [profileImage, setProfileImage] = useState('');
 
   // 유저 정보 로드
-  useEffect(() => {
-    if (isLoggedIn) {
-      axiosInstance
-        .get(`/users/${userId}`)
-        .then(response => {
-          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
-          setProfileImage(response.data.profileImage);
-        })
-        .catch(error => console.error(error));
-    }
-  }, [isLoggedIn, userId]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (isLoggedIn) {
+        axiosInstance
+          .get(`/users/${userId}`)
+          .then(response => {
+            console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
+            setProfileImage(response.data.profileImage);
+          })
+          .catch(error => console.error(error));
+      }
+    }, [isLoggedIn, userId])
+  );
 
   // 회원 탈퇴
   const deleteAccount = async () => {
@@ -80,19 +82,21 @@ const MyProfile = ({navigation}) => {
       </View>
 
       {/* 유저 정보 */}
-      <Text>{userId}</Text>
+      <Text style={styles.userIdText}>{userId}</Text>
 
       {/* 버튼들 */}
-      <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
-        <Text>개인정보 수정</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('EditProfile')}>
+        <Text style={styles.buttonText}>개인정보 수정</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={deleteAccount}>
-        <Text>회원 탈퇴</Text>
+      <TouchableOpacity style={styles.button} onPress={deleteAccount}>
+        <Text style={styles.buttonText}>회원 탈퇴</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={logout}>
-        <Text>로그아웃</Text>
+      <TouchableOpacity style={styles.button} onPress={logout}>
+        <Text style={styles.buttonText}>로그아웃</Text>
       </TouchableOpacity>
     </View>
   );
@@ -103,6 +107,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   backIcon: {
     position: 'absolute',
@@ -116,6 +121,24 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
+  },
+  userIdText: {
+    fontSize: 18,
+    color: '#333',
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: '#2F2F2F',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginBottom: 15,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 
