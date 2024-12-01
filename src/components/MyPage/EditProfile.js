@@ -22,7 +22,7 @@ const EditProfile = ({ navigation }) => {
   const { userId, isLoggedIn } = useContext(AuthContext);
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
-  const [profileImage, setProfileImage] = useState('');
+  const [profileImageUrl, setProfileImageUrl] = useState('');
   const [newProfileImage, setNewProfileImage] = useState(null);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const EditProfile = ({ navigation }) => {
         .then(response => {
           setUserName(response.data.userName);
           setEmail(response.data.email);
-          setProfileImage(response.data.profileImage); // 유저 프로필 사진
+          setProfileImageUrl(response.data.profileImageUrl); // 유저 프로필 사진
         })
         .catch(error => console.error(error));
     }
@@ -112,8 +112,8 @@ const EditProfile = ({ navigation }) => {
               source={
                 newProfileImage
                   ? { uri: newProfileImage.uri }
-                  : profileImage && profileImage !== ''
-                  ? { uri: profileImage }
+                  : profileImageUrl && profileImageUrl !== ''
+                  ? { uri: profileImageUrl }
                   : placeholderImage
               }
               style={styles.profileImage}

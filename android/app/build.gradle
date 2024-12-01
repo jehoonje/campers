@@ -11,6 +11,7 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 
 // Hermes 사용 설정 플래그 추가
 def enableHermes = project.ext.has("enableHermes") ? project.ext.get("enableHermes") : false
+def kakaoAppKey = "d16fae2657511a65565187e54466f708"
 
 android {
     ndkVersion "23.1.7779620"
@@ -25,6 +26,7 @@ android {
         versionCode 1
         versionName "1.0"
         buildConfigField "boolean", "DEBUG", "true"
+        manifestPlaceholders = [kakaoScheme: "kakao${kakaoAppKey}"]
 
         // Java 17 호환성 보장 - Java toolchain 사용
         java {

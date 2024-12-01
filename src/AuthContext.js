@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
   const parseIdFromToken = (token) => {
     try {
       const decoded = jwt_decode(token);
-      return decoded.userId;
+      return decoded.userId || decoded.id;
     } catch (error) {
       console.error('Error decoding token:', error);
       return null;
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   const parseUserNameFromToken = (token) => {
     try {
       const decoded = jwt_decode(token);
-      return decoded.userName;
+      return decoded.userName || decoded.nickname;
     } catch (error) {
       console.error('Error decoding token:', error);
       return null;
