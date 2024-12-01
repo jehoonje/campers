@@ -1,10 +1,9 @@
 // src/components/CountryDetail/CountryDetail.js
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
   Image,
-  StyleSheet,
   TouchableOpacity,
   Linking,
   ScrollView,
@@ -13,11 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import styles from './styles';
-import LinearGradient from 'react-native-linear-gradient';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import ReviewComponent from '../ReviewComponent/ReviewComponent';
-import axios from 'axios';
 import PropTypes from 'prop-types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -25,31 +20,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 function CountryDetail({ route, navigation }) {
   const { countryside } = route.params;
 
-  // 탭 상태 관리
-  const [activeTab, setActiveTab] = useState('detail');
-  const [averageRating, setAverageRating] = useState(0);
-
-  // 탭 버튼 클릭 핸들러
-  const handleTabPress = (tab) => {
-    setActiveTab(tab);
-  };
-
-  // 평균 별점 가져오기
-  useEffect(() => {
-    const fetchAverageRating = async () => {
-      try {
-        const response = await axios.get(
-          `http://10.0.2.2:8080/api/reviews/average/Country/${countryside.id}`
-        );
-        setAverageRating(response.data.averageRating);
-      } catch (error) {
-        console.error('Error fetching average rating:', error);
-        setAverageRating(0);
-      }
-    };
-
-    fetchAverageRating();
-  }, [countryside.id]);
 
   // 체험프로그램명을 '+' 기준으로 분리하여 리스트로 변환
   const programList = countryside.체험프로그램명
@@ -130,14 +100,11 @@ function CountryDetail({ route, navigation }) {
         >
 
           {/* 프로그램 리스트 */}
-          <Text style={styles.sectionTitle}>체험 프로그램</Text>
+          
+          <Text style={styles.sectionTitle}>
+            체험 프로그램</Text>
           {programList.length > 0 ? (
             <View style={styles.programContainer}>
-              {/* 스크롤 힌트 그라데이션 */}
-              <LinearGradient
-                colors={['rgba(224, 247, 250, 1)', 'rgba(224, 247, 250, 0)']}
-                style={styles.gradientTop}
-              />
 
               {/* 프로그램 리스트 ScrollView */}
               <Animated.ScrollView
@@ -173,12 +140,6 @@ function CountryDetail({ route, navigation }) {
                   />
                 </View>
               )}
-
-              {/* 스크롤 힌트 그라데이션 */}
-              <LinearGradient
-                colors={['rgba(224, 247, 250, 0)', 'rgba(224, 247, 250, 1)']}
-                style={styles.gradientBottom}
-              />
             </View>
           ) : (
             <Text style={styles.description}>프로그램 정보가 없습니다.</Text>

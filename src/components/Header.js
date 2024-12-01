@@ -1,6 +1,6 @@
 // src/components/Header.js
 import React from 'react';
-import { View, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, TouchableOpacity, Image } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import styles from '../styles/HeaderStyles';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
@@ -39,7 +39,9 @@ const Header = ({ toggleRightDrawer, onPressTitle }) => {
       </TouchableOpacity>
 
       {/* 커뮤니티 토글 버튼 */}
-      <TouchableOpacity onPress={handleToggleRightDrawer} style={styles.rightButton}>
+      <TouchableOpacity onPress={() => {
+            navigation.navigate('MyProfile'); 
+          }} style={styles.rightButton}>
         <Ionicons name="people-sharp" size={30} style={styles.icon} />
       </TouchableOpacity>
 

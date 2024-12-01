@@ -8,7 +8,6 @@ import { useDrawerStatus } from '@react-navigation/drawer';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from './AuthContext';
-import useFavorite from './hooks/useFavorite'; // 이미 만들어진 훅 사용
 import Footer from './components/Footer';
 
 const AppContent = () => {
@@ -79,7 +78,7 @@ const AppContent = () => {
       setShowChargingStations(true);
       setShowCampgrounds(true);
       setShowCountrysides(true);
-      setShowFavorites(true);
+      setShowFavorites(false);
       setShowWifis(true);
       setShowFishings(true);
       setShowBeaches(true);
@@ -91,52 +90,70 @@ const AppContent = () => {
 
   // 개별 마커를 토글하는 함수들
   const toggleCampgroundsFunc = () => {
+    setShowFavorites(false);
     setShowCampgrounds(prev => !prev);
     console.log('캠핑 마커 토글:', !showCampgrounds);
   };
 
   const toggleFavoritesFunc = () => {
     setShowAllMarkers(false);
+    setShowRestStops(false);
+    setShowChargingStations(false);
+    setShowCampgrounds(false);
+    setShowCountrysides(false);
+    setShowWifis(false);
+    setShowFishings(false);
+    setShowBeaches(false);
+    setShowCampsites(false);
+    setShowAutoCamps(false);
     setShowFavorites(prev => !prev);
     console.log('즐겨찾기 마커 토글:', !showFavorites);
   };
 
   const toggleWifisFunc = () => {
+    setShowFavorites(false);
     setShowWifis(prev => !prev);
     console.log('WIFI 마커 토글:', !showWifis);
   };
 
   const toggleBeachesFunc = () => {
+    setShowFavorites(false);
     setShowBeaches(prev => !prev);
     console.log('해수욕장 마커 토글:', !showBeaches);
   };
 
   const toggleRestStopsFunc = () => {
+    setShowFavorites(false);
     setShowRestStops(prev => !prev);
     console.log('휴게소 마커 토글:', !showRestStops);
   };
 
   const toggleFishingsFunc = () => {
+    setShowFavorites(false);
     setShowFishings(prev => !prev);
     console.log('낚시터 마커 토글:', !showFishings);
   };
 
   const toggleChargingStationsFunc = () => {
+    setShowFavorites(false);
     setShowChargingStations(prev => !prev);
     console.log('충전소 마커 토글:', !showChargingStations);
   };
 
   const toggleCountrysidesFunc = () => {
+    setShowFavorites(false);
     setShowCountrysides(prev => !prev);
     console.log('농어촌 마커 토글:', !showCountrysides);
   };
 
   const toggleCampsitesFunc = () => {
+    setShowFavorites(false);
     setShowCampsites(prev => !prev);
     console.log('야영장 마커 토글:', !showCampsites);
   };
 
   const toggleAutoCampsFunc = () => {
+    setShowFavorites(false);
     setShowAutoCamps(prev => !prev);
     console.log('오토캠핑장 마커 토글:', !showAutoCamps);
   };
