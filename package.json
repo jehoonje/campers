@@ -12,6 +12,7 @@
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
     "@react-native-async-storage/async-storage": "^2.0.0",
+    "@react-native-seoul/kakao-login": "^5.4.1",
     "@react-native/gradle-plugin": "^0.75.3",
     "@react-navigation/drawer": "^6.7.2",
     "@react-navigation/native": "^6.1.18",

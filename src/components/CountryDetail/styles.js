@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     left: 16,
     zIndex: 1,
     padding: 8,
-    backgroundColor: '#ffffffaa', // 반투명 배경
+    backgroundColor: '#f5f5f5', // 반투명 배경
     borderRadius: 20,
   },
   imageContainer: {
@@ -44,20 +44,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  averageRatingText: {
-    marginLeft: 8,
-    fontSize: 16,
-    color: '#333',
-  },
   sectionTitle: {
     fontSize: 20,
     marginTop: 16,
-    marginBottom: 8,
+    marginLeft: 10,
+    marginBottom: 16,
     fontWeight: 'bold',
     color: '#555',
   },
@@ -77,7 +68,7 @@ const styles = StyleSheet.create({
     color: '#444',
   },
   programContainer: {
-    backgroundColor: '#F4F7F8', // 스크롤 박스 배경색
+    backgroundColor: '#e8e8e8', // 스크롤 박스 배경색
     borderRadius: 10,
     padding: 10,
     height: 120, // 고정 높이로 변경

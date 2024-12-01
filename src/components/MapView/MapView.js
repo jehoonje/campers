@@ -22,6 +22,7 @@ import useFavorites from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
 import RNBootSplash from 'react-native-bootsplash';
 import Spinner from 'react-native-spinkit';
+import {useFocusEffect} from '@react-navigation/native';
 
 const MapView = forwardRef(
   (
@@ -53,7 +54,7 @@ const MapView = forwardRef(
     const [favoritesData, setFavoritesData] = useState([]);
     const [dataLoaded, setDataLoaded] = useState(false); // 모든 데이터 로드 상태
     const initialDataSent = useRef(false); // useRef로 복원
-    const [isLoading, setIsLoading] = useState(true); 
+    const [isLoading, setIsLoading] = useState(true);
 
     // 사용자 위치가 없을 때 기본 위치를 설정
     const defaultLocation = {latitude: 37.5665, longitude: 126.978}; // 예: 서울 시청 좌표
@@ -153,27 +154,6 @@ const MapView = forwardRef(
               });
             promises.push(fetchAutoCampsData);
 
-            // 사용자 즐겨찾기 데이터 가져오기
-            const fetchFavoritesData = userId
-              ? axiosInstance
-                  .get(`/favorites/user/${userId}`)
-                  .then(response => {
-                    setFavoritesData(response.data);
-                    console.log(
-                      '즐겨찾기 데이터가 성공적으로 로드되었습니다.',
-                      response.data,
-                    );
-                  })
-                  .catch(error => {
-                    console.error(
-                      '즐겨찾기 데이터를 가져오는 중 오류 발생:',
-                      error,
-                    );
-                    setFavoritesData([]); // 빈 배열로 설정
-                  })
-              : Promise.resolve();
-            promises.push(fetchFavoritesData);
-
             await Promise.all(promises);
             setDataLoaded(true); // 모든 데이터 로드 완료
           } catch (error) {
@@ -184,6 +164,32 @@ const MapView = forwardRef(
         fetchAllData();
       }
     }, []);
+
+    // 즐겨찾기 데이터 fetching useFocusEffect 추가
+    useFocusEffect(
+      React.useCallback(() => {
+        if (userId) {
+          const fetchFavoritesData = async () => {
+            try {
+              const response = await axiosInstance.get(
+                `/favorites/user/${userId}`,
+              );
+              setFavoritesData(response.data);
+              console.log(
+                '즐겨찾기 데이터가 성공적으로 로드되었습니다.',
+                response.data,
+              );
+            } catch (error) {
+              console.error('즐겨찾기 데이터를 가져오는 중 오류 발생:', error);
+              setFavoritesData([]); // 빈 배열로 설정
+            }
+          };
+          fetchFavoritesData();
+        } else {
+          setFavoritesData([]); // userId가 없을 때는 빈 배열로 설정
+        }
+      }, [userId]),
+    );
 
     // 사용자 위치가 설정되면 WebView 로드
     useEffect(() => {
@@ -206,7 +212,7 @@ const MapView = forwardRef(
         initialDataSent.current,
       );
       if (mapReady) {
-        RNBootSplash.hide({ fade: true });
+        RNBootSplash.hide({fade: true});
         if (dataLoaded && !initialDataSent.current) {
           sendInitialData();
         }
@@ -405,8 +411,8 @@ const MapView = forwardRef(
       <View style={styles.container}>
         <WebView
           originWhitelist={['*']}
-          source={{ uri: 'file:///android_asset/map.html' }}
-          style={{ flex: 1 }}
+          source={{uri: 'file:///android_asset/map.html'}}
+          style={{flex: 1}}
           javaScriptEnabled={true}
           ref={webviewRef}
           onMessage={onMessage}
@@ -417,7 +423,7 @@ const MapView = forwardRef(
           allowUniversalAccessFromFileURLs={true}
           mixedContentMode="always"
           onError={syntheticEvent => {
-            const { nativeEvent } = syntheticEvent;
+            const {nativeEvent} = syntheticEvent;
             console.error('WebView error: ', nativeEvent);
           }}
         />
@@ -441,7 +447,7 @@ const styles = StyleSheet.create({
   },
   loading: {
     position: 'absolute',
-    top: '50%',
+    top: '45%',
     left: '50%',
     marginTop: -25, // 스피너 높이의 절반을 음수로 설정
     marginLeft: -25, // 스피너 너비의 절반을 음수로 설정

@@ -11,7 +11,8 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('accessToken');
-    if (token) {
+    // /auth/kakao 엔드포인트에는 Authorization 헤더를 추가하지 않음
+    if (token && !config.url.endsWith('/auth/kakao')) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;

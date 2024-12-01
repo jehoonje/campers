@@ -1232,7 +1232,8 @@
             if (message.type === 'updateFavorites') {
               favorites = message.favoritesData || [];
               if (message.showFavorites) {
-                addFavoriteMarkers(favorites);
+                favoritesAdded = true; 
+                updateVisibleMarkers();
               } else {
                 removeFavoriteMarkers();
               }

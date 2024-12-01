@@ -1,20 +1,24 @@
-import React, {useContext, useState, useEffect} from 'react';
+// MyProfile.js
+
+import React, { useContext, useState } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Image,
   Alert,
   StyleSheet,
+  Text,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {AuthContext} from '../../AuthContext';
+import { AuthContext } from '../../AuthContext';
 import axiosInstance from '../../utils/axiosInstance';
 import { useFocusEffect } from '@react-navigation/native';
+import CustomText from '../CustomText';
 
-const MyProfile = ({navigation}) => {
-  const {isLoggedIn, userId, logout} = useContext(AuthContext);
-  const [profileImage, setProfileImage] = useState('');
+const MyProfile = ({ navigation }) => {
+  const { isLoggedIn, userId, logout } = useContext(AuthContext);
+  const [userName, setUserName] = useState('');
+  const [profileImageUrl, setProfileImageUrl] = useState('');
 
   // 유저 정보 로드
   useFocusEffect(
@@ -23,8 +27,9 @@ const MyProfile = ({navigation}) => {
         axiosInstance
           .get(`/users/${userId}`)
           .then(response => {
-            console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
-            setProfileImage(response.data.profileImage);
+            console.log('서버에서 받은 프로필 이미지:', response.data.profileImageUrl);
+            setProfileImageUrl(response.data.profileImageUrl);
+            setUserName(response.data.userName);
           })
           .catch(error => console.error(error));
       }
@@ -37,7 +42,7 @@ const MyProfile = ({navigation}) => {
       '정말 탈퇴하시겠습니까?',
       '회원 탈퇴는 되돌릴 수 없습니다.',
       [
-        {text: '취소'},
+        { text: '취소' },
         {
           text: '확인',
           onPress: async () => {
@@ -56,25 +61,27 @@ const MyProfile = ({navigation}) => {
           },
         },
       ],
-      {cancelable: false},
+      { cancelable: false },
     );
   };
 
   return (
     <View style={styles.container}>
-      <Ionicons
-        name="arrow-back"
-        size={24}
-        color="#333"
-        onPress={() => navigation.goBack()}
-        style={styles.backIcon}
-      />
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>내 프로필</Text>
+        <View style={{ width: 24 }} /> 
+      </View>
+
       {/* 프로필 이미지 */}
       <View style={styles.profileContainer}>
         <Image
           source={
-            profileImage && profileImage !== ''
-              ? {uri: profileImage}
+            profileImageUrl && profileImageUrl !== ''
+              ? { uri: profileImageUrl }
               : require('../../assets/placeholder.png')
           }
           style={styles.profileImage}
@@ -82,21 +89,21 @@ const MyProfile = ({navigation}) => {
       </View>
 
       {/* 유저 정보 */}
-      <Text style={styles.userIdText}>{userId}</Text>
+      <CustomText style={styles.userIdText}>{userName}</CustomText>
 
       {/* 버튼들 */}
       <TouchableOpacity
         style={styles.button}
         onPress={() => navigation.navigate('EditProfile')}>
-        <Text style={styles.buttonText}>개인정보 수정</Text>
+        <CustomText style={styles.buttonText}>개인정보 수정</CustomText>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={deleteAccount}>
-        <Text style={styles.buttonText}>회원 탈퇴</Text>
+        <CustomText style={styles.buttonText}>회원 탈퇴</CustomText>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={logout}>
-        <Text style={styles.buttonText}>로그아웃</Text>
+        <CustomText style={styles.buttonText}>로그아웃</CustomText>
       </TouchableOpacity>
     </View>
   );
@@ -105,27 +112,44 @@ const MyProfile = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    backgroundColor: '#fff',
   },
-  backIcon: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
+  header: {
+    height: 60, 
+    width: '100%',
+    backgroundColor: '#fff', // 흰색 배경
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    paddingHorizontal: 10,
+  },
+  backButton: {
+    // 추가 스타일 필요 없음
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
   },
   profileContainer: {
+    marginTop: 80,
     marginBottom: 20,
+    alignItems: 'center',
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
   },
   userIdText: {
     fontSize: 18,
     color: '#333',
-    marginBottom: 20,
+    marginBottom: 60,
+    marginTop: 10,
   },
   button: {
     backgroundColor: '#2F2F2F',
@@ -133,7 +157,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     marginBottom: 15,
-    width: '100%',
+    width: '80%',
     alignItems: 'center',
   },
   buttonText: {

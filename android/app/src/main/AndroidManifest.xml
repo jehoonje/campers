@@ -14,12 +14,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="false"
         android:theme="@style/BootSplashTheme"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:usesCleartextTraffic="true">
+        
 
         <!-- Google Maps API Key 설정 -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDrFo-dFEtm2yDffYzMRUkrFvmYmD-WVvk" 
+        />
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="@string/kakao_app_key" 
         />
 
         
@@ -35,6 +41,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 카카오톡 로그인에 필요한 Scheme 설정 -->
+    <activity
+   android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+   android:exported="true">
+  <intent-filter>
+      <action android:name="android.intent.action.VIEW" />
+      <category android:name="android.intent.category.DEFAULT" />
+      <category android:name="android.intent.category.BROWSABLE" />
+
+      <!-- Redirect URI: "kakao{NATIVE_APP_KEY}://oauth“ -->
+      <data android:host="oauth"
+          android:scheme="kakaod16fae2657511a65565187e54466f708" />
+  </intent-filter>
+</activity>
+    
     </application>
 
 </manifest>
