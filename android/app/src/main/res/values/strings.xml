@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">campers</string>
+    <string name="kakao_app_key">d16fae2657511a65565187e54466f708</string>
+    <string name="kakao_scheme">kakaod16fae2657511a65565187e54466f708</string>
 </resources>

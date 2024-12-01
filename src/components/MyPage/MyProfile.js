@@ -18,7 +18,7 @@ import CustomText from '../CustomText';
 const MyProfile = ({ navigation }) => {
   const { isLoggedIn, userId, logout } = useContext(AuthContext);
   const [userName, setUserName] = useState('');
-  const [profileImage, setProfileImage] = useState('');
+  const [profileImageUrl, setProfileImageUrl] = useState('');
 
   // 유저 정보 로드
   useFocusEffect(
@@ -27,8 +27,8 @@ const MyProfile = ({ navigation }) => {
         axiosInstance
           .get(`/users/${userId}`)
           .then(response => {
-            console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
-            setProfileImage(response.data.profileImage);
+            console.log('서버에서 받은 프로필 이미지:', response.data.profileImageUrl);
+            setProfileImageUrl(response.data.profileImageUrl);
             setUserName(response.data.userName);
           })
           .catch(error => console.error(error));
@@ -80,8 +80,8 @@ const MyProfile = ({ navigation }) => {
       <View style={styles.profileContainer}>
         <Image
           source={
-            profileImage && profileImage !== ''
-              ? { uri: profileImage }
+            profileImageUrl && profileImageUrl !== ''
+              ? { uri: profileImageUrl }
               : require('../../assets/placeholder.png')
           }
           style={styles.profileImage}

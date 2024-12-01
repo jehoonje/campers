@@ -1,5 +1,5 @@
 // src/screens/LoginScreen.js
-import React, { useState, useContext } from 'react';
+import React, {useState, useContext} from 'react';
 import {
   View,
   Text,
@@ -11,15 +11,20 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // 아이콘 라이브러리 추가
-import { useNavigation } from '@react-navigation/native'; // useNavigation 훅 임포트
-import { AuthContext } from '../AuthContext';
+import {useNavigation} from '@react-navigation/native'; // useNavigation 훅 임포트
+import {AuthContext} from '../AuthContext';
 import axiosInstance from '../utils/axiosInstance'; // 중앙화된 Axios 인스턴스 임포트
+import {
+  login as kakaoLogin,
+  logout as kakaoLogout,
+  getProfile as getKakaoProfile,
+} from '@react-native-seoul/kakao-login';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-  const { login } = useContext(AuthContext);
+  const {login} = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -38,10 +43,10 @@ const LoginScreen = () => {
 
       console.log('서버 응답:', response.data); // 응답 데이터 로그 출력
 
-      const { accessToken, refreshToken, message } = response.data;
+      const {accessToken, refreshToken, message} = response.data;
 
       if (accessToken && refreshToken) {
-        await login(accessToken, refreshToken); 
+        await login(accessToken, refreshToken);
         Alert.alert('로그인 성공', '환영합니다!');
         navigation.navigate('AppContent');
       } else if (message) {
@@ -51,7 +56,11 @@ const LoginScreen = () => {
       }
     } catch (error) {
       console.error('로그인 오류:', error);
-      if (error.response && error.response.data && error.response.data.message) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
         Alert.alert('로그인 실패', error.response.data.message);
       } else {
         Alert.alert('오류', '로그인 중 오류가 발생했습니다.');
@@ -61,9 +70,53 @@ const LoginScreen = () => {
     }
   };
 
-  const handleKakaoLogin = () => {
-    // 카카오 로그인 로직 구현
-    Alert.alert('카카오 로그인', '카카오 로그인 기능은 아직 구현되지 않았습니다.');
+  const handleKakaoLogin = async () => {
+    setLoading(true);
+    try {
+      // 카카오 로그인 시도
+      const result = await kakaoLogin();
+      console.log('카카오 로그인 성공:', result);
+
+      // 사용자 정보 가져오기
+      const profile = await getKakaoProfile();
+      console.log('카카오 프로필 정보:', profile);
+
+      // 백엔드로 카카오 액세스 토큰 전송
+      const response = await axiosInstance.post(
+        'http://10.0.2.2:8080/api/auth/kakao',
+        {
+          accessToken: result.accessToken,
+        },
+      );
+
+      const {accessToken, refreshToken, message} = response.data;
+
+      if (accessToken && refreshToken) {
+        await login(accessToken, refreshToken);
+        Alert.alert('로그인 성공', '카카오 계정으로 로그인되었습니다.');
+        navigation.navigate('AppContent');
+      } else if (message) {
+        Alert.alert('로그인 실패', message);
+      } else {
+        Alert.alert('로그인 실패', '카카오 로그인 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('카카오 로그인 오류:', error);
+
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        Alert.alert('로그인 실패', error.response.data.message);
+      } else if (error.response && error.response.data) {
+        Alert.alert('로그인 실패', error.response.data);
+      } else {
+        Alert.alert('로그인 실패', '카카오 로그인 중 오류가 발생했습니다.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,8 +124,7 @@ const LoginScreen = () => {
       {/* 뒤로가기 버튼 */}
       <TouchableOpacity
         onPress={() => navigation.navigate('AppContent')}
-        style={styles.backButton}
-      >
+        style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
@@ -96,7 +148,10 @@ const LoginScreen = () => {
           secureTextEntry
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+          disabled={loading}>
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
@@ -104,15 +159,23 @@ const LoginScreen = () => {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.kakaoButton} onPress={handleKakaoLogin} disabled={loading}>
-          <Text style={[styles.buttonText, { color: '#000' }]}>Kakao Login</Text>
+        <TouchableOpacity
+          style={styles.kakaoButton}
+          onPress={handleKakaoLogin}
+          disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Text style={[styles.buttonText, {color: '#000'}]}>
+              Kakao Login
+            </Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.signupButton}
           onPress={() => navigation.navigate('SignupScreen')}
-          disabled={loading}
-        >
+          disabled={loading}>
           <Text style={styles.signupText}>Sign up</Text>
         </TouchableOpacity>
       </View>
@@ -125,7 +188,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center', // 수직 가운데 정렬
-    alignItems: 'center',     // 수평 가운데 정렬
+    alignItems: 'center', // 수평 가운데 정렬
   },
   backButton: {
     position: 'absolute',
@@ -135,7 +198,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   innerContainer: {
-    width: '80%',           // 화면 너비의 80%
+    width: '80%', // 화면 너비의 80%
     alignItems: 'center',
   },
   title: {
@@ -146,7 +209,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 50,
-    width: '100%',          // 부모 컨테이너의 100% (80%의 화면 너비)
+    width: '100%', // 부모 컨테이너의 100% (80%의 화면 너비)
     backgroundColor: '#fff',
     paddingHorizontal: 16,
     marginBottom: 16,
@@ -155,7 +218,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   button: {
-    width: '100%',          // 부모 컨테이너의 100%
+    width: '100%', // 부모 컨테이너의 100%
     backgroundColor: '#d1d1d1',
     paddingVertical: 14,
     borderRadius: 8,
@@ -164,7 +227,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   kakaoButton: {
-    width: '100%',          // 부모 컨테이너의 100%
+    width: '100%', // 부모 컨테이너의 100%
     backgroundColor: '#FEE500',
     paddingVertical: 14,
     borderRadius: 8,

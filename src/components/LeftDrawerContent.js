@@ -19,7 +19,7 @@ import axiosInstance from '../utils/axiosInstance';
 const LeftDrawerContent = () => {
   const navigation = useNavigation();
   const {isLoggedIn, logout, userId} = useContext(AuthContext);
-  const [profileImage, setProfileImage] = useState('');
+  const [profileImageUrl, setProfileImageUrl] = useState('');
   const isDrawerOpen = useDrawerStatus() === 'open';
 
   useEffect(() => {
@@ -27,16 +27,16 @@ const LeftDrawerContent = () => {
       axiosInstance
         .get(`/users/${userId}`)
         .then(response => {
-          console.log('서버에서 받은 프로필 이미지:', response.data.profileImage);
-          if (response.data.profileImage) {
-            setProfileImage(response.data.profileImage);
+          console.log('서버에서 받은 프로필 이미지:', response.data.profileImageUrl);
+          if (response.data.profileImageUrl) {
+            setProfileImageUrl(response.data.profileImageUrl);
           } else {
-            setProfileImage(null);
+            setProfileImageUrl(null);
           }
         })
         .catch(error => {
           console.error('Error fetching profile image:', error);
-          setProfileImage(null);
+          setProfileImageUrl(null);
         });
     }
   }, [isDrawerOpen, isLoggedIn, userId]);
@@ -48,8 +48,8 @@ const LeftDrawerContent = () => {
         <View style={styles.profileContainer}>
           <Image
             source={
-              profileImage && profileImage !== ''
-                ? {uri: profileImage}
+              profileImageUrl && profileImageUrl !== ''
+                ? {uri: profileImageUrl}
                 : require('../assets/placeholder.png')
             }
             style={styles.profileImage}
