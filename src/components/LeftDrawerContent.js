@@ -7,6 +7,7 @@ import {
   Share,
   Linking,
   Image,
+  Alert,
 } from 'react-native';
 import {DrawerContentScrollView} from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -41,6 +42,29 @@ const LeftDrawerContent = () => {
     }
   }, [isDrawerOpen, isLoggedIn, userId]);
 
+  // "마이프로필" 버튼 핸들러
+  const handleMyProfilePress = () => {
+    if (isLoggedIn) {
+      navigation.navigate('MyProfile');
+    } else {
+      Alert.alert(
+        '',
+        '로그인이 필요합니다.',
+        [
+          {
+            text: '취소',
+            style: 'cancel',
+          },
+          {
+            text: '로그인',
+            onPress: () => navigation.navigate('LoginScreen'),
+          },
+        ],
+        { cancelable: true }
+      );
+    }
+  };
+
   return (
     <DrawerContentScrollView contentContainerStyle={styles.drawerContainer}>
       <View style={styles.content}>
@@ -59,9 +83,8 @@ const LeftDrawerContent = () => {
         {/* 마이프로필 버튼 */}
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={() => {
-            navigation.navigate('MyProfile'); 
-          }}>
+          onPress={handleMyProfilePress}
+        >
           <Ionicons
             name="person-outline"
             size={24}

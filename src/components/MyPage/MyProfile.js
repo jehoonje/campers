@@ -65,6 +65,17 @@ const MyProfile = ({ navigation }) => {
     );
   };
 
+  // 로그아웃 후 AppContent으로 이동하는 핸들러
+  const handleLogout = async () => {
+    try {
+      await logout(); // 로그아웃 수행
+      navigation.navigate('AppContent'); // AppContent 화면으로 이동
+    } catch (error) {
+      console.error('로그아웃 오류:', error);
+      Alert.alert('오류', '로그아웃 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* 헤더 */}
@@ -102,7 +113,7 @@ const MyProfile = ({ navigation }) => {
         <CustomText style={styles.buttonText}>회원 탈퇴</CustomText>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={logout}>
+      <TouchableOpacity style={styles.button} onPress={handleLogout}>
         <CustomText style={styles.buttonText}>로그아웃</CustomText>
       </TouchableOpacity>
     </View>
