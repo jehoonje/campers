@@ -24,6 +24,10 @@
             android:value="AIzaSyDrFo-dFEtm2yDffYzMRUkrFvmYmD-WVvk" 
         />
         <meta-data
+            android:name="com.google.android.gms.auth.api.signin.internal.clientId"
+            android:value="BA:3F:42:B2:A8:C5:AE:3A:9D:AC:4E:DD:D1:1E:BE:3E:51:9B:FF:96" />
+
+        <meta-data
             android:name="com.kakao.sdk.AppKey"
             android:value="@string/kakao_app_key" 
         />

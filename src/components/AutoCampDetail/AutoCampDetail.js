@@ -1,5 +1,5 @@
 // src/components/AutoCampDetail/AutoCampDetail.js
-import React, {useState, useEffect, useMemo, useContext} from 'react';
+import React, {useState, useEffect, useMemo, useContext, useCallback} from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import styles from './styles';
+import axiosInstance from '../../utils/axiosInstance';
 import sharedStyles from '../Shared/styles';
 import FacilityIcon from '../Shared/components/FacilityIcon';
 import InfoRow from '../Shared/components/InfoRow';
@@ -79,22 +80,22 @@ function AutoCampDetail({route, navigation}) {
     setActiveTab(tab);
   };
 
+  const fetchAverageRating = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `/reviews/average/autocamp/${autocamp.contentId}`,
+      );
+      setAverageRating(response.data.averageRating);
+    } catch (error) {
+      console.error('Error fetching average rating:', error);
+      setAverageRating(0);
+    }
+  };
+
   // 평균 별점 가져오기
   useEffect(() => {
-    const fetchAverageRating = async () => {
-      try {
-        const response = await axiosInstance.get(
-          `/reviews/average/autocamp/${autocamp.contentId}`,
-        );
-        setAverageRating(response.data.averageRating);
-      } catch (error) {
-        console.error('Error fetching average rating:', error);
-        setAverageRating(0);
-      }
-    };
-
     fetchAverageRating();
-  }, [autocamp.contentId]);
+  }, [fetchAverageRating]);
 
   // 시설 정보를 합쳐서 단어를 검색합니다.
   const facilitiesText = `${autocamp.facilities || ''} ${
@@ -129,6 +130,12 @@ function AutoCampDetail({route, navigation}) {
   if (!autocamp) {
     return <LoadingIndicator />;
   }
+
+  // Callback function to update average rating
+  const handleReviewAdded = () => {
+    fetchAverageRating();
+  };
+
 
   return (
     <View style={styles.container}>
@@ -191,6 +198,7 @@ function AutoCampDetail({route, navigation}) {
         <ReviewComponent
           contentType="Autocamp"
           contentId={autocamp.contentId}
+          onReviewAdded={handleReviewAdded}  
         />
       )}
     </View>
