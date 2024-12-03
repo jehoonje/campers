@@ -1,5 +1,5 @@
 // src/screens/LoginScreen.js
-import React, { useState, useContext } from 'react';
+import React, {useState, useContext} from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,14 @@ import {
   Image,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native';
-import { AuthContext } from '../AuthContext';
+import {useNavigation} from '@react-navigation/native';
+import {AuthContext} from '../AuthContext';
 import axiosInstance from '../utils/axiosInstance';
 import {
   login as kakaoLogin,
   getProfile as getKakaoProfile,
 } from '@react-native-seoul/kakao-login';
+import AnimatedTitle from './AnimatedTitle';
 
 const LoginScreen = () => {
   const [step, setStep] = useState(1); // 로그인 단계 관리
@@ -25,10 +26,10 @@ const LoginScreen = () => {
   const [emailError, setEmailError] = useState(''); // 이메일 오류 메시지 상태 추가
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-  const { login } = useContext(AuthContext);
+  const {login} = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
 
-  const validateEmail = (email) => {
+  const validateEmail = email => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
@@ -64,7 +65,7 @@ const LoginScreen = () => {
 
       console.log('서버 응답:', response.data);
 
-      const { accessToken, refreshToken, message } = response.data;
+      const {accessToken, refreshToken, message} = response.data;
 
       if (accessToken && refreshToken) {
         await login(accessToken, refreshToken);
@@ -107,7 +108,7 @@ const LoginScreen = () => {
         },
       );
 
-      const { accessToken, refreshToken, message } = response.data;
+      const {accessToken, refreshToken, message} = response.data;
 
       if (accessToken && refreshToken) {
         await login(accessToken, refreshToken);
@@ -150,16 +151,16 @@ const LoginScreen = () => {
         {/* 단계 1: 이메일 입력 */}
         {step === 1 && (
           <>
-            <Text style={styles.title}>
-              아이디를{'\n'}
-              입력해주세요.
-            </Text>
+            <AnimatedTitle
+              style={styles.title}
+              text={`아이디를\n입력해주세요.`}
+            />
 
             <TextInput
               style={styles.input}
               placeholder="이메일"
               value={email}
-              onChangeText={(text) => {
+              onChangeText={text => {
                 setEmail(text);
                 setEmailError(''); // 이메일 입력 시 오류 메시지 초기화
               }}
@@ -173,14 +174,24 @@ const LoginScreen = () => {
             <TouchableOpacity
               style={[
                 styles.continueButton,
-                { backgroundColor: validateEmail(email) ? '#333' : '#d9d9d9' },
+                {
+                  backgroundColor: validateEmail(email)
+                    ? '#333'
+                    : 'transparent',
+                },
               ]}
               onPress={handleContinue}
               disabled={loading || !validateEmail(email)}>
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.continueButtonText}>계속하기</Text>
+                <Text
+                  style={[
+                    styles.continueButtonText,
+                    {color: validateEmail(email) ? '#fff' : '#ccc'},
+                  ]}>
+                  계속하기
+                </Text>
               )}
             </TouchableOpacity>
           </>
@@ -189,10 +200,10 @@ const LoginScreen = () => {
         {/* 단계 2: 비밀번호 입력 */}
         {step === 2 && (
           <>
-            <Text style={styles.title}>
-              비밀번호를{'\n'}
-              입력해주세요.
-            </Text>
+            <AnimatedTitle
+              style={styles.title}
+              text={`비밀번호를\n입력해주세요.`}
+            />
 
             <TextInput
               style={styles.input}
@@ -209,7 +220,7 @@ const LoginScreen = () => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Sign In</Text>
+                <Text style={styles.buttonText}>로그인</Text>
               )}
             </TouchableOpacity>
           </>
@@ -219,9 +230,7 @@ const LoginScreen = () => {
         {step === 1 ? (
           <TouchableOpacity
             style={styles.signupButton}
-            onPress={() =>
-              navigation.navigate('SignupScreen', { email: email })
-            }
+            onPress={() => navigation.navigate('SignupScreen', {email: email})}
             disabled={loading}>
             <Text style={styles.signupText}>회원 가입</Text>
           </TouchableOpacity>
@@ -312,21 +321,22 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     width: '100%',
-    backgroundColor: '#d9d9d9',
+    backgroundColor: 'transparent',
     paddingVertical: 14,
+    borderWidth: 0.5,
+    borderColor: '#aaa',
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 24, // 버튼과 입력 필드 간격 조정
   },
   continueButtonText: {
-    color: '#fff',
     fontSize: 16,
     textAlign: 'center',
   },
   button: {
     width: '100%',
-    backgroundColor: '#d1d1d1',
+    backgroundColor: '#333',
     paddingVertical: 14,
     borderRadius: 6,
     justifyContent: 'center',
@@ -347,7 +357,7 @@ const styles = StyleSheet.create({
     height: 50,
   },
   buttonText: {
-    color: '#333',
+    color: '#fafafa',
     fontSize: 18,
     textAlign: 'center',
   },

@@ -155,6 +155,8 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
+    borderWidth:1,
+    borderColor: '#ccc',
   },
   userIdText: {
     fontSize: 18,
@@ -163,16 +165,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   button: {
-    backgroundColor: '#2F2F2F',
-    paddingVertical: 10,
+    backgroundColor: '#fff',
+    paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 5,
+    borderWidth: 0.5,
+    borderColor: '#333',
     marginBottom: 15,
     width: '80%',
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: '#333',
     fontSize: 16,
   },
 });

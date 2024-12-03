@@ -70,6 +70,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.0.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
+    implementation 'com.google.android.gms:play-services-auth:20.5.0'
+
     // Hermes 또는 JSC 선택에 따른 의존성 설정
     if (enableHermes) {
         implementation("com.facebook.react:hermes-android")
