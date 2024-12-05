@@ -19,6 +19,7 @@ import {
   getProfile as getKakaoProfile,
 } from '@react-native-seoul/kakao-login';
 import AnimatedTitle from './AnimatedTitle';
+import {GoogleSignin} from '@react-native-google-signin/google-signin';
 
 const LoginScreen = () => {
   const [step, setStep] = useState(1); // 로그인 단계 관리
@@ -28,6 +29,13 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const {login} = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
+
+  // **Google Sign-In 초기화**
+  GoogleSignin.configure({
+    webClientId:
+      '958440013761-f29q36hrr58t7s07pjdbs9b9e89dm3tm.apps.googleusercontent.com',
+    offlineAccess: true,
+  });
 
   const validateEmail = email => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -132,6 +140,57 @@ const LoginScreen = () => {
         Alert.alert('로그인 실패', error.response.data);
       } else {
         Alert.alert('로그인 실패', '카카오 로그인 중 오류가 발생했습니다.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // **Google 로그인 함수 추가**
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+      const { idToken } = userInfo.data;
+
+      // 백엔드로 idToken 전송
+      const response = await axiosInstance.post(
+        'http://10.0.2.2:8080/api/auth/google',
+        {
+          idToken: idToken,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const {accessToken, refreshToken, message} = response.data;
+
+      if (accessToken && refreshToken) {
+        await login(accessToken, refreshToken);
+        Alert.alert('로그인 성공', 'Google 계정으로 로그인되었습니다.');
+        navigation.navigate('AppContent');
+      } else if (message) {
+        Alert.alert('로그인 실패', message);
+      } else {
+        Alert.alert('로그인 실패', 'Google 로그인 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      console.error('Google 로그인 오류:', error);
+
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        Alert.alert('로그인 실패', error.response.data.message);
+      } else if (error.response && error.response.data) {
+        Alert.alert('로그인 실패', error.response.data);
+      } else {
+        Alert.alert('로그인 실패', 'Google 로그인 중 오류가 발생했습니다.');
       }
     } finally {
       setLoading(false);
@@ -258,15 +317,23 @@ const LoginScreen = () => {
           style={styles.kakaoButton}
           onPress={handleKakaoLogin}
           disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color="#000" />
-          ) : (
             <Image
               source={require('../assets/kakaobutton.png')}
               style={styles.kakaoButtonImage}
               resizeMode="contain"
             />
-          )}
+        </TouchableOpacity>
+
+        {/* Google 로그인 버튼 추가 */}
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={handleGoogleLogin}
+          disabled={loading}>
+            <Image
+              source={require('../assets/googlebutton.png')}
+              style={styles.googleButtonImage}
+              resizeMode="contain"
+            />          
         </TouchableOpacity>
       </View>
     </View>
@@ -353,6 +420,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   kakaoButtonImage: {
+    width: '100%',
+    height: 50,
+  },
+  googleButton: {
+    width: '100%',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    marginTop: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#DDDDDD',
+  },
+  googleButtonImage: {
     width: '100%',
     height: 50,
   },

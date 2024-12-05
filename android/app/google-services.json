@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "680039549222",
+    "project_id": "clone-1c6b9",
+    "storage_bucket": "clone-1c6b9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:680039549222:android:1301dcc567c6de72b019e7",
+        "android_client_info": {
+          "package_name": "com.campers"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "680039549222-mpq10ir9an07g0hrbnsukuak16mqj3gu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcP1PeIXN2XQaFVoXMNWG_ah8VoraZ8Gs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "680039549222-mpq10ir9an07g0hrbnsukuak16mqj3gu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
