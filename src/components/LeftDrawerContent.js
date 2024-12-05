@@ -42,6 +42,11 @@ const LeftDrawerContent = () => {
     }
   }, [isDrawerOpen, isLoggedIn, userId]);
 
+  const handleLogout = () => {
+    setProfileImageUrl(null);
+    logout();
+  }
+
   // "마이프로필" 버튼 핸들러
   const handleMyProfilePress = () => {
     if (isLoggedIn) {
@@ -99,9 +104,9 @@ const LeftDrawerContent = () => {
           style={styles.menuButton}
           onPress={() => {
             Share.share({
-              message: '이 앱을 확인해보세요!',
-              url: 'http://example.com', // 실제 앱 링크로 교체
-              title: '앱 제목',
+              message: '준비중 입니다!',
+              url: 'http://bluebellybird.bearblog.dev', // 실제 앱 링크로 교체
+              title: 'CampRidge',
             });
           }}>
           <Ionicons
@@ -146,7 +151,7 @@ const LeftDrawerContent = () => {
         )}
 
         {isLoggedIn && (
-          <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Ionicons
               name="log-out-outline"
               size={24}
