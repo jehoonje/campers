@@ -65,6 +65,17 @@ const MyProfile = ({ navigation }) => {
     );
   };
 
+  // 로그아웃 후 AppContent으로 이동하는 핸들러
+  const handleLogout = async () => {
+    try {
+      await logout(); // 로그아웃 수행
+      navigation.navigate('AppContent'); // AppContent 화면으로 이동
+    } catch (error) {
+      console.error('로그아웃 오류:', error);
+      Alert.alert('오류', '로그아웃 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* 헤더 */}
@@ -102,7 +113,7 @@ const MyProfile = ({ navigation }) => {
         <CustomText style={styles.buttonText}>회원 탈퇴</CustomText>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={logout}>
+      <TouchableOpacity style={styles.button} onPress={handleLogout}>
         <CustomText style={styles.buttonText}>로그아웃</CustomText>
       </TouchableOpacity>
     </View>
@@ -144,6 +155,8 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
+    borderWidth:1,
+    borderColor: '#ccc',
   },
   userIdText: {
     fontSize: 18,
@@ -152,16 +165,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   button: {
-    backgroundColor: '#2F2F2F',
-    paddingVertical: 10,
+    backgroundColor: '#fff',
+    paddingVertical: 20,
     paddingHorizontal: 20,
     borderRadius: 5,
+    borderWidth: 0.5,
+    borderColor: '#333',
     marginBottom: 15,
     width: '80%',
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: '#333',
     fontSize: 16,
   },
 });

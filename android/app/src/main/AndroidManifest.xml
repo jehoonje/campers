@@ -23,6 +23,10 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDrFo-dFEtm2yDffYzMRUkrFvmYmD-WVvk" 
         />
+        <activity
+            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+            android:exported="false" />
+
         <meta-data
             android:name="com.kakao.sdk.AppKey"
             android:value="@string/kakao_app_key" 

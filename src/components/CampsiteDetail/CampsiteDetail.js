@@ -1,5 +1,5 @@
 // src/components/CampsiteDetail/CampsiteDetail.js
-import React, { useState, useContext, useEffect, useMemo } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -76,22 +76,22 @@ function CampsiteDetail({ route, navigation }) {
     setActiveTab(tab);
   };
 
+  const fetchAverageRating = async () => {
+    try {
+      const response = await axios.get(
+        `http://10.0.2.2:8080/api/reviews/average/Campsite/${campsite.contentId}`
+      );
+      setAverageRating(response.data.averageRating);
+    } catch (error) {
+      console.error('Error fetching average rating:', error);
+      setAverageRating(0);
+    }
+  };
+
   // 평균 별점 가져오기
   useEffect(() => {
-    const fetchAverageRating = async () => {
-      try {
-        const response = await axios.get(
-          `http://10.0.2.2:8080/api/reviews/average/Campsite/${campsite.contentId}`
-        );
-        setAverageRating(response.data.averageRating);
-      } catch (error) {
-        console.error('Error fetching average rating:', error);
-        setAverageRating(0);
-      }
-    };
-
     fetchAverageRating();
-  }, [campsite.contentId]);
+  }, [fetchAverageRating]);
 
   // 시설 정보를 합쳐서 단어를 검색합니다.
   const facilitiesText = `${campsite.facilities || ''} ${campsite.mainfacilities || ''}`;
@@ -124,6 +124,12 @@ function CampsiteDetail({ route, navigation }) {
   if (!campsite) {
     return <LoadingIndicator />;
   }
+
+  // Callback function to update average rating
+  const handleReviewAdded = () => {
+    fetchAverageRating();
+  };
+
 
   return (
     <View style={styles.container}>
@@ -180,7 +186,11 @@ function CampsiteDetail({ route, navigation }) {
           tagsStyles={styles.tagsStyles}
         />
       ) : (
-        <ReviewComponent contentType="Campsite" contentId={campsite.contentId} />
+        <ReviewComponent 
+          contentType="Campsite" 
+          contentId={campsite.contentId}
+          onReviewAdded={handleReviewAdded}  
+        />
       )}
     </View>
   );

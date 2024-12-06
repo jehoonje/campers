@@ -28,6 +28,7 @@ android {
         buildConfigField "boolean", "DEBUG", "true"
         manifestPlaceholders = [kakaoScheme: "kakao${kakaoAppKey}"]
 
+
         // Java 17 호환성 보장 - Java toolchain 사용
         java {
             toolchain {
@@ -77,3 +78,5 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+apply plugin: 'com.google.gms.google-services'

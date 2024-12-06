@@ -20,7 +20,7 @@ const FavoriteButton = ({ isFavorite, toggleFavorite, loading }) => {
         <Ionicons
           name={isFavorite ? "star" : "star-outline"}
           size={24}
-          color={isFavorite ? "#FFD700" : "#333"}
+          color={isFavorite ? "#333" : "#333"}
         />
       )}
     </TouchableOpacity>
