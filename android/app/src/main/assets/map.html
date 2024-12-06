@@ -463,7 +463,9 @@
                   ? data.image1
                   : 'https://via.placeholder.com/200x100.png?text=No+Image'
               }" alt="이미지">
-              <div class="name">${data.title || '오토캠핑장 이름 없음'}</div>
+              <div class="name">${
+                data.title || '오토캠핑장 이름 없음'
+              }</div>
             </div>
           `;
                     break;
@@ -1230,7 +1232,7 @@
             if (message.type === 'updateFavorites') {
               favorites = message.favoritesData || [];
               if (message.showFavorites) {
-                favoritesAdded = true;
+                favoritesAdded = true; 
                 updateVisibleMarkers();
               } else {
                 removeFavoriteMarkers();
@@ -1379,61 +1381,6 @@
               }),
             );
           }
-        });
-
-        // 마커 애니메이션을 위한 CSS 추가
-        var css = `
-      @keyframes markerPop {
-        0% {
-          transform: scale(0);
-        }
-        80% {
-          transform: scale(1.2);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-      .leaflet-marker-icon.animated-marker {
-        animation: markerPop 0.3s ease-out;
-      }
-    `;
-        var style = document.createElement('style');
-        style.type = 'text/css';
-        style.appendChild(document.createTextNode(css));
-        document.getElementsByTagName('head')[0].appendChild(style);
-
-        // 마커가 지도에 추가될 때 애니메이션 클래스 추가
-        [
-          favoriteMarkers,
-          restStopMarkers,
-          chargingStationMarkers,
-          campgroundMarkers,
-          campsiteMarkers,
-          fishingMarkers,
-          autocampMarkers,
-          countrysideMarkers,
-          beachMarkers,
-          wifiMarkers,
-        ].forEach(function (clusterGroup) {
-          var originalAddLayer = clusterGroup.addLayer;
-          clusterGroup.addLayer = function (layer) {
-            if (layer instanceof L.Marker) {
-              // 마커가 지도에 추가될 때 이벤트 리스너 등록
-              layer.on('add', function () {
-                var icon = layer._icon;
-                if (icon) {
-                  icon.classList.add('animated-marker');
-                  // 애니메이션이 끝나면 클래스 제거
-                  setTimeout(function () {
-                    icon.classList.remove('animated-marker');
-                  }, 300); // 애니메이션 지속 시간 (밀리초)
-                }
-              });
-            }
-            // 원래의 addLayer 메서드 호출
-            return originalAddLayer.call(this, layer);
-          };
         });
       })();
     </script>
