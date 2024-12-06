@@ -1,6 +1,6 @@
 // EditProfile.js
 
-import React, { useContext, useState, useEffect } from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {
   View,
   TextInput,
@@ -12,14 +12,14 @@ import {
   Text,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { AuthContext } from '../../AuthContext';
+import {AuthContext} from '../../AuthContext';
 import axiosInstance from '../../utils/axiosInstance'; // axios 설정
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { launchImageLibrary } from 'react-native-image-picker';
+import {launchImageLibrary} from 'react-native-image-picker';
 import placeholderImage from '../../assets/placeholder.png';
 
-const EditProfile = ({ navigation }) => {
-  const { userId, isLoggedIn } = useContext(AuthContext);
+const EditProfile = ({navigation}) => {
+  const {userId, isLoggedIn} = useContext(AuthContext);
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [profileImageUrl, setProfileImageUrl] = useState('');
@@ -97,11 +97,13 @@ const EditProfile = ({ navigation }) => {
     <View style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>프로필 수정</Text>
-        <View style={{ width: 24 }} />
+        <View style={{width: 24}} />
       </View>
 
       {/* 프로필 이미지 */}
@@ -111,14 +113,19 @@ const EditProfile = ({ navigation }) => {
             <Image
               source={
                 newProfileImage
-                  ? { uri: newProfileImage.uri }
+                  ? {uri: newProfileImage.uri}
                   : profileImageUrl && profileImageUrl !== ''
-                  ? { uri: profileImageUrl }
+                  ? {uri: profileImageUrl}
                   : placeholderImage
               }
               style={styles.profileImage}
             />
-            <Ionicons name="camera" size={30} color="#333" style={styles.cameraIcon} />
+            <Ionicons
+              name="camera"
+              size={30}
+              color="#333"
+              style={styles.cameraIcon}
+            />
           </View>
         </TouchableOpacity>
       </View>
@@ -131,7 +138,12 @@ const EditProfile = ({ navigation }) => {
           placeholder="사용자 이름"
           style={styles.input}
         />
-        <Ionicons name="pencil" size={20} color="#333" style={styles.pencilIcon} />
+        <Ionicons
+          name="pencil"
+          size={20}
+          color="#333"
+          style={styles.pencilIcon}
+        />
       </View>
 
       {/* 이메일 */}
@@ -140,7 +152,7 @@ const EditProfile = ({ navigation }) => {
           value={email}
           editable={false}
           placeholder="이메일"
-          style={[styles.input, { color: '#999' }]}
+          style={[styles.input, {color: '#999'}]}
         />
       </View>
 
@@ -192,13 +204,15 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     borderRadius: 75,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   cameraIcon: {
     position: 'absolute',
     bottom: 5,
     right: 5,
     backgroundColor: '#fff',
-    borderRadius: 15,
+    borderRadius: 20,
     padding: 5,
   },
   inputContainer: {
@@ -216,7 +230,7 @@ const styles = StyleSheet.create({
   },
   pencilIcon: {
     marginLeft: 5,
-    backgroundColor: "rgba(255, 255, 255, 0)",
+    backgroundColor: 'rgba(255, 255, 255, 0)',
   },
   saveButton: {
     backgroundColor: '#2F2F2F',

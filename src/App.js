@@ -18,9 +18,19 @@ import MyProfile from './components/MyPage/MyProfile';
 import EditProfile from './components/MyPage/EditProfile';
 import SignupScreen from './screens/SignupScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+
+
+GoogleSignin.configure({
+  webClientId: '958440013761-f29q36hrr58t7s07pjdbs9b9e89dm3tm.apps.googleusercontent.com',
+  offlineAccess: true, // 서버에서 토큰 교환을 위해 필요
+});
+
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
+
+
 
 const MainStack = () => (
   <Stack.Navigator>

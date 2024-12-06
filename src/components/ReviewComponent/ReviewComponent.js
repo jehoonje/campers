@@ -19,7 +19,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
 import Spinner from 'react-native-spinkit';
 
-function ReviewComponent({contentType, contentId}) {
+function ReviewComponent({contentType, contentId, onReviewAdded}) {
   const [reviews, setReviews] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [newReviewContent, setNewReviewContent] = useState('');
@@ -90,6 +90,10 @@ function ReviewComponent({contentType, contentId}) {
       setNewRating(0);
       setHasReviewed(true); // 작성 완료 후 다시 작성 못하도록
       
+      // 부모 컴포넌트에 리뷰 작성 완료 알림
+      if (onReviewAdded && typeof onReviewAdded === 'function') {
+        onReviewAdded();
+      }
 
     } catch (error) {
       console.error('Error adding review:', error);
@@ -173,7 +177,6 @@ function ReviewComponent({contentType, contentId}) {
             onRequestClose={() => setModalVisible(false)}>
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Review</Text>
                 {/* 별점 선택 */}
                 <View style={styles.ratingSelection}>
                   {Array.from({length: 5}, (_, index) => {
@@ -224,6 +227,7 @@ function ReviewComponent({contentType, contentId}) {
 ReviewComponent.propTypes = {
   contentType: PropTypes.string.isRequired,
   contentId: PropTypes.number.isRequired,
+  onReviewAdded: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
@@ -313,7 +317,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     padding: 12,
-    backgroundColor: '#1e90ff',
+    backgroundColor: '#333',
     borderRadius: 8,
     flex: 1,
     marginRight: 8,

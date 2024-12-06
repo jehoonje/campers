@@ -1,5 +1,5 @@
 // src/components/CampingDetail/CampingDetail.js
-import React, {useMemo, useContext, useState, useEffect} from 'react';
+import React, {useMemo, useContext, useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -28,10 +28,9 @@ import ImageSlider from '../Shared/components/ImageSlider';
 import TabSection from './components/TabSection';
 import LoadingIndicator from '../Shared/components/LoadingIndicator';
 import ReviewComponent from '../ReviewComponent/ReviewComponent';
-import useFavorite from '../../hooks/useFavorite'; // useFavorite 훅 임포트
-import {AuthContext} from '../../AuthContext'; // AuthContext 임포트 추가
+import useFavorite from '../../hooks/useFavorite'; 
+import {AuthContext} from '../../AuthContext'; 
 
-// Define keyword categories and their corresponding icons
 const FACILITY_KEYWORDS = [
   {
     keywords: ['화장실'],
@@ -91,22 +90,23 @@ function CampingDetail({route, navigation}) {
     setActiveTab(tab);
   };
 
+   // 평균 별점 가져오는 함수 분리
+   const fetchAverageRating = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `http://10.0.2.2:8080/api/reviews/average/Campground/${campground.id}`,
+      );
+      setAverageRating(response.data.averageRating);
+    } catch (error) {
+      console.error('Error fetching average rating:', error);
+      setAverageRating(0);
+    }
+  }, [campground.id]);
+
   // 평균 별점 가져오기
   useEffect(() => {
-    const fetchAverageRating = async () => {
-      try {
-        const response = await axios.get(
-          `http://10.0.2.2:8080/api/reviews/average/Campground/${campground.id}`,
-        );
-        setAverageRating(response.data.averageRating);
-      } catch (error) {
-        console.error('Error fetching average rating:', error);
-        setAverageRating(0);
-      }
-    };
-
     fetchAverageRating();
-  }, [campground.id]);
+  }, [fetchAverageRating]);
 
   // Combine 'feature' and 'description' fields for keyword search
   const combinedText = useMemo(() => {
@@ -137,6 +137,12 @@ function CampingDetail({route, navigation}) {
     acc[facility.label] = facility.icon;
     return acc;
   }, {});
+
+  // Callback function to update average rating
+  const handleReviewAdded = () => {
+    fetchAverageRating();
+  };
+
 
   return (
     <View style={styles.container}>
@@ -204,7 +210,11 @@ function CampingDetail({route, navigation}) {
         />
       ) : (
         // Review 내용
-        <ReviewComponent contentType="Campground" contentId={campground.id} />
+        <ReviewComponent 
+          contentType="Campground" 
+          contentId={campground.id} 
+          onReviewAdded={handleReviewAdded}  
+        />
       )}
     </View>
   );

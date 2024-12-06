@@ -1,5 +1,5 @@
 // src/components/FishingDetail/FishingDetail.js
-import React, { useState, useContext, useEffect, useMemo } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -48,13 +48,10 @@ const facilityIcons = {
   대여: 'account-convert',
   에어컨: 'air-conditioner',
 };
-
 function FishingDetail({ route, navigation }) {
   const { fishing } = route.params;
   const { width } = useWindowDimensions();
-
-  const [activeTab, setActiveTab] = useState('detail');
-  const [averageRating, setAverageRating] = useState(0);
+  
   const [imageLoading, setImageLoading] = useState(true);
 
   // AuthContext에서 userId 가져오기
@@ -62,31 +59,7 @@ function FishingDetail({ route, navigation }) {
 
 
   // 즐겨찾기 훅 사용
-  const { isFavorite, toggleFavorite, loading } = useFavorite('FISHING', fishing.id);
-
-  // 탭 버튼 클릭 핸들러
-  const handleTabPress = (tab) => {
-    setActiveTab(tab);
-  };
-
-  
-
-  // 평균 별점 가져오기
-  useEffect(() => {
-    const fetchAverageRating = async () => {
-      try {
-        const response = await axiosInstance.get(
-          `/reviews/average/Fishing/${fishing.id}`
-        );
-        setAverageRating(response.data.averageRating);
-      } catch (error) {
-        console.error('Error fetching average rating:', error);
-        setAverageRating(0);
-      }
-    };
-
-    fetchAverageRating();
-  }, [fishing.contentId]);
+  const { isFavorite, toggleFavorite, loading } = useFavorite('FISHING', fishing.contentId);
 
   // 시설 정보를 합쳐서 단어를 검색합니다.
   const facilitiesText = `${fishing.facilities || ''} ${fishing.mainfacilities || ''}`;
@@ -150,36 +123,15 @@ function FishingDetail({ route, navigation }) {
       {/* 낚시터 이름 */}
       <Text style={styles.name}>{fishing.title}</Text>
 
-      {/* 평균 별점 표시 */}
-      <RatingDisplay averageRating={averageRating} />
-
-      {/* 탭 버튼 */}
-      <View style={sharedStyles.tabContainer}>
-        <TabButton
-          title="Detail"
-          active={activeTab === 'detail'}
-          onPress={() => handleTabPress('detail')}
-        />
-        <TabButton
-          title="Review"
-          active={activeTab === 'review'}
-          onPress={() => handleTabPress('review')}
-        />
-      </View>
-
-      {/* 탭 내용 */}
-      {activeTab === 'detail' ? (
-        <TabSection
-          width={width}
-          includedFacilities={includedFacilities}
-          facilityIcons={facilityIconsMapped}
-          isParkingAvailable={isParkingAvailable}
-          fishing={fishing}
-          tagsStyles={styles.tagsStyles}
-        />
-      ) : (
-        <ReviewComponent contentType="Fishing" contentId={fishing.id} />
-      )}
+      { /* 낚시터 정보 */}
+      <TabSection
+        width={width}
+        includedFacilities={includedFacilities}
+        facilityIcons={facilityIconsMapped}
+        isParkingAvailable={isParkingAvailable}
+        fishing={fishing}
+        tagsStyles={styles.tagsStyles}
+      />
     </View>
   );
 }
