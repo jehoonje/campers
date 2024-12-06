@@ -1,34 +1,35 @@
 // src/components/AutoCampDetail/AutoCampDetail.js
-import React, {useState, useEffect, useMemo, useContext, useCallback} from 'react';
+
+import React, {useState, useEffect, useMemo, useContext} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   Platform,
   Linking,
   useWindowDimensions,
+  StyleSheet,
+  Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import axios from 'axios';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import styles from './styles';
 import axiosInstance from '../../utils/axiosInstance';
 import sharedStyles from '../Shared/styles';
-import FacilityIcon from '../Shared/components/FacilityIcon';
-import InfoRow from '../Shared/components/InfoRow';
+import styles from '../CampsiteDetail/styles'; // CampsiteDetail/styles.js를 참고한다고 했으니 가져옴
 import TabButton from '../Shared/components/TabButton';
 import RatingDisplay from '../Shared/components/RatingDisplay';
 import ImageSlider from '../Shared/components/ImageSlider';
 import TabSection from './components/TabSection';
 import LoadingIndicator from '../Shared/components/LoadingIndicator';
 import ReviewComponent from '../ReviewComponent/ReviewComponent';
-import FavoriteButton from '../Shared/FavoriteButton'; // 추가
-import useFavorite from '../../hooks/useFavorite'; // useFavorite 훅 임포트
-import {AuthContext} from '../../AuthContext'; // AuthContext 임포트 추가
+import FavoriteButton from '../Shared/FavoriteButton';
+import useFavorite from '../../hooks/useFavorite';
+import {AuthContext} from '../../AuthContext';
 
-// 검색할 단어 목록
+// 경로 탐색 버튼 이미지
+import RouteButtonImage from '../../assets/getdirections.png';
+
+// 시설 관련 단어 및 아이콘
 const facilityWords = [
   '화장실',
   '개수대',
@@ -43,7 +44,6 @@ const facilityWords = [
   '애견',
 ];
 
-// 단어와 아이콘 매핑
 const facilityIcons = {
   화장실: 'toilet',
   개수대: 'faucet',
@@ -58,27 +58,50 @@ const facilityIcons = {
   애견: 'dog',
 };
 
+// 추가적인 로컬 스타일
+const localStyles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 32,
+  },
+  titleRatingContainer: {
+    flexDirection: 'row',
+    flex: 1,
+    flexWrap: 'wrap',
+    paddingTop: '4%',
+  },
+  nameText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: "11%",
+    marginTop: "-6%",
+    
+  },
+  routeButton: {
+    marginLeft: 8,
+    
+  },
+  routeButtonImage: {
+    width: 120,
+    height: 80,
+    marginBottom: '20%',
+  },
+});
+
 function AutoCampDetail({route, navigation}) {
   const {autocamp} = route.params;
   const {width} = useWindowDimensions();
+  const {userId} = useContext(AuthContext);
 
   const [activeTab, setActiveTab] = useState('detail');
   const [averageRating, setAverageRating] = useState(0);
   const [imageLoading, setImageLoading] = useState(true);
 
-  // AuthContext에서 userId 가져오기
-  const {userId} = useContext(AuthContext);
-
-  // 즐겨찾기 훅 사용
   const {isFavorite, toggleFavorite, loading} = useFavorite(
     'AUTOCAMP',
     autocamp.contentId,
   );
-
-  // 탭 버튼 클릭 핸들러
-  const handleTabPress = tab => {
-    setActiveTab(tab);
-  };
 
   const fetchAverageRating = async () => {
     try {
@@ -92,33 +115,26 @@ function AutoCampDetail({route, navigation}) {
     }
   };
 
-  // 평균 별점 가져오기
   useEffect(() => {
     fetchAverageRating();
-  }, [fetchAverageRating]);
+  }, []);
 
-  // 시설 정보를 합쳐서 단어를 검색합니다.
   const facilitiesText = `${autocamp.facilities || ''} ${
     autocamp.mainfacilities || ''
   }`;
 
-  // 포함된 시설 단어 목록
   const includedFacilities = useMemo(() => {
     return facilityWords.filter(word => facilitiesText.includes(word));
   }, [facilitiesText]);
 
-  // 주차 가능 여부 확인
   const isParkingAvailable =
     autocamp.parkingleports && autocamp.parkingleports.includes('가능');
 
-  // 애견동반 가능 여부 확인
   const isPetAvailable =
     autocamp.chkpetleports && autocamp.chkpetleports.includes('가능');
 
-  // 기본 이미지 경로 설정
   const defaultImage = require('../../assets/campsite.png');
 
-  // 시설 아이콘 매핑 객체 생성
   const facilityIconsMapped = useMemo(() => {
     return includedFacilities.reduce((acc, facility) => {
       acc[facility] = facilityIcons[facility];
@@ -126,20 +142,46 @@ function AutoCampDetail({route, navigation}) {
     }, {});
   }, [includedFacilities]);
 
-  // If autocamp data is not available, show a loading indicator
   if (!autocamp) {
     return <LoadingIndicator />;
   }
 
-  // Callback function to update average rating
   const handleReviewAdded = () => {
     fetchAverageRating();
   };
 
+  // 카카오내비 연동 함수
+  const openKakaoNavi = () => {
+    const {lat, lng, title} = autocamp;
+
+    if (!lat || !lng) {
+      alert('위치 정보가 없습니다.');
+      return;
+    }
+
+    const scheme = `kakaonavi://route?ep=${lat},${lng}&name=${encodeURIComponent(
+      title || '목적지',
+    )}`;
+    const fallbackUrl = 'https://kakaonavi.kakao.com/launch/index.do';
+
+    Linking.canOpenURL(scheme)
+      .then(supported => {
+        if (supported) {
+          Linking.openURL(scheme);
+        } else {
+          Linking.openURL(fallbackUrl);
+        }
+      })
+      .catch(err => console.error('An error occurred', err));
+  };
+
+  const handleTabPress = tab => {
+    setActiveTab(tab);
+  };
 
   return (
     <View style={styles.container}>
-      {/* 닫기 버튼 */}
+      {/* 뒤로가기 버튼 */}
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={styles.backButton}
@@ -148,7 +190,7 @@ function AutoCampDetail({route, navigation}) {
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
-      {/* 즐겨찾기 토글 버튼 추가 */}
+      {/* 즐겨찾기 버튼 */}
       <FavoriteButton
         isFavorite={isFavorite || false}
         toggleFavorite={toggleFavorite}
@@ -156,18 +198,32 @@ function AutoCampDetail({route, navigation}) {
       />
 
       {/* 이미지 슬라이더 */}
-      <ImageSlider
-        images={[autocamp.image1, autocamp.image2]}
-        imageLoading={imageLoading}
-        setImageLoading={setImageLoading}
-        defaultImage={defaultImage}
-      />
+      <View style={styles.imageSlider}>
+        <ImageSlider
+          images={[autocamp.image1, autocamp.image2]}
+          imageLoading={imageLoading}
+          setImageLoading={setImageLoading}
+          defaultImage={defaultImage}
+        />
+      </View>
 
-      {/* 캠핑장 이름 */}
-      <Text style={styles.name}>{autocamp.title}</Text>
-
-      {/* 평균 별점 표시 */}
-      <RatingDisplay averageRating={averageRating} />
+      {/* 캠핑장 이름, 별점, 경로 버튼 */}
+      <View style={localStyles.headerContainer}>
+        <View style={localStyles.titleRatingContainer}>
+          <Text style={localStyles.nameText}>{autocamp.title}</Text>
+          <RatingDisplay averageRating={averageRating} />
+        </View>
+        <TouchableOpacity
+          style={localStyles.routeButton}
+          onPress={openKakaoNavi}
+          accessible={true}
+          accessibilityLabel="카카오 내비로 경로 탐색">
+          <Image
+            source={RouteButtonImage}
+            style={localStyles.routeButtonImage}
+          />
+        </TouchableOpacity>
+      </View>
 
       {/* 탭 버튼 */}
       <View style={sharedStyles.tabContainer}>
@@ -183,7 +239,7 @@ function AutoCampDetail({route, navigation}) {
         />
       </View>
 
-      {/* 탭 내용 */}
+      {/* 탭 컨텐츠 영역 */}
       {activeTab === 'detail' ? (
         <TabSection
           width={width}
@@ -192,13 +248,13 @@ function AutoCampDetail({route, navigation}) {
           isParkingAvailable={isParkingAvailable}
           isPetAvailable={isPetAvailable}
           autocamp={autocamp}
-          tagsStyles={styles.tagsStyles}
+          tagsStyles={styles.tagsStyles} // CampsiteDetail/styles.js에 정의된 tagsStyles 활용
         />
       ) : (
         <ReviewComponent
           contentType="Autocamp"
           contentId={autocamp.contentId}
-          onReviewAdded={handleReviewAdded}  
+          onReviewAdded={handleReviewAdded}
         />
       )}
     </View>
@@ -216,7 +272,7 @@ AutoCampDetail.propTypes = {
 };
 
 FavoriteButton.defaultProps = {
-  isFavorite: false, // 기본값
+  isFavorite: false,
 };
 
 export default React.memo(AutoCampDetail);
