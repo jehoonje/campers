@@ -34,12 +34,9 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: 250,
   },
-  name: {
-    fontSize: 26,
-    marginBottom: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
+  divider: {
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 1,
   },
   ratingContainer: {
     flexDirection: 'row',
