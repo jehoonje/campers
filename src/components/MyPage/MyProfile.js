@@ -1,6 +1,6 @@
 // MyProfile.js
 
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -8,6 +8,8 @@ import {
   Alert,
   StyleSheet,
   Text,
+  Animated,
+  Linking, // Linking 모듈 추가
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../../AuthContext';
@@ -20,7 +22,14 @@ const MyProfile = ({ navigation }) => {
   const [userName, setUserName] = useState('');
   const [profileImageUrl, setProfileImageUrl] = useState('');
 
-  // 유저 정보 로드
+  // 각 버튼에 대한 애니메이션 값 초기화
+  const buttonAnimations = useRef([
+    { opacity: new Animated.Value(0), translateY: new Animated.Value(30) }, // 프로필 상세
+    { opacity: new Animated.Value(0), translateY: new Animated.Value(30) }, // 피드백 이메일
+    { opacity: new Animated.Value(0), translateY: new Animated.Value(30) }, // 회원 탈퇴
+  ]).current;
+
+  // 화면 포커스될 때 유저 정보 로드 및 애니메이션 시작
   useFocusEffect(
     React.useCallback(() => {
       if (isLoggedIn) {
@@ -33,10 +42,29 @@ const MyProfile = ({ navigation }) => {
           })
           .catch(error => console.error(error));
       }
-    }, [isLoggedIn, userId])
+
+      // 버튼 애니메이션 시작
+      Animated.stagger(
+        200, // 각 버튼 애니메이션 시작 간격
+        buttonAnimations.map(anim =>
+          Animated.parallel([
+            Animated.timing(anim.opacity, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim.translateY, {
+              toValue: 0,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ])
+        )
+      ).start();
+    }, [isLoggedIn, userId, buttonAnimations])
   );
 
-  // 회원 탈퇴
+  // 회원 탈퇴 함수
   const deleteAccount = async () => {
     Alert.alert(
       '정말 탈퇴하시겠습니까?',
@@ -83,7 +111,7 @@ const MyProfile = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>내 프로필</Text>
+        <Text style={styles.headerTitle}>My Profile</Text>
         <View style={{ width: 24 }} /> 
       </View>
 
@@ -99,23 +127,44 @@ const MyProfile = ({ navigation }) => {
         />
       </View>
 
-      {/* 유저 정보 */}
+      {/* 유저 이름 */}
       <CustomText style={styles.userIdText}>{userName}</CustomText>
 
-      {/* 버튼들 */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate('EditProfile')}>
-        <CustomText style={styles.buttonText}>개인정보 수정</CustomText>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={deleteAccount}>
-        <CustomText style={styles.buttonText}>회원 탈퇴</CustomText>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <CustomText style={styles.buttonText}>로그아웃</CustomText>
-      </TouchableOpacity>
+      {/* 버튼들 - 애니메이션 적용 */}
+      {buttonAnimations.map((anim, index) => (
+        <Animated.View
+          key={index}
+          style={{
+            opacity: anim.opacity,
+            transform: [{ translateY: anim.translateY }],
+            width: '80%',
+            marginBottom: 15,
+          }}
+        >
+          {index === 0 && (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => navigation.navigate('EditProfile')}>
+              <CustomText style={styles.buttonText}>프로필 수정</CustomText>
+            </TouchableOpacity>
+          )}
+          {index === 1 && (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => {
+                Linking.openURL('mailto:limjhoon8@gmail.com');
+              }}>
+              <CustomText style={styles.buttonText}>앱 피드백 이메일</CustomText>
+            </TouchableOpacity>
+          )}
+          {index === 2 && (
+            <TouchableOpacity style={styles.button} onPress={deleteAccount}>
+              <CustomText style={styles.buttonText}>회원 탈퇴</CustomText>
+            </TouchableOpacity>
+          )}
+        </Animated.View>
+      ))}
+      
     </View>
   );
 };
@@ -148,7 +197,7 @@ const styles = StyleSheet.create({
   },
   profileContainer: {
     marginTop: 80,
-    marginBottom: 20,
+    marginBottom: 60,
     alignItems: 'center',
   },
   profileImage: {
@@ -166,13 +215,10 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#fff',
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 5,
     borderWidth: 0.5,
     borderColor: '#333',
-    marginBottom: 15,
-    width: '80%',
     alignItems: 'center',
   },
   buttonText: {

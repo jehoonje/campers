@@ -15,7 +15,7 @@ import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axiosInstance from '../../utils/axiosInstance';
 import sharedStyles from '../Shared/styles';
-import styles from '../CampsiteDetail/styles'; // CampsiteDetail/styles.js를 참고한다고 했으니 가져옴
+import styles from '../AutoCampDetail/styles';
 import TabButton from '../Shared/components/TabButton';
 import RatingDisplay from '../Shared/components/RatingDisplay';
 import ImageSlider from '../Shared/components/ImageSlider';
@@ -25,6 +25,7 @@ import ReviewComponent from '../ReviewComponent/ReviewComponent';
 import FavoriteButton from '../Shared/FavoriteButton';
 import useFavorite from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
+import CustomText from '../CustomText';
 
 // 경로 탐색 버튼 이미지
 import RouteButtonImage from '../../assets/getdirections.png';
@@ -62,7 +63,7 @@ const facilityIcons = {
 const localStyles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
-    marginHorizontal: 32,
+    marginHorizontal: 24,
   },
   titleRatingContainer: {
     flexDirection: 'row',
@@ -74,8 +75,8 @@ const localStyles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: "11%",
-    marginTop: "-6%",
+    marginBottom: "7%",
+    marginTop: "-5%",
     
   },
   routeButton: {
@@ -210,7 +211,7 @@ function AutoCampDetail({route, navigation}) {
       {/* 캠핑장 이름, 별점, 경로 버튼 */}
       <View style={localStyles.headerContainer}>
         <View style={localStyles.titleRatingContainer}>
-          <Text style={localStyles.nameText}>{autocamp.title}</Text>
+          <CustomText style={localStyles.nameText}>{autocamp.title}</CustomText>
           <RatingDisplay averageRating={averageRating} />
         </View>
         <TouchableOpacity
@@ -248,7 +249,7 @@ function AutoCampDetail({route, navigation}) {
           isParkingAvailable={isParkingAvailable}
           isPetAvailable={isPetAvailable}
           autocamp={autocamp}
-          tagsStyles={styles.tagsStyles} // CampsiteDetail/styles.js에 정의된 tagsStyles 활용
+          tagsStyles={styles.tagsStyles} 
         />
       ) : (
         <ReviewComponent

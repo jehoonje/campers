@@ -18,8 +18,8 @@ const FavoriteButton = ({ isFavorite, toggleFavorite, loading }) => {
         <ActivityIndicator size="small" color="#333" />
       ) : (
         <Ionicons
-          name={isFavorite ? "star" : "star-outline"}
-          size={24}
+          name={isFavorite ? "heart" : "heart-outline"}
+          size={28}
           color={isFavorite ? "#333" : "#333"}
         />
       )}
