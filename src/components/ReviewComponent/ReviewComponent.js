@@ -15,7 +15,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import axiosInstance from '../../utils/axiosInstance';
 import PropTypes from 'prop-types';
 import {AuthContext} from '../../AuthContext';
-import {useNavigation} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
 import Spinner from 'react-native-spinkit';
 
@@ -23,7 +22,7 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
   const [reviews, setReviews] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [newReviewContent, setNewReviewContent] = useState('');
-  const {userId, userName, isLoggedIn} = useContext(AuthContext); // `isLoggedIn` 사용
+  const {userId, userName, isLoggedIn, roles} = useContext(AuthContext);
   const [newRating, setNewRating] = useState(0);
   const [hasReviewed, setHasReviewed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,15 +30,14 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
   useFocusEffect(
     React.useCallback(() => {
       fetchReviews();
-    }, [userId]),
+    }, [userId])
   );
 
   const fetchReviews = async () => {
-    setIsLoading(true); // 로딩 시작
+    setIsLoading(true);
     try {
-      console.log('Current userId:', userId);
       const response = await axiosInstance.get(
-        `/reviews/${contentType}/${contentId}`,
+        `/reviews/${contentType}/${contentId}`
       );
       setReviews(response.data);
 
@@ -55,7 +53,7 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
       console.error('Error fetching reviews:', error);
       Alert.alert('오류', '리뷰를 가져오는 중 오류가 발생했습니다.');
     } finally {
-      setIsLoading(false); // 로딩 종료
+      setIsLoading(false);
     }
   };
 
@@ -83,18 +81,15 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
         rating: newRating,
         userName: userName,
       });
-
       setReviews([...reviews, response.data]);
       setModalVisible(false);
       setNewReviewContent('');
       setNewRating(0);
-      setHasReviewed(true); // 작성 완료 후 다시 작성 못하도록
-      
-      // 부모 컴포넌트에 리뷰 작성 완료 알림
+      setHasReviewed(true);
+
       if (onReviewAdded && typeof onReviewAdded === 'function') {
         onReviewAdded();
       }
-
     } catch (error) {
       console.error('Error adding review:', error);
       if (error.response && error.response.status === 400) {
@@ -104,6 +99,23 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
       }
     }
   };
+
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      await axiosInstance.delete(`/reviews/${reviewId}`);
+      // 삭제 성공 시, 상태 업데이트
+      setReviews(prevReviews => prevReviews.filter(r => r.id !== reviewId));
+      // 본인이 작성한 리뷰를 지웠다면 hasReviewed도 갱신
+      if (hasReviewed) {
+        setHasReviewed(false);
+      }
+    } catch (error) {
+      console.error('Error deleting review:', error);
+      Alert.alert('오류', '리뷰를 삭제하는 중 오류가 발생했습니다.');
+    }
+  };
+
+  const isAdmin = roles && roles.includes('ROLE_ADMIN');
 
   return (
     <View style={styles.container}>
@@ -117,7 +129,6 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
         />
       ) : (
         <>
-          {/* 리뷰 추가 버튼 */}
           <TouchableOpacity
             style={[
               styles.addButton,
@@ -138,38 +149,47 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
             disabled={hasReviewed || !isLoggedIn}>
             <Text style={styles.addButtonText}>Reply</Text>
           </TouchableOpacity>
-          {/* 리뷰 목록 */}
           {reviews.length === 0 ? (
             <Text style={styles.noReviewsText}>No reviews</Text>
           ) : (
             <FlatList
               data={reviews}
               keyExtractor={item => item.id.toString()}
-              renderItem={({item}) => (
-                <View style={styles.reviewItem}>
-                  <View style={styles.reviewHeader}>
-                    <Text style={styles.reviewAuthor}>{item.userName}</Text>
-                    {/* 별점 표시 */}
-                    <View style={styles.reviewRating}>
-                      {Array.from({length: 5}, (_, index) => {
-                        const filled = index < item.rating;
-                        return (
-                          <MaterialCommunityIcons
-                            key={index}
-                            name={filled ? 'star' : 'star-outline'}
-                            size={16}
-                            color={filled ? '#FFD700' : '#ccc'}
-                          />
-                        );
-                      })}
+              renderItem={({item}) => {
+                const canDelete = (item.userId === userId) || isAdmin;
+                return (
+                  <View style={styles.reviewItem}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={styles.reviewAuthor}>{item.userName}</Text>
+                      <View style={styles.reviewRating}>
+                        {Array.from({length: 5}, (_, index) => {
+                          const filled = index < item.rating;
+                          return (
+                            <MaterialCommunityIcons
+                              key={index}
+                              name={filled ? 'star' : 'star-outline'}
+                              size={16}
+                              color={filled ? '#FFD700' : '#ccc'}
+                            />
+                          );
+                        })}
+                      </View>
                     </View>
+                    <Text style={styles.reviewContent}>{item.content}</Text>
+                    {canDelete && (
+                      <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => handleDeleteReview(item.id)}>
+                        <Text style={styles.deleteButtonText}>삭제</Text>
+                      </TouchableOpacity>
+                    )}
+                    
                   </View>
-                  <Text style={styles.reviewContent}>{item.content}</Text>
-                </View>
-              )}
+                );
+              }}
             />
           )}
-          {/* 리뷰 작성 모달 */}
+
           <Modal
             visible={isModalVisible}
             transparent={true}
@@ -177,7 +197,6 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
             onRequestClose={() => setModalVisible(false)}>
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
-                {/* 별점 선택 */}
                 <View style={styles.ratingSelection}>
                   {Array.from({length: 5}, (_, index) => {
                     const filled = index < newRating;
@@ -194,7 +213,6 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
                     );
                   })}
                 </View>
-                {/* 리뷰 내용 입력 */}
                 <TextInput
                   style={styles.textInput}
                   multiline
@@ -202,7 +220,6 @@ function ReviewComponent({contentType, contentId, onReviewAdded}) {
                   value={newReviewContent}
                   onChangeText={setNewReviewContent}
                 />
-                {/* 버튼들 */}
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
                     style={styles.submitButton}
@@ -271,6 +288,14 @@ const styles = StyleSheet.create({
   reviewRating: {
     flexDirection: 'row',
   },
+  deleteButton: {
+    marginBottom: 8,
+    alignSelf: 'flex-end',
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    color: 'red', // 원하는 색상
+  },
   reviewContent: {
     fontSize: 14,
     color: '#333',
@@ -291,11 +316,6 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     borderRadius: 8,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
   },
   ratingSelection: {
     flexDirection: 'row',

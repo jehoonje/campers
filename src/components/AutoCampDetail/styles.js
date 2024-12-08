@@ -18,11 +18,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   imageSlider: {
-    marginBottom: 20,
+    // marginBottom: 20,
     marginTop: 15,
     height: 250,
     overflow: 'hidden',
-    backgroundColor: '#e0f7fa',
+    backgroundColor: '#dadada',
   },
   imageLoader: {
     position: 'absolute',
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     height: 250,
   },
   name: {
-    fontSize: 26,
+    fontSize: 20,
     marginBottom: 16,
     fontWeight: 'bold',
     color: '#333',
@@ -73,6 +73,10 @@ const styles = StyleSheet.create({
     p: {
       marginVertical: 8,
     },
+  },
+  divider: {
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 1,
   },
   loadingContainer: {
     flex: 1,

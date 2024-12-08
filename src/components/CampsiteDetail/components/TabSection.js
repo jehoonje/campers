@@ -188,7 +188,7 @@ const TabSection = ({
               color="#555"
               style={sharedStyles.icon}
             />
-            <Text style={localStyles.sectionTitle}>이용요금</Text>
+            <CustomText style={localStyles.sectionTitle}>이용요금</CustomText>
           </View>
           <RenderHTML
             contentWidth={width - 32}
@@ -212,7 +212,7 @@ const TabSection = ({
               color="#555"
               style={sharedStyles.icon}
             />
-            <Text style={localStyles.sectionTitle}>부대시설</Text>
+            <CustomText style={localStyles.sectionTitle}>부대시설</CustomText>
           </View>
           <RenderHTML
             contentWidth={width - 32}
@@ -236,7 +236,7 @@ const TabSection = ({
               color="#555"
               style={sharedStyles.icon}
             />
-            <Text style={localStyles.sectionTitle}>주요시설</Text>
+            <CustomText style={localStyles.sectionTitle}>주요시설</CustomText>
           </View>
           <RenderHTML
             contentWidth={width - 32}

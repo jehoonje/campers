@@ -1,6 +1,12 @@
 // src/components/CampsiteDetail/CampsiteDetail.js
 
-import React, {useState, useEffect, useMemo, useCallback, useContext} from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useContext,
+} from 'react';
 import {
   View,
   Text,
@@ -15,7 +21,7 @@ import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axiosInstance from '../../utils/axiosInstance';
 import sharedStyles from '../Shared/styles';
-import styles from '../CampsiteDetail/styles'; // CampsiteDetail/styles.js를 참고한다고 했으니 가져옴
+import styles from '../CampsiteDetail/styles';
 import TabButton from '../Shared/components/TabButton';
 import RatingDisplay from '../Shared/components/RatingDisplay';
 import ImageSlider from '../Shared/components/ImageSlider';
@@ -26,6 +32,7 @@ import FavoriteButton from '../Shared/FavoriteButton';
 import useFavorite from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
 import CustomText from '../CustomText';
+import Swiper from 'react-native-swiper';
 // 경로 탐색 버튼 이미지
 import RouteButtonImage from '../../assets/getdirections.png';
 
@@ -62,33 +69,35 @@ const facilityIcons = {
 const localStyles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
-    marginHorizontal: 24,
+    marginHorizontal: 16,
   },
   titleRatingContainer: {
     flexDirection: 'row',
     flex: 1,
     flexWrap: 'wrap',
-    paddingTop: '4%',
+    paddingBottom: 10,
   },
   nameText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: "7%",
-    marginTop: "-5%",
-    
+    marginBottom: 6,
+    marginTop: 4,
   },
   routeButton: {
     marginLeft: 8,
-    
+    marginTop: 9,
+    paddingLeft: 15,
+    paddingBottom: 5,
+    borderLeftWidth: 1,
+    marginBottom: 6,
+    borderColor: '#dadada',
   },
   routeButtonImage: {
-    width: 120,
-    height: 80,
-    marginBottom: '20%',
+    width: 80,
+    height: 50,
   },
 });
-
 
 function CampsiteDetail({route, navigation}) {
   const {campsite} = route.params;
@@ -133,6 +142,15 @@ function CampsiteDetail({route, navigation}) {
 
   const isPetAvailable =
     campsite.chkpetleports && campsite.chkpetleports.includes('가능');
+
+  // 이미지 URL 배열 생성 및 필터링
+  const imageUrls = [
+    campsite.image1,
+    campsite.image2,
+    campsite.image3,
+    campsite.image4,
+    campsite.image5,
+  ].filter(Boolean); // 존재하는 이미지 URL만 남김
 
   const defaultImage = require('../../assets/campsite.png');
 
@@ -198,14 +216,38 @@ function CampsiteDetail({route, navigation}) {
         loading={loading}
       />
 
-      {/* 이미지 슬라이더 */}
+      {/* 이미지 슬라이더 with pagination dots */}
       <View style={styles.imageSlider}>
-        <ImageSlider
-          images={[campsite.image1, campsite.image2]}
-          imageLoading={imageLoading}
-          setImageLoading={setImageLoading}
-          defaultImage={defaultImage}
-        />j
+        <Swiper
+          showsPagination={true} // 페이지네이션 점 표시
+          paginationStyle={{
+            bottom: 10, // 기본값보다 더 아래로 이동 (예: 10으로 설정)
+          }}
+          dotStyle={{
+            backgroundColor: 'rgba(0,0,0,.2)',
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            margin: 3,
+          }}
+          activeDotStyle={{
+            backgroundColor: '#fff',
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            margin: 3,
+          }}>
+          {imageUrls.map((url, index) => (
+            <Image
+              key={index}
+              source={{uri: url}}
+              imageLoading={imageLoading}
+              setImageLoading={setImageLoading}
+              style={{width: '100%', height: 250}}
+              resizeMode="cover"
+            />
+          ))}
+        </Swiper>
       </View>
 
       {/* 캠핑장 이름, 별점, 경로 버튼 */}
@@ -225,6 +267,9 @@ function CampsiteDetail({route, navigation}) {
           />
         </TouchableOpacity>
       </View>
+
+      {/* 구분선 */}
+      <View style={styles.divider} />
 
       {/* 탭 버튼 */}
       <View style={sharedStyles.tabContainer}>
@@ -249,7 +294,7 @@ function CampsiteDetail({route, navigation}) {
           isParkingAvailable={isParkingAvailable}
           isPetAvailable={isPetAvailable}
           campsite={campsite}
-          tagsStyles={styles.tagsStyles} // CampsiteDetail/styles.js에 정의된 tagsStyles 활용
+          tagsStyles={styles.tagsStyles}
         />
       ) : (
         <ReviewComponent

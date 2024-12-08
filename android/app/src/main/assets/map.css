@@ -9,14 +9,14 @@ body {
   width: 100%;
 }
 .leaflet-bar {
-  background-color: white;
-  border-radius: 5px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-  padding: 5px;
+  background: none ;
+  border: none !important;
+  box-shadow: none !important;
 }
 .leaflet-bar a {
-  background-color: #fff;
-  border-bottom: 1px solid #ccc;
+  background: none ;
+  border: none !important;
+  box-shadow: none !important;
   text-align: center;
   width: 30px;
   height: 30px;
@@ -29,9 +29,9 @@ body {
   background-color: #f4f4f4;
 }
 .leaflet-bar svg {
+  border: none !important;
   width: 80%;
   height: 80%;
-  padding: 10%;
 }
 
 /* 팝업의 기본 스타일 제거 및 커스텀 스타일 적용 */
