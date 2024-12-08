@@ -13,7 +13,7 @@ const RatingDisplay = ({ averageRating }) => (
         <MaterialCommunityIcons
           key={index}
           name={filled ? 'star' : 'star-outline'}
-          size={30}
+          size={24}
           color={filled ? '#FFD700' : '#ccc'}
         />
       );

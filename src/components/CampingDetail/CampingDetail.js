@@ -19,6 +19,7 @@ import {
 import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import sharedStyles from '../Shared/styles';
+import axios from 'axios';
 import styles from '../CampingDetail/styles'; // CampingDetail/styles.js를 참고한다고 했으니 가져옴
 import TabButton from '../Shared/components/TabButton';
 import RatingDisplay from '../Shared/components/RatingDisplay';
@@ -76,28 +77,33 @@ const FACILITY_KEYWORDS = [
 const localStyles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
-    marginHorizontal: 22,
+    marginHorizontal: 16,
   },
   titleRatingContainer: {
     flexDirection: 'row',
     flex: 1,
     flexWrap: 'wrap',
-    paddingTop: '4%',
+    paddingBottom: 10,
   },
   nameText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: '7%',
-    marginTop: '-5%',
+    marginBottom: 6,
+    marginTop: 4,
   },
   routeButton: {
     marginLeft: 8,
+    marginTop: 9,
+    paddingLeft: 15,
+    paddingBottom: 5,
+    borderLeftWidth: 1,
+    marginBottom: 6,
+    borderColor: '#dadada',
   },
   routeButtonImage: {
-    width: 120,
-    height: 80,
-    marginBottom: '20%',
+    width: 80,
+    height: 50,
   },
 });
 

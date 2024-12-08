@@ -124,15 +124,17 @@ const LeftDrawerContent = () => {
           <CustomText style={styles.menuText}>이메일 보내기</CustomText>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => navigation.navigate('AboutUs')}>
-          <Ionicons name="car" size={24} color="#333" style={styles.icon} />
-          <CustomText style={styles.menuText}>About Us</CustomText>
-        </TouchableOpacity>
+
 
         {/* 구분선 */}
         <View style={styles.divider} />
+
+        <TouchableOpacity
+          style={styles.usButton}
+          onPress={() => navigation.navigate('AboutUs')}>
+          <Ionicons name="alert-circle-outline" size={24} color="#333" style={styles.icon} />
+          <CustomText style={styles.menuText}>About Us</CustomText>
+        </TouchableOpacity>
 
         {/* 로그인/로그아웃 버튼 */}
         {!isLoggedIn && (
@@ -195,6 +197,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 18,
+    marginBottom: 10,
+  },
+  usButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 28,
     marginBottom: 10,
   },
   menuText: {

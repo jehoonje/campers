@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState(null);
+  const [roles, setRoles] = useState([]);
 
   const login = async (accessToken, refreshToken) => {
     await AsyncStorage.setItem('accessToken', accessToken);
@@ -17,8 +18,10 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(true);
     const id = parseIdFromToken(accessToken);
     const name = parseUserNameFromToken(accessToken);
+    const userRoles = parseRolesFromToken(accessToken);
     setUserId(id);
     setUserName(name);
+    setRoles(userRoles);
   };
 
   const logout = async () => {
@@ -27,6 +30,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
     setUserId(null);
     setUserName(null);
+    setRoles([]);
   };
 
   const checkAuthStatus = async () => {
@@ -35,12 +39,15 @@ export const AuthProvider = ({ children }) => {
       setIsLoggedIn(true);
       const id = parseIdFromToken(token);
       const name = parseUserNameFromToken(token);
+      const userRoles = parseRolesFromToken(token);
       setUserId(id);
       setUserName(name);
+      setRoles(userRoles);
     } else {
       setIsLoggedIn(false);
       setUserId(null);
       setUserName(null);
+      setRoles([]);
     }
   };
 
@@ -64,6 +71,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const parseRolesFromToken = (token) => {
+    try {
+      const decoded = jwt_decode(token);
+      return decoded.roles || [];
+    } catch (error) {
+      console.error('Error decoding token roles:', error);
+      return [];
+    }
+  };
+
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -76,6 +93,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         userId,
         userName,
+        roles,
         checkAuthStatus,
       }}
     >
