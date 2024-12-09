@@ -20,7 +20,6 @@ const localStyles = StyleSheet.create({
   sectionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 24,
     marginBottom: 12,
   },
   sectionTitle: {

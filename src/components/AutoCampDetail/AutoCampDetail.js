@@ -65,22 +65,23 @@ const localStyles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
+    justifyContent: 'space-between', // 양 끝으로 배치
+    alignItems: 'center',
   },
   titleRatingContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    flexWrap: 'wrap',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    flex: 1, 
     paddingBottom: 10,
   },
   nameText: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 6,
+    paddingBottom: 4,
     marginTop: 4,
   },
   routeButton: {
-    marginLeft: 8,
     marginTop: 9,
     paddingLeft: 15,
     paddingBottom: 5,
@@ -231,8 +232,7 @@ function AutoCampDetail({route, navigation}) {
             height: 8,
             borderRadius: 4,
             margin: 3,
-          }}
-        >
+          }}>
           {imageUrls.map((url, index) => (
             <Image
               key={index}
@@ -249,7 +249,13 @@ function AutoCampDetail({route, navigation}) {
       {/* 캠핑장 이름, 별점, 경로 버튼 */}
       <View style={localStyles.headerContainer}>
         <View style={localStyles.titleRatingContainer}>
-          <CustomText style={localStyles.nameText}>{autocamp.title}</CustomText>
+          <CustomText
+            style={localStyles.nameText}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {autocamp.title}
+          </CustomText>
+
           <RatingDisplay averageRating={averageRating} />
         </View>
         <TouchableOpacity

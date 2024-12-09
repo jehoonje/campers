@@ -40,7 +40,7 @@ body {
   border-radius: 0 !important; /* border-radius 제거 */
   /* box-shadow: none !important; 그림자 제거 */
   padding: 0 !important; /* 패딩 제거 */
-  background-color: rgb(100, 100, 100);
+  background-color: rgb(100, 100, 100, 0.3);
 }
 .custom-popup .leaflet-popup-tip {
   display: none !important; /* 말풍선 숨기기 */
@@ -58,6 +58,7 @@ body {
 /* 팝업 내부 콘텐츠 스타일 */
 .popup-content {
   display: flex;
+  border-radius: 10 !important; 
   flex-direction: column;
   align-items: center;
   width: 120px; /* 팝업 너비 설정 */
@@ -69,10 +70,11 @@ body {
 }
 .popup-content .name {
   width: 121px;
-  padding: 1px 0;
-  text-align: center;
-  font-weight: bold;
-  background-color: rgba(255, 255, 255, 0.7) !important; /* 반투명 배경 */
+  padding: 2px 0;
+  font-size: 10px;
+  text-align: center; 
+  color: #ffffff !important;
+  background-color: rgba(0, 0, 0, 0.7) !important; /* 반투명 배경 */
 }
 
 /* 팝업의 닫기 버튼 숨기기 */

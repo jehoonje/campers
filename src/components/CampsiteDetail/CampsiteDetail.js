@@ -70,22 +70,23 @@ const localStyles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
+    justifyContent: 'space-between', // 양 끝으로 배치
+    alignItems: 'center',
   },
   titleRatingContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    flexWrap: 'wrap',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    flex: 1, 
     paddingBottom: 10,
   },
   nameText: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 6,
+    paddingBottom: 4,
     marginTop: 4,
   },
   routeButton: {
-    marginLeft: 8,
     marginTop: 9,
     paddingLeft: 15,
     paddingBottom: 5,

@@ -150,7 +150,7 @@ const tagsStyles = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60, // 상단 여백 추가
+    paddingTop: 35, // 상단 여백 추가
     backgroundColor: '#f5f5f5', // 전체 배경색 설정
   },
   contentContainer: {
@@ -158,8 +158,8 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 16,
-    left: 16,
+    top: 5,
+    left: 8,
     zIndex: 1,
     padding: 8,
     backgroundColor: 'rgba(245, 245, 245, 0)', // 반투명 배경

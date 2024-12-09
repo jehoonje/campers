@@ -3,8 +3,8 @@ import { StyleSheet, Platform } from 'react-native';
 
 const styles = StyleSheet.create({
   header: {
-    height: 50,
-    backgroundColor: '#757574',
+    height: 52,
+    backgroundColor: '#fff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -26,9 +26,10 @@ const styles = StyleSheet.create({
     padding: 6,
   },
   icon: {
-    color: '#FFF',
+    color: '#070324',
   },
   logoContainer: {
+    marginLeft: 8,
     flex: 1,
     alignItems: 'right',
     justifyContent: 'center',

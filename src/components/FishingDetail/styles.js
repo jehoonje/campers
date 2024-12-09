@@ -5,12 +5,12 @@ import sharedStyles from '../Shared/styles';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60, // 상단 여백 추가
+    paddingTop: 33, // 상단 여백 추가
     backgroundColor: '#f5f5f5', // 전체 배경색 설정
   },
   backButton: {
     position: 'absolute',
-    top: 16,
+    top: 5,
     left: 16,
     zIndex: 1,
     padding: 8,
@@ -18,11 +18,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   imageSlider: {
-    marginBottom: 20,
     marginTop: 15,
     height: 250,
     overflow: 'hidden',
-    backgroundColor: '#e0f7fa',
+    backgroundColor: '#dadada',
   },
   imageLoader: {
     position: 'absolute',
@@ -37,16 +36,6 @@ const styles = StyleSheet.create({
   divider: {
     borderBottomColor: '#ccc',
     borderBottomWidth: 1,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  averageRatingText: {
-    marginLeft: 8,
-    fontSize: 16,
-    color: '#333',
   },
   sectionContainer: {
     flexDirection: 'row',

@@ -26,7 +26,7 @@ const localStyles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    marginLeft: 10,
+    // marginLeft: 10,
     fontWeight: 'bold',
     color: '#555',
   },
@@ -100,7 +100,6 @@ const TabSection = ({
             />
             <CustomText style={localStyles.sectionTitle}>소개</CustomText>
           </View>
-          <CustomText>
             <RenderHTML
               contentWidth={width - 32}
               source={{html: campsite.description}}
@@ -110,7 +109,6 @@ const TabSection = ({
                 Linking.openURL(href);
               }}
             />
-          </CustomText>
         </>
       )}
 

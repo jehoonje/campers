@@ -169,7 +169,7 @@
           style.innerHTML = `
               .leaflet-tile { filter: saturate(0.7) brightness(1.0) hue-rotate(700deg); }
               .custom-zoom-control { transform: translateY(-50px); } /* 확대/축소 버튼을 위로 10px 이동 */
-              .custom-locate-button { transform: translateY(-30px); } /* 현재 위치 버튼을 위로 10px 이동 */
+              .custom-locate-button { transform: translateY(-50px); } /* 현재 위치 버튼을 위로 10px 이동 */
             `;
           document.getElementsByTagName('head')[0].appendChild(style);
 
@@ -221,7 +221,7 @@
               'leaflet-bar custom-locate-button',
             ); // 커스텀 클래스 추가
             div.innerHTML =
-              '<a href="#" title="현재 위치로 이동" style="box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background-color: #fff; padding: 10px; margin-right: 10px; cursor: pointer;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-crosshair" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></a>';
+              '<a href="#" title="현재 위치로 이동" style="box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5); border-radius: 50%; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background-color: #fff; padding: 10px; margin-right: 20px; cursor: pointer;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-crosshair" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></a>';
 
             div.onclick = function () {
               map.setView(userLocation, 13);

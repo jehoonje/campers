@@ -1,9 +1,8 @@
 // src/components/FishingDetail/FishingDetail.js
 
-import React, {useState, useEffect, useMemo, useCallback, useContext} from 'react';
+import React, {useState, useMemo, useContext} from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Platform,
   Linking,
@@ -16,16 +15,13 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import axiosInstance from '../../utils/axiosInstance';
 import sharedStyles from '../Shared/styles';
 import styles from '../FishingDetail/styles';
-import TabButton from '../Shared/components/TabButton';
-import RatingDisplay from '../Shared/components/RatingDisplay';
-import ImageSlider from '../Shared/components/ImageSlider';
 import TabSection from './components/TabSection';
 import LoadingIndicator from '../Shared/components/LoadingIndicator';
-import ReviewComponent from '../ReviewComponent/ReviewComponent';
 import FavoriteButton from '../Shared/FavoriteButton';
 import useFavorite from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
 import CustomText from '../CustomText';
+import Swiper from 'react-native-swiper';
 
 // 경로 탐색 버튼 이미지
 import RouteButtonImage from '../../assets/getdirections.png';
@@ -56,54 +52,64 @@ const facilityIcons = {
 const localStyles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
-    marginHorizontal: 32,
+    marginHorizontal: 18,
     alignItems: 'center', // 추가: 수직 정렬
-    marginBottom: '8%',
-    
+    marginBottom: 5,
   },
   titleRatingContainer: {
     flex: 1,
     flexWrap: 'wrap',
   },
   nameText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    paddingBottom: "5%",
+    marginBottom: 3,
   },
-  addressText: { // 추가: 주소 텍스트 스타일
+  addressText: {
+    // 추가: 주소 텍스트 스타일
     fontSize: 14,
-    marginRight: 32,
+    marginRight: 18,
     color: '#000',
   },
   routeButton: {
     marginLeft: 8,
+    marginTop: 9,
+    paddingLeft: 15,
+    paddingBottom: 5,
+    borderLeftWidth: 1,
+    marginBottom: 6,
+    borderColor: '#dadada',
   },
   routeButtonImage: {
-    width: 120,
-    height: 80,
+    width: 80,
+    height: 50,
   },
 });
 
-function FishingDetail({ route, navigation }) {
-  const { fishing } = route.params;
-  const { width } = useWindowDimensions();
-  
+function FishingDetail({route, navigation}) {
+  const {fishing} = route.params;
+  const {width} = useWindowDimensions();
+
   const [imageLoading, setImageLoading] = useState(true);
 
   // AuthContext에서 userId 가져오기
-  const { userId } = useContext(AuthContext);
-
+  const {userId} = useContext(AuthContext);
 
   // 즐겨찾기 훅 사용
-  const { isFavorite, toggleFavorite, loading } = useFavorite('FISHING', fishing.contentId);
+  const {isFavorite, toggleFavorite, loading} = useFavorite(
+    'FISHING',
+    fishing.contentId,
+  );
 
   // 시설 정보를 합쳐서 단어를 검색합니다.
-  const facilitiesText = `${fishing.facilities || ''} ${fishing.mainfacilities || ''}`;
+  const facilitiesText = `${fishing.facilities || ''} ${
+    fishing.mainfacilities || ''
+  }`;
 
   // 포함된 시설 단어 목록
   const includedFacilities = useMemo(() => {
-    return facilityWords.filter((word) => facilitiesText.includes(word));
+    return facilityWords.filter(word => facilitiesText.includes(word));
   }, [facilitiesText]);
 
   // 주차 가능 여부 확인
@@ -167,7 +173,9 @@ function FishingDetail({ route, navigation }) {
         ios: `maps:0,0?q=${fishing.addr}`,
         android: `geo:0,0?q=${fishing.addr}`,
       });
-      Linking.openURL(url).catch(err => console.error('An error occurred', err));
+      Linking.openURL(url).catch(err =>
+        console.error('An error occurred', err),
+      );
     } else {
       alert('주소 정보가 없습니다.');
     }
@@ -185,24 +193,56 @@ function FishingDetail({ route, navigation }) {
       </TouchableOpacity>
 
       {/* 즐겨찾기 토글 버튼 추가 */}
-      <FavoriteButton isFavorite={isFavorite || false} toggleFavorite={toggleFavorite} loading={loading} />
-
-      {/* 이미지 슬라이더 */}
-      <ImageSlider
-        images={imageUrls}
-        imageLoading={imageLoading}
-        setImageLoading={setImageLoading}
-        defaultImage={defaultImage}
+      <FavoriteButton
+        isFavorite={isFavorite || false}
+        toggleFavorite={toggleFavorite}
+        loading={loading}
       />
+
+      {/* 이미지 슬라이더 with pagination dots */}
+      <View style={styles.imageSlider}>
+        <Swiper
+          showsPagination={true} // 페이지네이션 점 표시
+          paginationStyle={{
+            bottom: 10, // 기본값보다 더 아래로 이동 (예: 10으로 설정)
+          }}
+          dotStyle={{
+            backgroundColor: 'rgba(0,0,0,.2)',
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            margin: 3,
+          }}
+          activeDotStyle={{
+            backgroundColor: '#fff',
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            margin: 3,
+          }}
+          imageLoading={imageLoading}
+          setImageLoading={setImageLoading}>
+          {imageUrls.map((url, index) => (
+            <Image
+              key={index}
+              source={{uri: url}}
+              style={{width: '100%', height: 250}}
+              resizeMode="cover"
+            />
+          ))}
+        </Swiper>
+      </View>
 
       {/* 낚시터 이름, 주소, 경로 버튼 */}
       <View style={localStyles.headerContainer}>
         <View style={localStyles.titleRatingContainer}>
           <CustomText style={localStyles.nameText}>{fishing.title}</CustomText>
           {/* 주소 텍스트 추가 */}
-          <TouchableOpacity onPress={openMaps} accessible={true} accessibilityLabel="주소 클릭">
-            <CustomText
-             style={localStyles.addressText}>
+          <TouchableOpacity
+            onPress={openMaps}
+            accessible={true}
+            accessibilityLabel="주소 클릭">
+            <CustomText style={localStyles.addressText}>
               {fishing.addr || '주소 정보가 없습니다.'}
             </CustomText>
           </TouchableOpacity>
@@ -222,7 +262,7 @@ function FishingDetail({ route, navigation }) {
       {/* 구분선 */}
       <View style={styles.divider} />
 
-      { /* 낚시터 정보 */}
+      {/* 낚시터 정보 */}
       <TabSection
         width={width}
         includedFacilities={includedFacilities}
