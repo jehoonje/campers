@@ -16,6 +16,7 @@ import RenderHTML from 'react-native-render-html';
 import FacilityIcon from '../../Shared/components/FacilityIcon';
 import InfoRow from '../../Shared/components/InfoRow';
 import sharedStyles from '../../Shared/styles';
+import CustomText from '../../CustomText';
 
 const localStyles = StyleSheet.create({
   sectionContainer: {
@@ -92,9 +93,9 @@ const TabSection = ({
             color="#555"
             style={sharedStyles.icon}
           />
-          <Text style={localStyles.addressText}>
+          <CustomText style={localStyles.addressText}>
             {autocamp.addr || '주소 정보가 없습니다.'}
-          </Text>
+          </CustomText>
         </TouchableOpacity>
       </View>
 

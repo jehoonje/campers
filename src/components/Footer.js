@@ -33,7 +33,7 @@ const Footer = () => {
 const styles = StyleSheet.create({
   footer: {
     height: 30,
-    backgroundColor: '#757574',
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute', // 절대 위치 지정
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     elevation: 9999,      // Android에서 zIndex와 유사한 역할
   },
   footerText: {
-    color: '#ffffff',
+    color: '#070324',
     fontSize: 16,
   },
 });

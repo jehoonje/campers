@@ -15,7 +15,7 @@ import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axiosInstance from '../../utils/axiosInstance';
 import sharedStyles from '../Shared/styles';
-import styles from '../CampsiteDetail/styles'; // CampsiteDetail/styles.js를 참고한다고 했으니 가져옴
+import styles from '../AutoCampDetail/styles';
 import TabButton from '../Shared/components/TabButton';
 import RatingDisplay from '../Shared/components/RatingDisplay';
 import ImageSlider from '../Shared/components/ImageSlider';
@@ -25,6 +25,8 @@ import ReviewComponent from '../ReviewComponent/ReviewComponent';
 import FavoriteButton from '../Shared/FavoriteButton';
 import useFavorite from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
+import CustomText from '../CustomText';
+import Swiper from 'react-native-swiper';
 
 // 경로 탐색 버튼 이미지
 import RouteButtonImage from '../../assets/getdirections.png';
@@ -62,30 +64,34 @@ const facilityIcons = {
 const localStyles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
-    marginHorizontal: 32,
+    marginHorizontal: 16,
+    justifyContent: 'space-between', // 양 끝으로 배치
+    alignItems: 'center',
   },
   titleRatingContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    flexWrap: 'wrap',
-    paddingTop: '4%',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    flex: 1, 
+    paddingBottom: 10,
   },
   nameText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: "11%",
-    marginTop: "-6%",
-    
+    paddingBottom: 4,
+    marginTop: 4,
   },
   routeButton: {
-    marginLeft: 8,
-    
+    marginTop: 9,
+    paddingLeft: 15,
+    paddingBottom: 5,
+    borderLeftWidth: 1,
+    marginBottom: 6,
+    borderColor: '#dadada',
   },
   routeButtonImage: {
-    width: 120,
-    height: 80,
-    marginBottom: '20%',
+    width: 80,
+    height: 50,
   },
 });
 
@@ -132,6 +138,15 @@ function AutoCampDetail({route, navigation}) {
 
   const isPetAvailable =
     autocamp.chkpetleports && autocamp.chkpetleports.includes('가능');
+
+  // 이미지 URL 배열 생성 및 필터링
+  const imageUrls = [
+    autocamp.image1,
+    autocamp.image2,
+    autocamp.image3,
+    autocamp.image4,
+    autocamp.image5,
+  ].filter(Boolean); // 존재하는 이미지 URL만 남김
 
   const defaultImage = require('../../assets/campsite.png');
 
@@ -197,20 +212,50 @@ function AutoCampDetail({route, navigation}) {
         loading={loading}
       />
 
-      {/* 이미지 슬라이더 */}
+      {/* 이미지 슬라이더 with pagination dots */}
       <View style={styles.imageSlider}>
-        <ImageSlider
-          images={[autocamp.image1, autocamp.image2]}
-          imageLoading={imageLoading}
-          setImageLoading={setImageLoading}
-          defaultImage={defaultImage}
-        />
+        <Swiper
+          showsPagination={true} // 페이지네이션 점 표시
+          paginationStyle={{
+            bottom: 10, // 기본값보다 더 아래로 이동 (예: 10으로 설정)
+          }}
+          dotStyle={{
+            backgroundColor: 'rgba(0,0,0,.2)',
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            margin: 3,
+          }}
+          activeDotStyle={{
+            backgroundColor: '#fff',
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            margin: 3,
+          }}>
+          {imageUrls.map((url, index) => (
+            <Image
+              key={index}
+              source={{uri: url}}
+              imageLoading={imageLoading}
+              setImageLoading={setImageLoading}
+              style={{width: '100%', height: 250}}
+              resizeMode="cover"
+            />
+          ))}
+        </Swiper>
       </View>
 
       {/* 캠핑장 이름, 별점, 경로 버튼 */}
       <View style={localStyles.headerContainer}>
         <View style={localStyles.titleRatingContainer}>
-          <Text style={localStyles.nameText}>{autocamp.title}</Text>
+          <CustomText
+            style={localStyles.nameText}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {autocamp.title}
+          </CustomText>
+
           <RatingDisplay averageRating={averageRating} />
         </View>
         <TouchableOpacity
@@ -224,6 +269,9 @@ function AutoCampDetail({route, navigation}) {
           />
         </TouchableOpacity>
       </View>
+
+      {/* 구분선 */}
+      <View style={styles.divider} />
 
       {/* 탭 버튼 */}
       <View style={sharedStyles.tabContainer}>
@@ -248,7 +296,7 @@ function AutoCampDetail({route, navigation}) {
           isParkingAvailable={isParkingAvailable}
           isPetAvailable={isPetAvailable}
           autocamp={autocamp}
-          tagsStyles={styles.tagsStyles} // CampsiteDetail/styles.js에 정의된 tagsStyles 활용
+          tagsStyles={styles.tagsStyles}
         />
       ) : (
         <ReviewComponent

@@ -3,8 +3,7 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60, // 상단 여백 추가
-    paddingHorizontal: 16,
+    paddingTop: 35, // 상단 여백 추가
     backgroundColor: '#f5f5f5', // 전체 배경색 설정
   },
   contentContainer: {
@@ -12,20 +11,19 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 16,
-    left: 16,
+    top: 5,
+    left: 8,
     zIndex: 1,
     padding: 8,
     backgroundColor: '#f5f5f5', // 반투명 배경
-    borderRadius: 20,
   },
   imageContainer: {
     width: '100%',
     height: 250, // 고정 높이
-    marginBottom: 16,
-    borderRadius: 10,
+    marginTop: 15,
+    marginBottom: 24,
     overflow: 'hidden',
-    backgroundColor: '#F4F7F8',
+    backgroundColor: '#cacaca',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -51,6 +49,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontWeight: 'bold',
     color: '#555',
+    paddingHorizontal: 10,
   },
   description: {
     fontSize: 16,
@@ -68,8 +67,8 @@ const styles = StyleSheet.create({
     color: '#444',
   },
   programContainer: {
-    backgroundColor: '#e8e8e8', // 스크롤 박스 배경색
-    borderRadius: 10,
+    backgroundColor: '#fff', // 스크롤 박스 배경색
+    paddingHorizontal: 12,
     padding: 10,
     height: 120, // 고정 높이로 변경
     marginBottom: 16,
@@ -77,6 +76,8 @@ const styles = StyleSheet.create({
   },
   programContent: {
     paddingBottom: 10,
+    flexDirection: 'row',
+    flexWrap: 'wrap', // 내용이 넘칠 경우 다음 줄로 이동
   },
   scrollbarContainer: {
     position: 'absolute',
@@ -86,9 +87,12 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#F4F7F8',
     borderRadius: 2,
+    paddingRight: 10,
+    marginRight: 6,
   },
   scrollbar: {
-    width: 4,
+    width: 10,
+    height: 20,
     backgroundColor: '#ccc',
     borderRadius: 2,
   },
@@ -117,6 +121,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 10,
+    paddingHorizontal: 18,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -129,6 +134,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 2,
     borderColor: 'transparent',
+  },
+  divider: {
+    marginTop: 12,
+    marginHorizontal: 10,
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 1,
   },
   activeTabButton: {
     borderColor: '#333',

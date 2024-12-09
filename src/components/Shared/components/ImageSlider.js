@@ -7,7 +7,6 @@ import { StyleSheet } from 'react-native';
 const localStyles = StyleSheet.create({
   imageSlider: {
     marginBottom: 20,
-    marginTop: 15,
     height: 250,
     overflow: 'hidden',
     backgroundColor: '#e0f7fa',

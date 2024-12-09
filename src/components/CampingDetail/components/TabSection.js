@@ -17,9 +17,6 @@ import FacilityIcon from '../../Shared/components/FacilityIcon';
 import InfoRow from '../../Shared/components/InfoRow';
 import sharedStyles from '../../Shared/styles';
 
-// 버튼 이미지를 가져옵니다.
-import RouteButtonImage from '../../../assets/campsite.png';
-
 const localStyles = StyleSheet.create({
   sectionContainer: {
     flexDirection: 'row',
@@ -33,7 +30,6 @@ const localStyles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#555',
   },
-  // 주소와 버튼을 담을 컨테이너 스타일을 추가합니다.
   addressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -43,13 +39,6 @@ const localStyles = StyleSheet.create({
     flex: 1,
     color: '#333',
     fontSize: 16,
-  },
-  routeButton: {
-    marginLeft: 8,
-  },
-  routeButtonImage: {
-    width: 24,
-    height: 24,
   },
 });
 
@@ -62,34 +51,6 @@ const TabSection = ({
   campground,
   tagsStyles,
 }) => {
-  // 카카오 내비로 경로 탐색 함수
-  const openKakaoNavi = () => {
-    const { latitude, longitude, name } = campground;
-
-    if (!latitude || !longitude) {
-      alert('위치 정보가 없습니다.');
-      return;
-    }
-
-    const scheme = `kakaonavi://route?ep=${latitude},${longitude}&name=${encodeURIComponent(
-      name || '목적지',
-    )}`;
-
-    const fallbackUrl = 'https://kakaonavi.kakao.com/launch/index.do';
-
-    // 카카오 내비 앱이 설치되어 있는지 확인
-    Linking.canOpenURL(scheme)
-      .then(supported => {
-        if (supported) {
-          Linking.openURL(scheme);
-        } else {
-          // 앱이 설치되어 있지 않으면 웹 페이지로 이동
-          Linking.openURL(fallbackUrl);
-        }
-      })
-      .catch(err => console.error('An error occurred', err));
-  };
-
   return (
     <ScrollView
       contentContainerStyle={sharedStyles.contentContainer}
@@ -108,15 +69,13 @@ const TabSection = ({
           <FacilityIcon iconName="parking" label="주차 가능" />
         )}
         {/* 애견 동반 가능 아이콘 추가 */}
-        {isPetAvailable && (
-          <FacilityIcon iconName="dog" label="반려 동물" />
-        )}
+        {isPetAvailable && <FacilityIcon iconName="dog" label="반려 동물" />}
       </View>
 
       {/* 캠핑장 주소와 경로 탐색 버튼 */}
       <View style={localStyles.addressContainer}>
         <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+          style={{flexDirection: 'row', alignItems: 'center', flex: 1}}
           onPress={() => {
             if (campground.address) {
               const url = Platform.select({
@@ -136,17 +95,6 @@ const TabSection = ({
             {campground.address || '주소 정보가 없습니다.'}
           </Text>
         </TouchableOpacity>
-        {/* 경로 탐색 버튼 */}
-        <TouchableOpacity
-          style={localStyles.routeButton}
-          onPress={openKakaoNavi}
-          accessible={true}
-          accessibilityLabel="카카오 내비로 경로 탐색">
-          <Image
-            source={RouteButtonImage}
-            style={localStyles.routeButtonImage}
-          />
-        </TouchableOpacity>
       </View>
 
       {/* 캠핑장 설명 */}
@@ -163,7 +111,7 @@ const TabSection = ({
           </View>
           <RenderHTML
             contentWidth={width - 32}
-            source={{ html: campground.description }}
+            source={{html: campground.description}}
             tagsStyles={tagsStyles}
             accessible={true}
             onLinkPress={(evt, href) => {
