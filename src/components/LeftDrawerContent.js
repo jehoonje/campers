@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   drawerContainer: {
     flexGrow: 1,
     justifyContent: 'space-between',
-    backgroundColor: '#F5F7F8',
+    backgroundColor: '#f5f5f5',
     paddingVertical: 10,
   },
   content: {
@@ -207,8 +207,9 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 17,
+    fontWeight: '500',
     marginLeft: 10,
-    color: '#333',
+    color: '#070324',
   },
   divider: {
     marginVertical: 16,
@@ -222,8 +223,9 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 18,
+    fontWeight: '500',
     marginLeft: 10,
-    color: '#495E57',
+    color: '#070324',
   },
   logoutButton: {
     flexDirection: 'row',
@@ -232,8 +234,9 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontSize: 18,
+    fontWeight: '500',
     marginLeft: 10,
-    color: '#495E57',
+    color: '#070324',
   },
   icon: {
     marginRight: 10,
