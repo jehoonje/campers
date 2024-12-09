@@ -12,7 +12,7 @@ import {
 import {DrawerContentScrollView} from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
-import { useDrawerStatus } from '@react-navigation/drawer';
+import {useDrawerStatus} from '@react-navigation/drawer';
 import {AuthContext} from '../AuthContext';
 import CustomText from './CustomText';
 import axiosInstance from '../utils/axiosInstance';
@@ -28,7 +28,10 @@ const LeftDrawerContent = () => {
       axiosInstance
         .get(`/users/${userId}`)
         .then(response => {
-          console.log('서버에서 받은 프로필 이미지:', response.data.profileImageUrl);
+          console.log(
+            '서버에서 받은 프로필 이미지:',
+            response.data.profileImageUrl,
+          );
           if (response.data.profileImageUrl) {
             setProfileImageUrl(response.data.profileImageUrl);
           } else {
@@ -45,7 +48,7 @@ const LeftDrawerContent = () => {
   const handleLogout = () => {
     setProfileImageUrl(null);
     logout();
-  }
+  };
 
   // "마이프로필" 버튼 핸들러
   const handleMyProfilePress = () => {
@@ -65,7 +68,7 @@ const LeftDrawerContent = () => {
             onPress: () => navigation.navigate('LoginScreen'),
           },
         ],
-        { cancelable: true }
+        {cancelable: true},
       );
     }
   };
@@ -88,15 +91,9 @@ const LeftDrawerContent = () => {
         {/* 마이프로필 버튼 */}
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={handleMyProfilePress}
-        >
-          <Ionicons
-            name="person-outline"
-            size={24}
-            color="#333"
-            style={styles.icon}
-          />
-          <CustomText style={styles.menuText}>마이프로필</CustomText>
+          onPress={handleMyProfilePress}>
+          <Ionicons name="person" size={24} color="#333" style={styles.icon} />
+          <CustomText style={styles.menuText}>내 정보</CustomText>
         </TouchableOpacity>
 
         {/* 기타 버튼들 */}
@@ -110,7 +107,7 @@ const LeftDrawerContent = () => {
             });
           }}>
           <Ionicons
-            name="share-social-outline"
+            name="share-social"
             size={24}
             color="#333"
             style={styles.icon}
@@ -123,17 +120,21 @@ const LeftDrawerContent = () => {
           onPress={() => {
             Linking.openURL('mailto:limjhoon8@gmail.com');
           }}>
-          <Ionicons
-            name="mail-outline"
-            size={24}
-            color="#333"
-            style={styles.icon}
-          />
-          <CustomText style={styles.menuText}>이메일 피드백</CustomText>
+          <Ionicons name="mail" size={24} color="#333" style={styles.icon} />
+          <CustomText style={styles.menuText}>이메일 보내기</CustomText>
         </TouchableOpacity>
+
+
 
         {/* 구분선 */}
         <View style={styles.divider} />
+
+        <TouchableOpacity
+          style={styles.usButton}
+          onPress={() => navigation.navigate('AboutUs')}>
+          <Ionicons name="alert-circle-outline" size={24} color="#333" style={styles.icon} />
+          <CustomText style={styles.menuText}>About Us</CustomText>
+        </TouchableOpacity>
 
         {/* 로그인/로그아웃 버튼 */}
         {!isLoggedIn && (
@@ -146,7 +147,7 @@ const LeftDrawerContent = () => {
               color="#333"
               style={styles.icon}
             />
-            <CustomText style={styles.loginText}>Login</CustomText>
+            <CustomText style={styles.loginText}>Sign in</CustomText>
           </TouchableOpacity>
         )}
 
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
   drawerContainer: {
     flexGrow: 1,
     justifyContent: 'space-between',
-    backgroundColor: '#F5F7F8',
+    backgroundColor: '#f5f5f5',
     paddingVertical: 10,
   },
   content: {
@@ -198,10 +199,17 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 10,
   },
+  usButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 28,
+    marginBottom: 10,
+  },
   menuText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontWeight: '500',
     marginLeft: 10,
-    color: '#495E57',
+    color: '#070324',
   },
   divider: {
     marginVertical: 16,
@@ -215,8 +223,9 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 18,
+    fontWeight: '500',
     marginLeft: 10,
-    color: '#495E57',
+    color: '#070324',
   },
   logoutButton: {
     flexDirection: 'row',
@@ -225,15 +234,12 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     fontSize: 18,
+    fontWeight: '500',
     marginLeft: 10,
-    color: '#495E57',
+    color: '#070324',
   },
   icon: {
     marginRight: 10,
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 1,
   },
   footerText: {
     fontSize: 16,

@@ -8,7 +8,6 @@ import {
   Platform,
   StyleSheet,
   TouchableOpacity,
-  Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -16,9 +15,7 @@ import RenderHTML from 'react-native-render-html';
 import FacilityIcon from '../../Shared/components/FacilityIcon';
 import InfoRow from '../../Shared/components/InfoRow';
 import sharedStyles from '../../Shared/styles';
-
-// 버튼 이미지를 가져옵니다.
-import RouteButtonImage from '../../../assets/campsite.png';
+import CustomText from '../../CustomText';
 
 const localStyles = StyleSheet.create({
   sectionContainer: {
@@ -29,28 +26,9 @@ const localStyles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    marginLeft: 10,
+    // marginLeft: 10,
     fontWeight: 'bold',
     color: '#555',
-  },
-  // 주소와 버튼을 담을 컨테이너 스타일을 추가합니다.
-  addressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  addressText: {
-    flex: 1,
-    color: '#333',
-    fontSize: 16,
-    width: '80%',
-  },
-  routeButton: {
-    marginLeft: 8,
-  },
-  routeButtonImage: {
-    width: 24,
-    height: 24,
   },
 });
 
@@ -63,38 +41,11 @@ const TabSection = ({
   campsite,
   tagsStyles,
 }) => {
-  // 카카오 내비로 경로 탐색 함수
-  const openKakaoNavi = () => {
-    const {lat, lng, title} = campsite;
-
-    if (!lat || !lng) {
-      alert('위치 정보가 없습니다.');
-      return;
-    }
-
-    const scheme = `kakaonavi://route?ep=${lat},${lng}&name=${encodeURIComponent(
-      title || '목적지',
-    )}`;
-
-    const fallbackUrl = 'https://kakaonavi.kakao.com/launch/index.do';
-
-    // 카카오 내비 앱이 설치되어 있는지 확인
-    Linking.canOpenURL(scheme)
-      .then(supported => {
-        if (supported) {
-          Linking.openURL(scheme);
-        } else {
-          // 앱이 설치되어 있지 않으면 웹 페이지로 이동
-          Linking.openURL(fallbackUrl);
-        }
-      })
-      .catch(err => console.error('An error occurred', err));
-  };
-
   return (
     <ScrollView
       contentContainerStyle={sharedStyles.contentContainer}
       showsVerticalScrollIndicator={false}>
+
       {/* 시설 아이콘 표시 */}
       <View style={sharedStyles.facilityContainer}>
         {includedFacilities.map((facility, index) => (
@@ -112,11 +63,10 @@ const TabSection = ({
         {isPetAvailable && <FacilityIcon iconName="dog" label="반려 동물" />}
       </View>
 
-      {/* 캠핑장 주소와 경로 탐색 버튼 */}
+      {/* 캠핑장 주소 */}
       <View style={localStyles.addressContainer}>
         <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
-          text={campsite.addr || '주소 정보가 없습니다.'}
+          style={{flexDirection: 'row', alignItems: 'center', flex: 1}}
           onPress={() => {
             if (campsite.addr) {
               const url = Platform.select({
@@ -132,24 +82,13 @@ const TabSection = ({
             color="#555"
             style={sharedStyles.icon}
           />
-          <Text style={localStyles.addressText}>
+          <CustomText style={localStyles.addressText}>
             {campsite.addr || '주소 정보가 없습니다.'}
-          </Text>
-        </TouchableOpacity>
-        {/* 경로 탐색 버튼 */}
-        <TouchableOpacity
-          style={localStyles.routeButton}
-          onPress={openKakaoNavi}
-          accessible={true}
-          accessibilityLabel="카카오 내비로 경로 탐색">
-          <Image
-            source={RouteButtonImage}
-            style={localStyles.routeButtonImage}
-          />
+          </CustomText>
         </TouchableOpacity>
       </View>
 
-      {/* 캠핑장 설명 */}
+      {/* 캠핑장 소개 */}
       {campsite.description && (
         <>
           <View style={localStyles.sectionContainer}>
@@ -159,17 +98,17 @@ const TabSection = ({
               color="#555"
               style={sharedStyles.icon}
             />
-            <Text style={localStyles.sectionTitle}>소개</Text>
+            <CustomText style={localStyles.sectionTitle}>소개</CustomText>
           </View>
-          <RenderHTML
-            contentWidth={width - 32}
-            source={{html: campsite.description}}
-            tagsStyles={tagsStyles}
-            accessible={true}
-            onLinkPress={(evt, href) => {
-              Linking.openURL(href);
-            }}
-          />
+            <RenderHTML
+              contentWidth={width - 32}
+              source={{html: campsite.description}}
+              tagsStyles={tagsStyles}
+              accessible={true}
+              onLinkPress={(evt, href) => {
+                Linking.openURL(href);
+              }}
+            />
         </>
       )}
 
@@ -247,7 +186,7 @@ const TabSection = ({
               color="#555"
               style={sharedStyles.icon}
             />
-            <Text style={localStyles.sectionTitle}>이용요금</Text>
+            <CustomText style={localStyles.sectionTitle}>이용요금</CustomText>
           </View>
           <RenderHTML
             contentWidth={width - 32}
@@ -271,7 +210,7 @@ const TabSection = ({
               color="#555"
               style={sharedStyles.icon}
             />
-            <Text style={localStyles.sectionTitle}>부대시설</Text>
+            <CustomText style={localStyles.sectionTitle}>부대시설</CustomText>
           </View>
           <RenderHTML
             contentWidth={width - 32}
@@ -295,7 +234,7 @@ const TabSection = ({
               color="#555"
               style={sharedStyles.icon}
             />
-            <Text style={localStyles.sectionTitle}>주요시설</Text>
+            <CustomText style={localStyles.sectionTitle}>주요시설</CustomText>
           </View>
           <RenderHTML
             contentWidth={width - 32}

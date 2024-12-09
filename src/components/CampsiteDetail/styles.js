@@ -5,24 +5,24 @@ import sharedStyles from '../Shared/styles';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60, // 상단 여백 추가
+    paddingTop: 35, // 상단 여백 추가
     backgroundColor: '#f5f5f5', // 전체 배경색 설정
   },
   backButton: {
     position: 'absolute',
-    top: 16,
-    left: 16,
+    top: 5,
+    left: 8,
     zIndex: 1,
     padding: 8,
     backgroundColor: 'rgba(245, 245, 245, 0)', // 반투명 배경
     borderRadius: 20,
   },
   imageSlider: {
-    marginBottom: 20,
+    // marginBottom: 20,
     marginTop: 15,
     height: 250,
     overflow: 'hidden',
-    backgroundColor: '#e0f7fa',
+    backgroundColor: '#dadada',
   },
   imageLoader: {
     position: 'absolute',
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     height: 250,
   },
   name: {
-    fontSize: 26,
+    fontSize: 20,
     marginBottom: 16,
     fontWeight: 'bold',
     color: '#333',
@@ -73,6 +73,10 @@ const styles = StyleSheet.create({
     p: {
       marginVertical: 8,
     },
+  },
+  divider: {
+    borderBottomColor: '#ccc',
+    borderBottomWidth: 1,
   },
   loadingContainer: {
     flex: 1,

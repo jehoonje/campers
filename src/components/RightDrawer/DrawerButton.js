@@ -53,7 +53,8 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    color:'#184035',
+    fontWeight: '500',
+    color:'#070324',
     marginLeft: 10,
   },
 });

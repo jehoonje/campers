@@ -90,6 +90,7 @@ const BeachDetail = ({route, navigation}) => {
         {/* 해수욕장 이름 */}
         <CustomText style={styles.title}>{beach.title || '해수욕장 이름 없음'}</CustomText>
 
+        <View style={styles.context}>
         {/* 주소 */}
         {beach.addr && (
           <>
@@ -128,6 +129,7 @@ const BeachDetail = ({route, navigation}) => {
             />
           </>
         )}
+        </View>
       </ScrollView>
     </View>
   );
@@ -148,27 +150,24 @@ const tagsStyles = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60, // 상단 여백 추가
+    paddingTop: 35, // 상단 여백 추가
     backgroundColor: '#f5f5f5', // 전체 배경색 설정
   },
   contentContainer: {
-    paddingHorizontal: 16,
     paddingBottom: 20,
   },
   backButton: {
     position: 'absolute',
-    top: 16,
-    left: 16,
+    top: 5,
+    left: 8,
     zIndex: 1,
     padding: 8,
     backgroundColor: 'rgba(245, 245, 245, 0)', // 반투명 배경
-    borderRadius: 20,
   },
   imageContainer: {
     marginBottom: 20,
     marginTop: 15,
     height: 250,
-    borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#e0f7fa',
   },
@@ -194,6 +193,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 12,
+  },
+  context: {
+    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontSize: 20,

@@ -18,8 +18,8 @@ const FavoriteButton = ({ isFavorite, toggleFavorite, loading }) => {
         <ActivityIndicator size="small" color="#333" />
       ) : (
         <Ionicons
-          name={isFavorite ? "star" : "star-outline"}
-          size={24}
+          name={isFavorite ? "heart" : "heart-outline"}
+          size={28}
           color={isFavorite ? "#333" : "#333"}
         />
       )}
@@ -36,8 +36,8 @@ FavoriteButton.propTypes = {
 const styles = StyleSheet.create({
   favoriteButton: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 3,
+    right: 10,
     zIndex: 1,
     padding: 8,
     backgroundColor: 'rgba(245, 245, 245, 0)', // 반투명 배경
