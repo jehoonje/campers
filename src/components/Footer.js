@@ -24,8 +24,7 @@ const Footer = () => {
 
   return (
     <View style={styles.footer}>
-      <Text style={styles.footerText}>
-        Welcome {userName}      </Text>
+      <Text style={styles.footerText}>Welcome {userName}</Text>
     </View>
   );
 };
