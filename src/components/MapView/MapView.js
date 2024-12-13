@@ -8,6 +8,7 @@ import React, {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useMemo,
 } from 'react';
 import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -42,7 +43,7 @@ const MapView = forwardRef(
     },
     ref,
   ) => {
-    const {userLocation, heading, error} = useLocation();
+    const {userLocation, error} = useLocation();
     const [mapReady, setMapReady] = useState(false);
     const {favorites, addFavorite, removeFavorite} = useFavorites(); // 즐겨찾기 훅 사용
     const webviewRef = useRef(null);
@@ -55,11 +56,21 @@ const MapView = forwardRef(
     const [dataLoaded, setDataLoaded] = useState(false); // 모든 데이터 로드 상태
     const initialDataSent = useRef(false); // useRef로 복원
     const [isLoading, setIsLoading] = useState(true);
+    // const lastHeadingRef = useRef(heading);
+    const dataFetchedRef = useRef(false);
+    const lastLocationRef = useRef(userLocation);
+    const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
+
+    const LOCATION_THRESHOLD = 0.05;
 
     // 사용자 위치가 없을 때 기본 위치를 설정
     const defaultLocation = {latitude: 37.5665, longitude: 126.978}; // 예: 서울 시청 좌표
 
-    // const initialDataSent = useRef(false);
+    // WebView source 메모화
+    const webviewSource = useMemo(
+      () => ({uri: 'file:///android_asset/map.html'}),
+      [],
+    );
 
     useImperativeHandle(ref, () => ({
       resetMap: () => {
@@ -72,8 +83,6 @@ const MapView = forwardRef(
     // AuthContext에서 userId 가져오기
     const {userId} = useContext(AuthContext);
     // console.log('MapView - userId from AuthContext:', userId); // 추가: userId 확인
-
-    const dataFetchedRef = useRef(false);
 
     // 모든 데이터를 가져오는 함수
     useEffect(() => {
@@ -227,7 +236,6 @@ const MapView = forwardRef(
           JSON.stringify({
             type: 'initialData',
             userLocation: userLocation || defaultLocation,
-            heading: heading || 0, // 초기 방위각 포함
             restStopsData: restStopsData || [],
             wifisData: wifisData || [],
             fishingsData: fishingsData || [],
@@ -257,7 +265,6 @@ const MapView = forwardRef(
       }
     }, [
       userLocation,
-      heading,
       restStopsData,
       wifisData,
       fishingsData,
@@ -373,18 +380,32 @@ const MapView = forwardRef(
       favoritesData,
     ]);
 
-    // 위치 및 방향 데이터가 변경될 때마다 WebView에 업데이트 메시지 전송
     useEffect(() => {
-      if (mapReady && webviewRef.current && userLocation) {
-        webviewRef.current.postMessage(
-          JSON.stringify({
-            type: 'updateLocation',
-            userLocation,
-            heading,
-          }),
-        );
+      if (
+        mapReady &&
+        webviewRef.current &&
+        userLocation &&
+        initialDataSent.current
+      ) {
+        const now = Date.now();
+        // 1초에 한 번만 전송
+        if (now - lastUpdateTime > 1000) {
+          const lastLoc = lastLocationRef.current || defaultLocation;
+          const latDiff = Math.abs(userLocation.latitude - lastLoc.latitude);
+          const lngDiff = Math.abs(userLocation.longitude - lastLoc.longitude);
+          // const HEADING_THRESHOLD = 30;
+          // const headingDiff = Math.abs((heading || 0) - (lastHeadingRef.current || 0));
+
+          if (latDiff > LOCATION_THRESHOLD || lngDiff > LOCATION_THRESHOLD) {
+            webviewRef.current.postMessage(
+              JSON.stringify({type: 'updateLocation', userLocation }),
+            );
+            lastLocationRef.current = userLocation;
+            setLastUpdateTime(now);
+          }
+        }
       }
-    }, [userLocation, heading, mapReady]);
+    }, [userLocation, mapReady]);
 
     // 즐겨찾기 데이터가 변경될 때마다 WebView에 업데이트 메시지 전송
     useEffect(() => {
@@ -411,7 +432,7 @@ const MapView = forwardRef(
       <View style={styles.container}>
         <WebView
           originWhitelist={['*']}
-          source={{uri: 'file:///android_asset/map.html'}}
+          source={webviewSource}
           style={{flex: 1}}
           javaScriptEnabled={true}
           ref={webviewRef}

@@ -18,8 +18,8 @@
     <!-- Leaflet JS 링크 -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-    <!-- Leaflet.RotatedMarker 플러그인 추가 -->
-    <script src="https://unpkg.com/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.js"></script>
+    <!-- Leaflet.RotatedMarker 플러그인 추가
+    <script src="https://unpkg.com/leaflet-rotatedmarker@0.2.0/leaflet.rotatedMarker.js"></script> -->
 
     <style>
       @font-face {
@@ -38,10 +38,10 @@
     <div id="map"></div>
     <script>
       console.log('Leaflet version:', L.version);
-      console.log(
-        'RotatedMarker plugin loaded:',
-        L.Marker.prototype.setRotationAngle !== undefined,
-      );
+      // console.log(
+      //   'RotatedMarker plugin loaded:',
+      //   L.Marker.prototype.setRotationAngle !== undefined,
+      // );
       // JavaScript 오류 감지 핸들러 추가
       window.onerror = function (message, source, lineno, colno, error) {
         window.ReactNativeWebView.postMessage(
@@ -163,6 +163,15 @@
             },
           ).addTo(map);
 
+          map.whenReady(() => {
+            console.log('Map is ready.');
+            // 맵이 준비된 이후에만 초기 위치로 세팅할 수 있도록 변수 상태를 저장해두었다가 이 시점에서 setView를 호출합니다.
+            if (userLocation && userMarker) {
+              map.setView(userLocation, 13);
+              userMarker.setLatLng(userLocation);
+            }
+          });
+
           // 파스텔톤 효과 적용 - CSS를 통해 타일 스타일 변경
           var style = document.createElement('style');
           style.type = 'text/css';
@@ -187,28 +196,28 @@
 
           userMarker = L.marker(initialLocation, {
             icon: userIcon,
-            rotationAngle: 0, // 초기 회전 각도
-            rotationOrigin: 'center center', // 회전 기준점 설정
+            // rotationAngle: 0, // 초기 회전 각도
+            // rotationOrigin: 'center center', // 회전 기준점 설정
           }).addTo(map);
 
-          // 확대/축소 버튼 추가 및 커스텀 클래스 적용
-          var zoomControl = L.control
-            .zoom({
-              position: 'bottomleft',
-            })
-            .addTo(map);
+          // // 확대/축소 버튼 추가 및 커스텀 클래스 적용
+          // var zoomControl = L.control
+          //   .zoom({
+          //     position: 'bottomleft',
+          //   })
+          //   .addTo(map);
 
           // 확대/축소 컨트롤에 커스텀 클래스 추가
           // Leaflet은 DOM 요소를 제공하므로, 해당 요소에 접근하여 클래스를 추가해야 합니다.
-          setTimeout(() => {
-            // Leaflet이 컨트롤을 추가한 후에 접근
-            var zoomControlElement = document.querySelector(
-              '.leaflet-control-zoom',
-            );
-            if (zoomControlElement) {
-              zoomControlElement.classList.add('custom-zoom-control');
-            }
-          }, 0);
+          // setTimeout(() => {
+          //   // Leaflet이 컨트롤을 추가한 후에 접근
+          //   var zoomControlElement = document.querySelector(
+          //     '.leaflet-control-zoom',
+          //   );
+          //   if (zoomControlElement) {
+          //     zoomControlElement.classList.add('custom-zoom-control');
+          //   }
+          // }, 0);
 
           // 즐겨찾기 레이어 추가
           map.addLayer(favoriteMarkers);
@@ -1211,21 +1220,31 @@
                 if (userMarker) {
                   // userMarker가 존재하는지 확인
                   userMarker.setLatLng(userLocation);
-                  map.setView(userLocation, map.getZoom());
                 } else {
                   console.warn('userMarker가 초기화되지 않았습니다.');
                 }
               }
 
-              // 사용자 방향 업데이트 (존재할 경우에만)
-              if (typeof message.heading === 'number') {
-                if (userMarker) {
-                  // userMarker가 존재하는지 확인
-                  userMarker.setRotationAngle(message.heading);
-                } else {
-                  console.warn('userMarker가 초기화되지 않았습니다.');
-                }
-              }
+              // let lastHeading = null;
+              // const HEADING_THRESHOLD = 30;
+
+              // // 사용자 방향 업데이트 (존재할 경우에만)
+              // if (typeof message.heading === 'number') {
+              //   if (userMarker) {
+              //     const newHeading = message.heading;
+              //     if (
+              //       lastHeading === null ||
+              //       Math.abs(newHeading - lastHeading) > HEADING_THRESHOLD
+              //     ) {
+              //       userMarker.setRotationAngle(newHeading);
+              //       lastHeading = newHeading;
+              //     } else {
+              //       // 변화량이 임계치 이하이면 무시
+              //     }
+              //   } else {
+              //     console.warn('userMarker가 초기화되지 않았습니다.');
+              //   }
+              // }
             }
 
             if (message.type === 'updateFavorites') {
@@ -1273,9 +1292,9 @@
                   // userMarker가 존재하는지 확인
                   map.setView(userLocation, 13);
                   userMarker.setLatLng(userLocation);
-                  if (message.heading !== undefined) {
-                    userMarker.setRotationAngle(message.heading);
-                  }
+                  // if (message.heading !== undefined) {
+                  //   userMarker.setRotationAngle(message.heading);
+                  // }
                 } else {
                   console.warn('userMarker가 초기화되지 않았습니다.');
                 }
@@ -1364,7 +1383,7 @@
                   // userMarker가 존재하는지 확인
                   map.setView(userLocation, 13);
                   userMarker.setLatLng(userLocation);
-                  userMarker.setRotationAngle(0);
+                  // userMarker.setRotationAngle(0);
                 } else {
                   console.warn('userMarker가 초기화되지 않았습니다.');
                 }

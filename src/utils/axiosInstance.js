@@ -4,7 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://10.0.2.2:8080/api', // 백엔드 API 베이스 URL
+  baseURL: 'http://13.124.234.143:8080/api', // 백엔드 API 베이스 URL
 });
 
 // 요청 인터셉터
