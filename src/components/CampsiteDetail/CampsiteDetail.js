@@ -33,8 +33,7 @@ import useFavorite from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
 import CustomText from '../CustomText';
 import Swiper from 'react-native-swiper';
-// 경로 탐색 버튼 이미지
-import RouteButtonImage from '../../assets/getdirections.png';
+import KakaoNaviButton from '../Shared/KakaoNaviButton';
 
 // 시설 관련 단어 및 아이콘
 const facilityWords = [
@@ -170,31 +169,6 @@ function CampsiteDetail({route, navigation}) {
     fetchAverageRating();
   };
 
-  // 카카오내비 연동 함수
-  const openKakaoNavi = () => {
-    const {lat, lng, title} = campsite;
-
-    if (!lat || !lng) {
-      alert('위치 정보가 없습니다.');
-      return;
-    }
-
-    const scheme = `kakaonavi://route?ep=${lat},${lng}&name=${encodeURIComponent(
-      title || '목적지',
-    )}`;
-    const fallbackUrl = 'https://kakaonavi.kakao.com/launch/index.do';
-
-    Linking.canOpenURL(scheme)
-      .then(supported => {
-        if (supported) {
-          Linking.openURL(scheme);
-        } else {
-          Linking.openURL(fallbackUrl);
-        }
-      })
-      .catch(err => console.error('An error occurred', err));
-  };
-
   const handleTabPress = tab => {
     setActiveTab(tab);
   };
@@ -257,16 +231,11 @@ function CampsiteDetail({route, navigation}) {
           <CustomText style={localStyles.nameText}>{campsite.title}</CustomText>
           <RatingDisplay averageRating={averageRating} />
         </View>
-        <TouchableOpacity
-          style={localStyles.routeButton}
-          onPress={openKakaoNavi}
-          accessible={true}
-          accessibilityLabel="카카오 내비로 경로 탐색">
-          <Image
-            source={RouteButtonImage}
-            style={localStyles.routeButtonImage}
-          />
-        </TouchableOpacity>
+        <KakaoNaviButton
+          name={campsite.title}
+          latitude={campsite.lat}
+          longitude={campsite.lng}
+        />
       </View>
 
       {/* 구분선 */}
