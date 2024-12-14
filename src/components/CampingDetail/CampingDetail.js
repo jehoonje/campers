@@ -27,7 +27,7 @@ import FavoriteButton from '../Shared/FavoriteButton';
 import useFavorite from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
 import CustomText from '../CustomText';
-import KakaoNaviButton from '../Shared/KakaoNaviButton'; // 추가
+import KakaoNaviButton from '../Shared/KakaoNaviButton';
 
 const FACILITY_KEYWORDS = [
   {

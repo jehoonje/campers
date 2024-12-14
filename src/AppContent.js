@@ -8,6 +8,7 @@ import { useDrawerStatus } from '@react-navigation/drawer';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import { AuthContext } from './AuthContext';
+import SearchComponent from './components/SearchComponent'; 
 import Footer from './components/Footer';
 
 const AppContent = () => {
@@ -23,6 +24,9 @@ const AppContent = () => {
   const [showWifis, setShowWifis] = useState(false);
   const [showBeaches, setShowBeaches] = useState(false);
   const [showAllMarkers, setShowAllMarkers] = useState(false);
+
+  const [showSearch, setShowSearch] = useState(false);
+
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
   const { checkAuthStatus } = useContext(AuthContext);
@@ -204,13 +208,24 @@ const AppContent = () => {
     console.log('로고 클릭됨: 메인 화면으로 돌아갑니다.');
   };
 
+  // 검색창 토글 함수
+  const toggleSearch = () => {
+    setShowSearch(prev => !prev);
+  };
+
   return (
     <SafeAreaView style={styles.safeContainer}>
       {/* 헤더 */}
       <Header
         toggleRightDrawer={toggleRightDrawer}
-        onPressTitle={goToMainScreen} // "CAMPERS" 클릭 시 호출할 함수 전달
+        onPressTitle={goToMainScreen}
+        toggleSearch={toggleSearch}
       />
+
+      {/* 검색 컴포넌트 표시 */}
+      {showSearch && (
+        <SearchComponent navigation={navigation} />
+      )}
 
       {/* 메인 콘텐츠 */}
       <View style={{ flex: 1 }}>

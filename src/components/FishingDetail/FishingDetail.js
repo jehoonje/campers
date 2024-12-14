@@ -22,6 +22,8 @@ import useFavorite from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
 import CustomText from '../CustomText';
 import Swiper from 'react-native-swiper';
+import KakaoNaviButton from '../Shared/KakaoNaviButton';
+
 
 // 경로 탐색 버튼 이미지
 import RouteButtonImage from '../../assets/getdirections.png';
@@ -61,13 +63,13 @@ const localStyles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   nameText: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 3,
   },
   addressText: {
-    // 추가: 주소 텍스트 스타일
+    // 추가: 주소 텍스트 스타일 
     fontSize: 14,
     marginRight: 18,
     color: '#000',
@@ -140,31 +142,6 @@ function FishingDetail({route, navigation}) {
   if (!fishing) {
     return <LoadingIndicator />;
   }
-
-  // 카카오내비 연동 함수
-  const openKakaoNavi = () => {
-    const {lat, lng, title} = fishing;
-
-    if (!lat || !lng) {
-      alert('위치 정보가 없습니다.');
-      return;
-    }
-
-    const scheme = `kakaonavi://route?ep=${lat},${lng}&name=${encodeURIComponent(
-      title || '목적지',
-    )}`;
-    const fallbackUrl = 'https://kakaonavi.kakao.com/launch/index.do';
-
-    Linking.canOpenURL(scheme)
-      .then(supported => {
-        if (supported) {
-          Linking.openURL(scheme);
-        } else {
-          Linking.openURL(fallbackUrl);
-        }
-      })
-      .catch(err => console.error('An error occurred', err));
-  };
 
   // 주소를 클릭했을 때 동작하는 함수
   const openMaps = () => {
@@ -247,16 +224,11 @@ function FishingDetail({route, navigation}) {
             </CustomText>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={localStyles.routeButton}
-          onPress={openKakaoNavi}
-          accessible={true}
-          accessibilityLabel="카카오 내비로 경로 탐색">
-          <Image
-            source={RouteButtonImage}
-            style={localStyles.routeButtonImage}
-          />
-        </TouchableOpacity>
+        <KakaoNaviButton
+          name={fishing.title}
+          latitude={fishing.lat}
+          longitude={fishing.lng}
+        />
       </View>
 
       {/* 구분선 */}

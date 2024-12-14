@@ -12,7 +12,7 @@ const CustomText = ({ children, style, ...props }) => {
 
 const styles = StyleSheet.create({
   text: {
-    fontFamily: 'Pretendard-Regular', // 기본 글꼴 설정
+    fontFamily: 'Pretendard-Regular', 
   },
 });
 
