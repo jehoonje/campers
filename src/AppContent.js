@@ -1,15 +1,23 @@
 // src/AppContent.js
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import { SafeAreaView, View, StyleSheet } from 'react-native';
+import React, {useState, useEffect, useRef, useContext} from 'react';
+import {
+  SafeAreaView,
+  View,
+  StyleSheet,
+  Animated,
+  Dimensions,
+} from 'react-native';
 import Header from './components/Header';
 import MainContent from './screens/MainContent';
 import RightDrawer from './components/RightDrawer/RightDrawer';
-import { useDrawerStatus } from '@react-navigation/drawer';
-import { useNavigation, CommonActions } from '@react-navigation/native';
-import { useFocusEffect } from '@react-navigation/native';
-import { AuthContext } from './AuthContext';
-import SearchComponent from './components/SearchComponent'; 
+import {useDrawerStatus} from '@react-navigation/drawer';
+import {useNavigation, CommonActions} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
+import {AuthContext} from './AuthContext';
+import SearchComponent from './components/SearchComponent';
 import Footer from './components/Footer';
+
+const HEADER_HEIGHT = 52;
 
 const AppContent = () => {
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState(false);
@@ -26,16 +34,36 @@ const AppContent = () => {
   const [showAllMarkers, setShowAllMarkers] = useState(false);
 
   const [showSearch, setShowSearch] = useState(false);
-
+  const [renderSearch, setRenderSearch] = useState(false);
+  
   const mainContentRef = useRef(null); // MainContent의 ref
   const navigation = useNavigation(); // navigation 객체 사용
-  const { checkAuthStatus } = useContext(AuthContext);
-  
+  const {checkAuthStatus} = useContext(AuthContext);
+
+  // 애니메이션을 위한 Animated.Value 초기화
+  const searchAnim = useRef(new Animated.Value(0)).current; // 초기값: 0 (숨김)
+
+  // showSearch 상태가 변경될 때 애니메이션 실행
+  useEffect(() => {
+    if (showSearch) {
+      Animated.timing(searchAnim, {
+        toValue: 1, // 나타날 때
+        duration: 500, // 애니메이션 지속 시간 (밀리초)
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(searchAnim, {
+        toValue: 0, // 사라질 때
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showSearch, searchAnim]);
 
   useFocusEffect(
     React.useCallback(() => {
       checkAuthStatus();
-    }, [])
+    }, []),
   );
 
   const toggleRightDrawer = () => {
@@ -210,8 +238,32 @@ const AppContent = () => {
 
   // 검색창 토글 함수
   const toggleSearch = () => {
-    setShowSearch(prev => !prev);
+    if (!showSearch) {
+      setRenderSearch(true); // SearchComponent 렌더링 시작
+      setShowSearch(true);
+    } else {
+      setShowSearch(false);
+    }
   };
+
+  // 애니메이션 완료 후 SearchComponent 렌더링 해제
+  useEffect(() => {
+    if (!showSearch && renderSearch) {
+      Animated.timing(searchAnim, {
+        toValue: 0, // 사라질 때
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setRenderSearch(false); // 애니메이션 완료 후 렌더링 해제
+      });
+    } else if (showSearch && renderSearch) {
+      Animated.timing(searchAnim, {
+        toValue: 1, // 나타날 때
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [showSearch, renderSearch, searchAnim]);
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -222,13 +274,8 @@ const AppContent = () => {
         toggleSearch={toggleSearch}
       />
 
-      {/* 검색 컴포넌트 표시 */}
-      {showSearch && (
-        <SearchComponent navigation={navigation} />
-      )}
-
       {/* 메인 콘텐츠 */}
-      <View style={{ flex: 1 }}>
+      <View style={{flex: 1}}>
         <MainContent
           ref={mainContentRef}
           showFavorites={showFavorites}
@@ -276,6 +323,28 @@ const AppContent = () => {
         toggleAutoCamps={toggleAutoCampsFunc}
         toggleCampsites={toggleCampsitesFunc}
       />
+
+      {/* 검색 컴포넌트 애니메이션 처리 */}
+      {renderSearch && (
+        <Animated.View
+          style={[
+            styles.searchOverlay,
+            {
+              opacity: searchAnim,
+              transform: [
+                {
+                  translateY: searchAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-20, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <SearchComponent navigation={navigation} />
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 };
@@ -284,6 +353,21 @@ const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
     backgroundColor: '#fff',
+    position: 'relative',
+  },
+  searchOverlay: {
+    position: 'absolute',
+    top: HEADER_HEIGHT, // Position below the Header
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    zIndex: 1000, // Ensure it appears above other components
+    // Optional: Add shadow or elevation for better visibility
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
 
