@@ -1,6 +1,14 @@
 // src/components/SearchComponent.js
 import React, {useState, useEffect} from 'react';
-import {View, TextInput, FlatList, TouchableOpacity, Text, StyleSheet, Alert} from 'react-native';
+import {
+  View,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import axiosInstance from '../utils/axiosInstance'; // axiosInstance 사용
 
 const SearchComponent = ({navigation}) => {
@@ -18,9 +26,11 @@ const SearchComponent = ({navigation}) => {
     return () => clearTimeout(delayDebounceFn);
   }, [query]);
 
-  const fetchResults = async (searchTerm) => {
+  const fetchResults = async searchTerm => {
     try {
-      const response = await axiosInstance.get(`/search?query=${encodeURIComponent(searchTerm)}`);
+      const response = await axiosInstance.get(
+        `/search?query=${encodeURIComponent(searchTerm)}`,
+      );
       setResults(response.data);
     } catch (error) {
       console.error(error);
@@ -28,7 +38,7 @@ const SearchComponent = ({navigation}) => {
     }
   };
 
-  const goToDetail = async (item) => {
+  const goToDetail = async item => {
     let detailUrl = '';
     let paramName = '';
     let navigateScreen = '';
@@ -87,7 +97,7 @@ const SearchComponent = ({navigation}) => {
         return;
       }
 
-      navigation.navigate(navigateScreen, { [paramName]: fullData });
+      navigation.navigate(navigateScreen, {[paramName]: fullData});
     } catch (error) {
       console.error('세부정보 불러오기 오류:', error);
       Alert.alert('오류', '상세 정보를 불러오는 데 실패했습니다.');
@@ -95,7 +105,9 @@ const SearchComponent = ({navigation}) => {
   };
 
   const renderItem = ({item}) => (
-    <TouchableOpacity onPress={() => goToDetail(item)} style={styles.resultItem}>
+    <TouchableOpacity
+      onPress={() => goToDetail(item)}
+      style={styles.resultItem}>
       <Text style={styles.resultText}>{item.title}</Text>
       <Text style={styles.addrText}>{item.addr}</Text>
     </TouchableOpacity>
@@ -111,9 +123,13 @@ const SearchComponent = ({navigation}) => {
       />
       {results.length > 0 && (
         <FlatList
+          style={styles.resultList}
           data={results}
-          keyExtractor={(item) => item.contentId?.toString() || item.id?.toString()}
+          keyExtractor={item =>
+            item.contentId?.toString() || item.id?.toString()
+          }
           renderItem={renderItem}
+          keyboardShouldPersistTaps="handled"
         />
       )}
     </View>
@@ -128,12 +144,11 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
   },
   searchInput: {
-    height: 40,
+    height: 50,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#ddd',
     paddingHorizontal: 10,
-    marginBottom: 10,
   },
   resultItem: {
     paddingVertical: 10,
@@ -147,6 +162,9 @@ const styles = StyleSheet.create({
   addrText: {
     fontSize: 14,
     color: '#555',
+  },
+  resultList: {
+    maxHeight: 350, // UI 요구 사항에 따라 이 값을 조정하세요
   },
 });
 
