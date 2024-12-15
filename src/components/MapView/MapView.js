@@ -10,7 +10,7 @@ import React, {
   useImperativeHandle,
   useMemo,
 } from 'react';
-import {View, StyleSheet, ActivityIndicator, Text} from 'react-native';
+import {View, StyleSheet, Image, TouchableOpacity, Text} from 'react-native';
 import {WebView} from 'react-native-webview';
 import restStopsData from '../../data/reststops.json';
 import wifisData from '../../data/wifi.json';
@@ -60,6 +60,7 @@ const MapView = forwardRef(
     const dataFetchedRef = useRef(false);
     const lastLocationRef = useRef(userLocation);
     const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
+    const [isCreditScreen, setIsCreditScreen] = useState(false); // 크레딧 페이지 확인용
 
     const LOCATION_THRESHOLD = 0.05;
 
@@ -398,7 +399,7 @@ const MapView = forwardRef(
 
           if (latDiff > LOCATION_THRESHOLD || lngDiff > LOCATION_THRESHOLD) {
             webviewRef.current.postMessage(
-              JSON.stringify({type: 'updateLocation', userLocation }),
+              JSON.stringify({type: 'updateLocation', userLocation}),
             );
             lastLocationRef.current = userLocation;
             setLastUpdateTime(now);
@@ -420,6 +421,20 @@ const MapView = forwardRef(
       }
     }, [favoritesData, showFavorites, mapReady]);
 
+    // 웹뷰의 페이지 변경 감지
+    const onNavigationStateChange = navState => {
+      // 메인 맵 페이지인지 확인
+      const isMainMap = navState.url.includes('map.html');
+      setIsCreditScreen(!isMainMap);
+    };
+
+    // 뒤로가기 버튼 동작
+    const handleBackPress = () => {
+      if (webviewRef.current) {
+        webviewRef.current.goBack();
+      }
+    };
+
     if (error) {
       return (
         <View style={styles.errorContainer}>
@@ -437,6 +452,7 @@ const MapView = forwardRef(
           javaScriptEnabled={true}
           ref={webviewRef}
           onMessage={onMessage}
+          onNavigationStateChange={onNavigationStateChange}
           javaScriptCanOpenWindowsAutomatically={false}
           domStorageEnabled={true}
           allowFileAccess={true}
@@ -448,6 +464,16 @@ const MapView = forwardRef(
             console.error('WebView error: ', nativeEvent);
           }}
         />
+
+        {isCreditScreen && (
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+            <Image
+              source={require('../../assets/back.png')} // 적절한 아이콘 경로로 변경
+              style={{width: 24, height: 24}}
+            />
+          </TouchableOpacity>
+        )}
+
         {isLoading && (
           <Spinner
             isVisible={true}
