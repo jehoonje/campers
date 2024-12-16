@@ -6,7 +6,7 @@ import styles from '../styles/HeaderStyles';
 import {DrawerActions, useNavigation} from '@react-navigation/native';
 import {AuthContext} from '../AuthContext';
 
-const Header = ({toggleRightDrawer, onPressTitle}) => {
+const Header = ({toggleRightDrawer, onPressTitle, toggleSearch}) => {
   const navigation = useNavigation();
   const {isLoggedIn} = useContext(AuthContext);
 
@@ -56,7 +56,7 @@ const Header = ({toggleRightDrawer, onPressTitle}) => {
     <View style={styles.header}>
       {/* 왼쪽 드로어 열기 버튼 */}
       <TouchableOpacity onPress={openLeftDrawer} style={styles.leftButton}>
-        <Ionicons name="menu" size={30} style={styles.icon} />
+        <Ionicons name="menu" size={28} style={styles.icon} />
       </TouchableOpacity>
 
       {/* 헤더 로고 */}
@@ -72,18 +72,25 @@ const Header = ({toggleRightDrawer, onPressTitle}) => {
         />
       </TouchableOpacity>
 
+      {/* 검색 버튼(돋보기) 추가 */}
+      <TouchableOpacity
+        onPress={toggleSearch}
+        style={styles.rightButton}>
+        <Ionicons name="search" size={28} style={styles.icon} />
+      </TouchableOpacity>
+
       {/* 커뮤니티 토글 버튼 */}
       <TouchableOpacity
         onPress={handleMyProfilePress}
         style={styles.rightButton}>
-        <Ionicons name="people-sharp" size={30} style={styles.icon} />
+        <Ionicons name="people-sharp" size={28} style={styles.icon} />
       </TouchableOpacity>
 
       {/* 오른쪽 드로어 토글 버튼 */}
       <TouchableOpacity
         onPress={handleToggleRightDrawer}
         style={styles.rightButton}>
-        <Ionicons name="ellipsis-horizontal" size={30} style={styles.icon} />
+        <Ionicons name="ellipsis-horizontal" size={28} style={styles.icon} />
       </TouchableOpacity>
     </View>
   );

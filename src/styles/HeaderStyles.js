@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     
   },
   logo: {
-    width: 160, // 로고의 너비 조정
+    width: 140, // 로고의 너비 조정
     height: 50, // 로고의 높이 조정
     
     

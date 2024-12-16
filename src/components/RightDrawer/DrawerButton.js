@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     borderBottomWidth:0.2,
     borderBottomColor:'#c5c5c5',
-    // marginBottom: 10, // 각 버튼 사이 간격 추가
+    marginBottom: 0.5, // 각 버튼 사이 간격 추가
   },
   iconContainer: {
     width: 30,
