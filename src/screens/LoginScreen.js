@@ -110,7 +110,7 @@ const LoginScreen = () => {
       console.log('카카오 프로필 정보:', profile);
 
       const response = await axiosInstance.post(
-        'http://10.0.2.2:8080/api/auth/kakao',
+        'http://13.124.234.143:8080/api/auth/kakao',
         {
           accessToken: result.accessToken,
         },
@@ -156,7 +156,7 @@ const LoginScreen = () => {
 
       // 백엔드로 idToken 전송
       const response = await axiosInstance.post(
-        'http://10.0.2.2:8080/api/auth/google',
+        'http://13.124.234.143:8080/api/auth/google',
         {
           idToken: idToken,
         },

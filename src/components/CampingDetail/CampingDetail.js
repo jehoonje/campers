@@ -1,5 +1,3 @@
-// src/components/CampingDetail/CampingDetail.js
-
 import React, {
   useState,
   useEffect,
@@ -9,9 +7,7 @@ import React, {
 } from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
-  Linking,
   useWindowDimensions,
   StyleSheet,
   Image,
@@ -20,7 +16,7 @@ import PropTypes from 'prop-types';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import sharedStyles from '../Shared/styles';
 import axios from 'axios';
-import styles from '../CampingDetail/styles'; // CampingDetail/styles.js를 참고한다고 했으니 가져옴
+import styles from '../CampingDetail/styles';
 import TabButton from '../Shared/components/TabButton';
 import RatingDisplay from '../Shared/components/RatingDisplay';
 import ImageSlider from '../Shared/components/ImageSlider';
@@ -31,9 +27,7 @@ import FavoriteButton from '../Shared/FavoriteButton';
 import useFavorite from '../../hooks/useFavorite';
 import {AuthContext} from '../../AuthContext';
 import CustomText from '../CustomText';
-
-// 경로 탐색 버튼 이미지
-import RouteButtonImage from '../../assets/getdirections.png';
+import KakaoNaviButton from '../Shared/KakaoNaviButton';
 
 const FACILITY_KEYWORDS = [
   {
@@ -78,7 +72,7 @@ const localStyles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    justifyContent: 'space-between', // 양 끝으로 배치
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
   titleRatingContainer: {
@@ -94,47 +88,30 @@ const localStyles = StyleSheet.create({
     paddingBottom: 4,
     marginTop: 4,
   },
-  routeButton: {
-    marginTop: 9,
-    paddingLeft: 15,
-    paddingBottom: 5,
-    borderLeftWidth: 1,
-    marginBottom: 6,
-    borderColor: '#dadada',
-  },
-  routeButtonImage: {
-    width: 80,
-    height: 50,
-  },
 });
 
 function CampingDetail({route, navigation}) {
   const {campground} = route.params;
   const {width} = useWindowDimensions();
-
-  // AuthContext에서 userId 가져오기
   const {userId} = useContext(AuthContext);
 
   const [activeTab, setActiveTab] = useState('detail');
   const [averageRating, setAverageRating] = useState(0);
   const [imageLoading, setImageLoading] = useState(true);
 
-  // 즐겨찾기 훅 사용
   const {isFavorite, toggleFavorite, loading} = useFavorite(
     'CAMPGROUND',
     campground.id,
   );
 
-  // 탭 버튼 클릭 핸들러
   const handleTabPress = tab => {
     setActiveTab(tab);
   };
 
-  // 평균 별점 가져오는 함수 분리
   const fetchAverageRating = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://10.0.2.2:8080/api/reviews/average/Campground/${campground.id}`,
+        `http://13.124.234.143:8080/api/reviews/average/Campground/${campground.id}`,
       );
       setAverageRating(response.data.averageRating);
     } catch (error) {
@@ -143,7 +120,6 @@ function CampingDetail({route, navigation}) {
     }
   }, [campground.id]);
 
-  // 평균 별점 가져오기
   useEffect(() => {
     fetchAverageRating();
   }, [fetchAverageRating]);
@@ -156,26 +132,22 @@ function CampingDetail({route, navigation}) {
 
   const defaultImage = require('../../assets/campsite.png');
 
-  // Combine 'feature' and 'description' fields for keyword search
   const combinedText = useMemo(() => {
     const feature = campground.feature || '';
     const description = campground.description || '';
     return `${feature} ${description}`;
   }, [campground.feature, campground.description]);
 
-  // Determine which facilities to display based on keywords
   const matchedFacilities = useMemo(() => {
     return FACILITY_KEYWORDS.filter(facility =>
       facility.keywords.some(keyword => combinedText.includes(keyword)),
     );
   }, [combinedText]);
 
-  // Function to handle going back
   const handleGoBack = () => {
     navigation.goBack();
   };
 
-  // If campground data is not available, show a loading indicator
   if (!campground) {
     return <LoadingIndicator />;
   }
@@ -190,31 +162,6 @@ function CampingDetail({route, navigation}) {
     fetchAverageRating();
   };
 
-  // 카카오내비 연동 함수
-  const openKakaoNavi = () => {
-    const {latitude, longitude, name} = campground;
-
-    if (!lat || !lng) {
-      alert('위치 정보가 없습니다.');
-      return;
-    }
-
-    const scheme = `kakaonavi://route?ep=${lat},${lng}&name=${encodeURIComponent(
-      name || '목적지',
-    )}`;
-    const fallbackUrl = 'https://kakaonavi.kakao.com/launch/index.do';
-
-    Linking.canOpenURL(scheme)
-      .then(supported => {
-        if (supported) {
-          Linking.openURL(scheme);
-        } else {
-          Linking.openURL(fallbackUrl);
-        }
-      })
-      .catch(err => console.error('An error occurred', err));
-  };
-
   return (
     <View style={styles.container}>
       {/* 닫기 버튼 */}
@@ -226,7 +173,7 @@ function CampingDetail({route, navigation}) {
         <Ionicons name="arrow-back" size={24} color="#333" />
       </TouchableOpacity>
 
-      {/* 즐겨찾기 토글 버튼 추가 */}
+      {/* 즐겨찾기 토글 버튼 */}
       <FavoriteButton
         isFavorite={isFavorite || false}
         toggleFavorite={toggleFavorite}
@@ -251,16 +198,12 @@ function CampingDetail({route, navigation}) {
           </CustomText>
           <RatingDisplay averageRating={averageRating} />
         </View>
-        <TouchableOpacity
-          style={localStyles.routeButton}
-          onPress={openKakaoNavi}
-          accessible={true}
-          accessibilityLabel="카카오 내비로 경로 탐색">
-          <Image
-            source={RouteButtonImage}
-            style={localStyles.routeButtonImage}
-          />
-        </TouchableOpacity>
+        {/* KakaoNaviButton 사용. CampingDetail에서는 latitude, longitude를 사용 */}
+        <KakaoNaviButton
+          name={campground.name}
+          latitude={campground.latitude}
+          longitude={campground.longitude}
+        />
       </View>
 
       {/* 구분선 */}
@@ -280,9 +223,7 @@ function CampingDetail({route, navigation}) {
         />
       </View>
 
-      {/* 탭 내용 */}
       {activeTab === 'detail' ? (
-        // Detail 내용
         <TabSection
           width={width}
           includedFacilities={includedFacilities}
@@ -293,7 +234,6 @@ function CampingDetail({route, navigation}) {
           tagsStyles={styles.tagsStyles}
         />
       ) : (
-        // Review 내용
         <ReviewComponent
           contentType="Campground"
           contentId={campground.id}
@@ -315,7 +255,7 @@ CampingDetail.propTypes = {
 };
 
 FavoriteButton.defaultProps = {
-  isFavorite: false, // 기본값
+  isFavorite: false,
 };
 
 export default React.memo(CampingDetail);

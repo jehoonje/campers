@@ -38,6 +38,9 @@ const localStyles = StyleSheet.create({
     color: '#333',
     fontSize: 16,
   },
+  sectionWrapper: {
+    marginBottom: 30,
+  },
 });
 
 const TabSection = ({
@@ -69,7 +72,7 @@ const TabSection = ({
 
       {/* 낚시터 설명 */}
       {fishing.description && (
-        <>
+        <View style={localStyles.sectionWrapper}>
           <View style={localStyles.sectionContainer}>
             <Ionicons
               name="information-circle-outline"
@@ -81,59 +84,63 @@ const TabSection = ({
           </View>
           <RenderHTML
             contentWidth={width - 32}
-            source={{html: fishing.description}}
+            source={{ html: fishing.description }}
             tagsStyles={tagsStyles}
             accessible={true}
             onLinkPress={(evt, href) => {
               Linking.openURL(href);
             }}
           />
-        </>
+        </View>
       )}
 
       {/* 문의 및 안내 */}
       {fishing.infocenterleports && (
-        <InfoRow
-          iconName="call-outline"
-          text={fishing.infocenterleports}
-          onPress={() => {
-            const phoneNumber = fishing.infocenterleports.match(
-              /(\d{2,3}-\d{3,4}-\d{4})/,
-            );
-            if (phoneNumber) {
-              Linking.openURL(`tel:${phoneNumber[0]}`);
-            }
-          }}
-        />
+          <InfoRow
+            iconName="call-outline"
+            text={fishing.infocenterleports}
+            onPress={() => {
+              const phoneNumber = fishing.infocenterleports.match(
+                /(\d{2,3}-\d{3,4}-\d{4})/,
+              );
+              if (phoneNumber) {
+                Linking.openURL(`tel:${phoneNumber[0]}`);
+              }
+            }}
+          />
       )}
 
       {/* 개장기간 */}
       {fishing.openperiod && (
-        <InfoRow
-          iconName="calendar-outline"
-          text={`개장기간: ${fishing.openperiod}`}
-        />
+        <View style={localStyles.sectionWrapper}>
+          <InfoRow
+            iconName="calendar-outline"
+            text={`개장기간: ${fishing.openperiod}`}
+          />
+        </View>
       )}
 
       {/* 이용시간 */}
       {fishing.usetimeleports && (
-        <InfoRow
-          iconName="time-outline"
-          text={`이용시간: ${fishing.usetimeleports}`}
-        />
+          <InfoRow
+            iconName="time-outline"
+            text={`이용시간: ${fishing.usetimeleports}`}
+          />
       )}
 
       {/* 쉬는날 */}
       {fishing.restdateleports && (
-        <InfoRow
-          iconName="close-circle-outline"
-          text={`쉬는날: ${fishing.restdateleports}`}
-        />
+        <View style={localStyles.sectionWrapper}>
+          <InfoRow
+            iconName="close-circle-outline"
+            text={`쉬는날: ${fishing.restdateleports}`}
+          />
+        </View>
       )}
 
       {/* 이용요금 */}
       {fishing.fishingfee && (
-        <>
+        <View style={localStyles.sectionWrapper}>
           <View style={localStyles.sectionContainer}>
             <Ionicons
               name="cash-outline"
@@ -145,19 +152,19 @@ const TabSection = ({
           </View>
           <RenderHTML
             contentWidth={width - 32}
-            source={{html: fishing.fishingfee}}
+            source={{ html: fishing.fishingfee }}
             tagsStyles={tagsStyles}
             accessible={true}
             onLinkPress={(evt, href) => {
               Linking.openURL(href);
             }}
           />
-        </>
+        </View>
       )}
 
       {/* 부대시설 */}
       {fishing.facilities && (
-        <>
+        <View style={localStyles.sectionWrapper}>
           <View style={localStyles.sectionContainer}>
             <Ionicons
               name="construct-outline"
@@ -169,19 +176,19 @@ const TabSection = ({
           </View>
           <RenderHTML
             contentWidth={width - 32}
-            source={{html: fishing.facilities}}
+            source={{ html: fishing.facilities }}
             tagsStyles={tagsStyles}
             accessible={true}
             onLinkPress={(evt, href) => {
               Linking.openURL(href);
             }}
           />
-        </>
+        </View>
       )}
 
       {/* 주요시설 */}
       {fishing.mainfacilities && (
-        <>
+        <View style={localStyles.sectionWrapper}>
           <View style={localStyles.sectionContainer}>
             <Ionicons
               name="apps-outline"
@@ -193,14 +200,14 @@ const TabSection = ({
           </View>
           <RenderHTML
             contentWidth={width - 32}
-            source={{html: fishing.mainfacilities}}
+            source={{ html: fishing.mainfacilities }}
             tagsStyles={tagsStyles}
             accessible={true}
             onLinkPress={(evt, href) => {
               Linking.openURL(href);
             }}
           />
-        </>
+        </View>
       )}
     </ScrollView>
   );

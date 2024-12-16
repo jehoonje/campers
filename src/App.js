@@ -20,6 +20,7 @@ import EditProfile from './components/MyPage/EditProfile';
 import SignupScreen from './screens/SignupScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import Footer from './components/Footer';
 
 GoogleSignin.configure({
   webClientId:
@@ -130,7 +131,9 @@ const AppContainer = () => {
         }}
         drawerContent={props => <LeftDrawerContent {...props} />}>
         <Drawer.Screen name="Main" component={MainStack} />
+      
       </Drawer.Navigator>
+      <Footer />
     </NavigationContainer>
   );
 };

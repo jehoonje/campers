@@ -57,8 +57,14 @@ const EditProfile = ({navigation}) => {
   };
 
   const handleSaveChanges = async () => {
-    if (userName === '' && !newProfileImage) {
+    if (userName.trim() === '' && !newProfileImage) {
       Alert.alert('변경 사항 없음', '수정할 내용이 없습니다.');
+      return;
+    }
+
+    // 추가 유효성 검사 (예: 이름 길이, 특수 문자 등)
+    if (userName.trim().length < 2) {
+      Alert.alert('유효하지 않은 이름', '이름은 최소 2자 이상이어야 합니다.');
       return;
     }
 
@@ -66,8 +72,8 @@ const EditProfile = ({navigation}) => {
     formData.append('userName', userName);
     if (newProfileImage) {
       formData.append('image', {
-        name: newProfileImage.fileName,
-        type: newProfileImage.type,
+        name: newProfileImage.fileName || `profile_${Date.now()}.jpg`,
+        type: newProfileImage.type || 'image/jpeg',
         uri:
           Platform.OS === 'ios'
             ? newProfileImage.uri.replace('file://', '')
@@ -89,7 +95,15 @@ const EditProfile = ({navigation}) => {
       }
     } catch (error) {
       console.error(error);
-      Alert.alert('저장 실패', '수정된 정보를 저장하는 데 실패했습니다.');
+      if (error.response) {
+        if (error.response.status === 409 || error.response.data === '중복된 닉네임 입니다.') {
+          Alert.alert('저장 실패', '중복된 닉네임 입니다.');
+        } else {
+          Alert.alert('저장 실패', '수정된 정보를 저장하는 데 실패했습니다.');
+        }
+      } else {
+        Alert.alert('저장 실패', '수정된 정보를 저장하는 데 실패했습니다.');
+      }
     }
   };
 

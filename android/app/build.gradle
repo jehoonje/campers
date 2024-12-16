@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 react {
     autolinkLibrariesWithApp()
@@ -28,15 +29,12 @@ android {
         buildConfigField "boolean", "DEBUG", "true"
         manifestPlaceholders = [kakaoScheme: "kakao${kakaoAppKey}"]
 
-
-        // Java 17 호환성 보장 - Java toolchain 사용
         java {
             toolchain {
                 languageVersion = JavaLanguageVersion.of(17)
             }
         }
 
-        // Kotlin JVM 타겟 설정 (Java 17 사용)
         kotlinOptions {
             jvmTarget = "17"
         }
@@ -70,6 +68,8 @@ dependencies {
     implementation("com.facebook.react:react-android")
     implementation("com.google.android.gms:play-services-maps:18.0.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    implementation("com.kakao.sdk:v2-navi:2.12.0")
 
     // Hermes 또는 JSC 선택에 따른 의존성 설정
     if (enableHermes) {

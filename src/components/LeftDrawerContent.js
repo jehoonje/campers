@@ -1,5 +1,5 @@
 // src/components/LeftDrawerContent.js
-import React, {useContext, useState, useEffect} from 'react';
+import React, {useContext, useState, useEffect, useRef} from 'react';
 import {
   View,
   TouchableOpacity,
@@ -8,6 +8,7 @@ import {
   Linking,
   Image,
   Alert,
+  Animated,
 } from 'react-native';
 import {DrawerContentScrollView} from '@react-navigation/drawer';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -22,31 +23,95 @@ const LeftDrawerContent = () => {
   const {isLoggedIn, logout, userId} = useContext(AuthContext);
   const [profileImageUrl, setProfileImageUrl] = useState('');
   const isDrawerOpen = useDrawerStatus() === 'open';
+  const [userName, setUserName] = useState('');
 
+  // Animated values for fading in/out contents
+  const contentOpacity = useRef(new Animated.Value(isLoggedIn ? 1 : 0)).current;
+  const loginPromptOpacity = useRef(new Animated.Value(isLoggedIn ? 0 : 1)).current;
+
+  // Fetch user data when drawer is open and user is logged in
   useEffect(() => {
     if (isDrawerOpen && isLoggedIn) {
       axiosInstance
         .get(`/users/${userId}`)
         .then(response => {
-          console.log(
-            '서버에서 받은 프로필 이미지:',
-            response.data.profileImageUrl,
-          );
-          if (response.data.profileImageUrl) {
-            setProfileImageUrl(response.data.profileImageUrl);
-          } else {
-            setProfileImageUrl(null);
-          }
+          console.log('서버에서 받은 프로필 이미지:', response.data.profileImageUrl);
+          setProfileImageUrl(response.data.profileImageUrl || null);
+          setUserName(response.data.userName || '');
+
+          // Fade in profile content and fade out login prompt
+          Animated.parallel([
+            Animated.timing(contentOpacity, {
+              toValue: 1,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(loginPromptOpacity, {
+              toValue: 0,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+          ]).start();
         })
         .catch(error => {
           console.error('Error fetching profile image:', error);
           setProfileImageUrl(null);
+          setUserName('');
+
+          // Fade out profile content and fade in login prompt
+          Animated.parallel([
+            Animated.timing(contentOpacity, {
+              toValue: 0,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(loginPromptOpacity, {
+              toValue: 1,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+          ]).start();
         });
     }
   }, [isDrawerOpen, isLoggedIn, userId]);
 
+  // Handle login state changes
+  useEffect(() => {
+    if (!isLoggedIn) {
+      // Fade out profile content and fade in login prompt
+      Animated.parallel([
+        Animated.timing(contentOpacity, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(loginPromptOpacity, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setProfileImageUrl('');
+        setUserName('');
+      });
+    } else {
+      // Fade in profile content and fade out login prompt
+      Animated.parallel([
+        Animated.timing(contentOpacity, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(loginPromptOpacity, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isLoggedIn]);
+
   const handleLogout = () => {
-    setProfileImageUrl(null);
     logout();
   };
 
@@ -76,16 +141,24 @@ const LeftDrawerContent = () => {
   return (
     <DrawerContentScrollView contentContainerStyle={styles.drawerContainer}>
       <View style={styles.content}>
-        {/* 프로필 이미지 */}
+        {/* 프로필 컨테이너는 항상 렌더링 */}
         <View style={styles.profileContainer}>
-          <Image
-            source={
-              profileImageUrl && profileImageUrl !== ''
-                ? {uri: profileImageUrl}
-                : require('../assets/placeholder.png')
-            }
-            style={styles.profileImage}
-          />
+          {/* 로그인된 상태의 프로필 이미지와 유저네임 */}
+          <Animated.View style={[styles.profileContent, { opacity: contentOpacity, position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }]}>
+            <Image
+              source={
+                profileImageUrl && profileImageUrl !== ''
+                  ? {uri: profileImageUrl}
+                  : require('../assets/placeholder.png')
+              }
+              style={styles.profileImage}
+            />
+          </Animated.View>
+
+          {/* 로그인되지 않은 상태의 메시지 */}
+          <Animated.View style={[styles.loginPromptContainer, { opacity: loginPromptOpacity, position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }]}>
+            <CustomText style={styles.loginPrompt}>campridge</CustomText>
+          </Animated.View>
         </View>
 
         {/* 마이프로필 버튼 */}
@@ -123,8 +196,6 @@ const LeftDrawerContent = () => {
           <Ionicons name="mail" size={24} color="#333" style={styles.icon} />
           <CustomText style={styles.menuText}>이메일 보내기</CustomText>
         </TouchableOpacity>
-
-
 
         {/* 구분선 */}
         <View style={styles.divider} />
@@ -178,29 +249,60 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'space-between',
     backgroundColor: '#f5f5f5',
-    paddingVertical: 10,
+    paddingVertical: 20,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 5,
   },
   profileContainer: {
+    alignItems: 'center', // 수직 중앙 정렬
+    flexDirection: 'row',
+    justifyContent: 'flex-start', // 왼쪽 정렬
+    backgroundColor: '#eeeeee',
+    borderRadius: 10,
+    marginBottom: 10,
+    position: 'relative', // 자식 요소의 절대 위치 지정 가능
+    height: 100, // 컨테이너의 높이를 고정하여 레이아웃 일관성 유지
+  },
+  profileContent: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    marginTop: 20,
+    justifyContent:'center',
+    paddingHorizontal: 20,
+    // position: 'absolute', // 부모에서 이미 절대 위치 지정
+  },
+  loginPromptContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loginPrompt: {
+    fontSize: 14,
+    fontWeight: '300',
+    color: '#d9d9d9',
   },
   profileImage: {
     width: 70,
     height: 70,
+    opacity: 0.9,
     borderRadius: 35,
+    marginRight: 15, // 이미지와 텍스트 사이 간격 확보
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#555',
   },
   menuButton: {
     flexDirection: 'row',
+    paddingHorizontal: 10,
     alignItems: 'center',
     marginTop: 18,
     marginBottom: 10,
   },
   usButton: {
     flexDirection: 'row',
+    paddingHorizontal: 10,
     alignItems: 'center',
     marginTop: 28,
     marginBottom: 10,
@@ -218,6 +320,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     flexDirection: 'row',
+    paddingHorizontal: 10,
     alignItems: 'center',
     marginTop: 16,
   },
@@ -229,6 +332,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     flexDirection: 'row',
+    paddingHorizontal: 10,
     alignItems: 'center',
     marginTop: 16,
   },
@@ -241,18 +345,19 @@ const styles = StyleSheet.create({
   icon: {
     marginRight: 10,
   },
+  footer: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+  },
   footerText: {
     fontSize: 16,
     marginBottom: 2,
-    alignSelf: 'flex-end',
-    paddingRight: 10,
     color: '#F5F7F8',
   },
   versionText: {
     fontSize: 12,
     color: '#495E57',
-    alignSelf: 'flex-end',
-    paddingRight: 10,
   },
 });
 

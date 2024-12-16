@@ -37,7 +37,7 @@ body {
 /* 팝업의 기본 스타일 제거 및 커스텀 스타일 적용 */
 .custom-popup .leaflet-popup-content-wrapper {
   width: 120px; /* 팝업 너비 설정 */
-  border-radius: 0 !important; /* border-radius 제거 */
+  border-radius: 20 !important; /* border-radius 제거 */
   /* box-shadow: none !important; 그림자 제거 */
   padding: 0 !important; /* 패딩 제거 */
   background-color: rgb(100, 100, 100, 0.3);
@@ -58,7 +58,8 @@ body {
 /* 팝업 내부 콘텐츠 스타일 */
 .popup-content {
   display: flex;
-  border-radius: 10 !important; 
+  border-radius: 5px !important; /* 팝업 내부 컨텐츠도 둥글게 */
+  overflow: hidden; /* border-radius 적용을 위해 이미지가 영역을 넘지 않도록 */
   flex-direction: column;
   align-items: center;
   width: 120px; /* 팝업 너비 설정 */

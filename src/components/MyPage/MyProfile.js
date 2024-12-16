@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   profileContainer: {
     marginTop: 80,
-    marginBottom: 60,
+    marginBottom: 30,
     alignItems: 'center',
   },
   profileImage: {
@@ -214,15 +214,18 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   button: {
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    borderRadius: 5,
-    borderWidth: 0.5,
-    borderColor: '#333',
+    backgroundColor: '#fafafa',
+    paddingVertical: 10,
+    borderBottomRightRadius: 5,
+    borderTopRightRadius: 5,
+    borderRightWidth: 0.5,
+    borderBottomWidth: 0.5,
+    borderRightColor: '#bbb',
+    borderBottomColor: '#bbb',
     alignItems: 'center',
   },
   buttonText: {
-    color: '#333',
+    color: '#555',
     fontSize: 16,
   },
 });
