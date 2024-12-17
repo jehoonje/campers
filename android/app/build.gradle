@@ -47,6 +47,12 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('../../campridge.keystore')
+            storePassword 'wpgnsvpqnr12'
+            keyAlias 'campridge-alias'
+            keyPassword 'wpgnsvpqnr12'
+        }
     }
 
     buildTypes {
@@ -54,10 +60,16 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
-            minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+            // Proguard 설정이 필요하면 추가
         }
+        // release {
+        //     signingConfig signingConfigs.debug
+        //     minifyEnabled enableProguardInReleaseBuilds
+        //     proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        // }
     }
 }
 
@@ -78,5 +90,11 @@ dependencies {
         implementation jscFlavor
     }
 }
+tasks.whenTaskAdded { task ->
+    if (task.name == 'extractDeepLinksRelease') {
+        task.dependsOn 'processReleaseGoogleServices'
+    }
+}
+
 
 apply plugin: 'com.google.gms.google-services'

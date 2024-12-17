@@ -35,7 +35,7 @@
 
       /* Leaflet 크레딧 표시를 기존 위치에서 30px 위로 이동 */
       .leaflet-control-attribution {
-        bottom: 30px !important;
+        bottom: 25px !important;
         color: '#000' !important;
       }
     </style>
@@ -160,14 +160,67 @@
           map = L.map('map', {
             renderer: L.canvas(), // 캔버스 렌더링 사용
             zoomControl: false,
+            attributionControl: false,
           }).setView(initialLocation, 13); // 초기 줌 레벨을 5로 설정하여 지도가 보이도록 함
 
           var tileLayer = L.tileLayer(
             'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
             {
+              attribution: '',
+            },
+            {
               maxZoom: 19,
             },
           ).addTo(map);
+
+          const customAttribution = L.control.attribution({
+            prefix: false, // 기본 Leaflet 로고 제거
+          });
+
+          // 사용자 정의 어트리뷰션 내용 추가 (Leaflet과 OpenStreetMap 링크 포함)
+          customAttribution.addAttribution(
+            '<a href="https://leafletjs.com/">Leaflet</a> | &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+          );
+
+          customAttribution.addTo(map);
+
+          // 어트리뷰션 링크 클릭 시 새 창에서 열기
+          document
+            .querySelectorAll('.leaflet-control-attribution a')
+            .forEach(function (link) {
+              link.addEventListener('click', function (e) {
+                e.preventDefault(); // 기본 동작(팝업 열기) 방지
+                const href = this.getAttribute('href');
+                window.open(href, '_blank'); // 새 창에서 열기
+              });
+            });
+
+          // 완전히 투명한 커스텀 축소 버튼 컨트롤 추가
+          var invisibleZoomOutButton = L.control({position: 'topleft'});
+
+          invisibleZoomOutButton.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'invisible-zoom-button');
+            // 절대 위치로 설정하고, 60px 아래로 내리기
+            div.style.position = 'absolute';
+            div.style.top = '60px';
+            div.style.left = '0px';
+            div.style.width = '30px';
+            div.style.height = '30px';
+            div.style.cursor = 'pointer';
+            // 완전 투명 처리
+            div.style.background = 'transparent';
+            div.style.opacity = '0';
+
+            // 클릭 시 지도 축소
+            L.DomEvent.on(div, 'click', function (e) {
+              L.DomEvent.stopPropagation(e);
+              map.zoomOut();
+            });
+
+            return div;
+          };
+
+          invisibleZoomOutButton.addTo(map);
 
           map.whenReady(() => {
             console.log('Map is ready.');
@@ -814,7 +867,7 @@
                 var marker = L.marker([lat, lng], {icon: campgroundIcon});
 
                 const imgFromWeb =
-                  'https://postfiles.pstatic.net/MjAyNDEwMjlfMTE0/MDAxNzMwMTg4MTk0NzAz.aujaQoD0TK7EGC7Y9VMYtgVm27fBbHunpJ-51Hz4iXEg.qMV7uhYtMF79dFAH_I6GW9kJyS3O58KTBTFPs1ntfP0g.PNG/campsite.png?type=w966';
+                  'https://github.com/jehoonje/jehoonje/blob/main/images/Images_2/campsite.png?raw=true';
 
                 // 팝업 콘텐츠 생성
                 var popupContent = `

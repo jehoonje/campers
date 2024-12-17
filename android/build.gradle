@@ -17,7 +17,7 @@ buildscript {
         classpath("com.android.tools.build:gradle:7.6")
         classpath("com.facebook.react:react-native-gradle-plugin:0.75.3")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion") // ext에서 정의한 kotlinVersion 사용\
-        classpath 'com.google.gms:google-services:4.3.10'
+        classpath 'com.google.gms:google-services:4.3.15'
     }
 }
 

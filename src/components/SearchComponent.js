@@ -5,11 +5,11 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  Text,
   StyleSheet,
   Alert,
 } from 'react-native';
 import axiosInstance from '../utils/axiosInstance'; // axiosInstance 사용
+import CustomText from './CustomText';
 
 const SearchComponent = ({navigation}) => {
   const [query, setQuery] = useState('');
@@ -108,8 +108,8 @@ const SearchComponent = ({navigation}) => {
     <TouchableOpacity
       onPress={() => goToDetail(item)}
       style={styles.resultItem}>
-      <Text style={styles.resultText}>{item.title}</Text>
-      <Text style={styles.addrText}>{item.addr}</Text>
+      <CustomText style={styles.resultText}>{item.title}</CustomText>
+      <CustomText style={styles.addrText}>{item.addr}</CustomText>
     </TouchableOpacity>
   );
 
